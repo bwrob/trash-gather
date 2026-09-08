@@ -89,6 +89,11 @@ format-check:
 lint:
     clang-tidy src/*.c tests/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
+# Install development dependencies via Homebrew Brewfile (macOS)
+install-deps:
+    brew bundle
+
+
 
 
 
