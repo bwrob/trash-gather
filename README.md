@@ -38,7 +38,9 @@ This project uses [`just`](https://github.com/casey/just) to automate developmen
 
 | Command | Description |
 | :--- | :--- |
+| `just all` | Run tests, build the sandbox app, and generate `compile_commands.json` |
 | `just test` | Run the unit test suite via µnit with ASan/UBSan and `bootlib` leak tracking |
+| `just test-list` | List all available unit tests |
 | `just test-filter <pattern>` | Run only tests matching a name prefix/pattern |
 | `just coverage` | Measure line coverage using `gcov` / `llvm-cov` |
 | `just bench` | Compile and run Google Benchmark microbenchmarks |
@@ -57,6 +59,9 @@ This project uses [`just`](https://github.com/casey/just) to automate developmen
 | `just compiledb` | Regenerate `compile_commands.json` for clangd |
 | `just install-deps` | Install all macOS dev dependencies via Homebrew |
 | `just setup-hooks` | Install pre-commit git hooks |
+
+> [!NOTE]
+> On macOS, `just install-deps` installs `llvm` via Homebrew which provides `clang-tidy`, but it is keg-only. You must add it to your PATH: `export PATH="/opt/homebrew/opt/llvm/bin:$PATH"`
 
 ---
 

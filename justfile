@@ -11,12 +11,14 @@ COV_FLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined --coverage 
 BIN_DIR := "bin"
 
 # Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
-DOC_LINT_DIRS := "vendor/bootlib bench tests"
+DOC_LINT_DIRS := "include vendor/bootlib bench tests"
 
 # Benchmark Configuration (Google Benchmark / C++)
 BENCH_CXX := "clang++"
-BENCH_FLAGS := "-O3 -std=c++17 -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib -I/opt/homebrew/opt/google-benchmark/include"
-BENCH_LIBS := "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"
+BREW_BENCH_INC := `pkg-config --cflags-only-I benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/include ]; then echo "-I/opt/homebrew/opt/google-benchmark/include"; elif [ -d /usr/local/opt/google-benchmark/include ]; then echo "-I/usr/local/opt/google-benchmark/include"; fi`
+BREW_BENCH_LIB := `pkg-config --libs benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/lib ]; then echo "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"; else echo "-lbenchmark -pthread"; fi`
+BENCH_FLAGS := "-O3 -std=c++17 -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib " + BREW_BENCH_INC
+BENCH_LIBS := BREW_BENCH_LIB
 
 # ==============================================================================
 
@@ -64,14 +66,24 @@ test-list: test-build
 
 # Run tests matching a specific pattern or prefix (e.g. `just test-filter trace` or `just test-filter stack`)
 test-filter pattern: test-build
-    ./{{BIN_DIR}}/test_runner $(./{{BIN_DIR}}/test_runner --list | grep "{{pattern}}")
+    @TESTS=$$(./{{BIN_DIR}}/test_runner --list | grep "{{pattern}}"); \
+    if [ -z "$$TESTS" ]; then \
+        echo "No tests matched pattern: '{{pattern}}'"; exit 1; \
+    else \
+        ./{{BIN_DIR}}/test_runner $$TESTS; \
+    fi
 
 # Run interactive LLDB debugger on test suite with --no-fork (or on matching test pattern)
 debug filter="": test-build
     @if [ -z "{{filter}}" ]; then \
         lldb -- ./{{BIN_DIR}}/test_runner --no-fork; \
     else \
-        lldb -- ./{{BIN_DIR}}/test_runner --no-fork $(./{{BIN_DIR}}/test_runner --list | grep "{{filter}}"); \
+        TESTS=$$(./{{BIN_DIR}}/test_runner --list | grep "{{filter}}"); \
+        if [ -z "$$TESTS" ]; then \
+            echo "No tests matched pattern: '{{filter}}'"; exit 1; \
+        else \
+            lldb -- ./{{BIN_DIR}}/test_runner --no-fork $$TESTS; \
+        fi; \
     fi
 
 # Continuous watch mode: auto-recompiles and tests on any .c/.h/.py file save
@@ -128,11 +140,11 @@ compiledb:
 
 # Format all C/C++ source and header files using clang-format
 format:
-    find src tests bench -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format -i
+    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format -i
 
 # Check formatting without modifying files
 format-check:
-    find src tests bench -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format --dry-run --Werror
+    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format --dry-run --Werror
 
 # Check Python code formatting, linting, and types (ruff & pyrefly)
 lint-py:
@@ -149,9 +161,12 @@ format-py:
 lint-docs:
     uv run python scripts/lint_docstrings.py {{DOC_LINT_DIRS}}
 
-# Run static analysis using clang-tidy, docstring linter, and Python checks
-lint: lint-docs lint-py
+# Run static analysis on C source files using clang-tidy
+lint-c:
     clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+
+# Run static analysis using clang-tidy, docstring linter, and Python checks
+lint: lint-c lint-docs lint-py
 
 # Install development dependencies via Homebrew Brewfile (macOS)
 install-deps:

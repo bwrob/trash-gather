@@ -67,3 +67,4 @@ __pycache__/
 *.py[cod]
 .ruff_cache/
 .pyrefly/
+.DS_Store

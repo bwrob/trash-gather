@@ -183,7 +183,9 @@ def lint_file_docstrings(file_path: str) -> int:
 
                 if (
                     not is_munit
-                    and not line.startswith(("void ", "static void ", "void\t"))
+                    and not line.startswith(
+                        ("void ", "static void ", "inline void ", "extern void ", "void\t")
+                    )
                     and ("@return" not in comment_block and "@returns" not in comment_block)
                 ):
                     print(

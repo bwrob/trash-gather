@@ -33,10 +33,13 @@ jobs:
 
       - name: Run Static Analysis (clang-tidy)
         # clang-tidy is not in pre-commit (too slow); lint-docs/tests are already run above
-        run: clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+        run: just lint-c
 
       - name: Build Main Binary
         run: just build
+
+      - name: Verify Benchmark Build
+        run: just bench-objs
 
       - name: Measure Code Coverage (gcov)
         run: just coverage

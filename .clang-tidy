@@ -17,5 +17,5 @@ Checks: '
   -cppcoreguidelines-*
 '
 WarningsAsErrors: ''
-HeaderFilterRegex: 'src/.*'
+HeaderFilterRegex: '^(src|include)/.*'
 FormatStyle: 'file'

@@ -15,9 +15,17 @@ def generate_compile_commands():
         "gcc -Wall -Wextra -std=c99 -g -fsanitize=address,undefined "
         "-Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h"
     )
+    bench_paths = [
+        "/opt/homebrew/opt/google-benchmark/include",
+        "/usr/local/opt/google-benchmark/include",
+        "/usr/include",
+        "/usr/local/include",
+    ]
+    extra_inc = " ".join(["-I" + p for p in bench_paths if os.path.isdir(p)])
+
     bench_flags = (
         "clang++ -O3 -std=c++17 -fsanitize=address,undefined "
-        "-Iinclude -Isrc -Ivendor/bootlib -I/opt/homebrew/opt/google-benchmark/include"
+        f"-Iinclude -Isrc -Ivendor/bootlib {extra_inc}"
     )
 
     entries = []
@@ -34,10 +42,11 @@ def generate_compile_commands():
 
     for src in sorted(c_files):
         rel_path = os.path.relpath(src, workspace_root)
+        cmd = cflags if "munit.c" not in src else cflags.replace(" -include bootlib.h", "")
         entries.append(
             {
                 "directory": workspace_root,
-                "command": f"{cflags} -c {rel_path}",
+                "command": f"{cmd} -c {rel_path}",
                 "file": rel_path,
             }
         )
