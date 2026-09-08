@@ -17,6 +17,8 @@ This project is a direct continuation and expansion of the **Memory Management &
 
 While the initial codebase established a baseline Mark-and-Sweep garbage collection runtime for Sneklang, this repository is actively expanding into advanced runtime mechanics:
 
+- **Interactive Memory & GC REPL**: Live terminal CLI (`just run`) to allocate objects, push/pop stack frames, reference handles, and trigger GC passes interactively.
+- **ASCII Heap Visualizer & Object Inspector**: Real-time visual tree inspection of stack frame roots, object reference graphs, and reachable vs unreachable heap states.
 - **New Data Structures & Containers**: Custom hash maps, doubly linked lists, and dynamic buffer slices.
 - **Expanded Object System**: Tuples, dictionaries, function objects, and environment closures.
 - **Garbage Collection Algorithms**:
@@ -25,6 +27,7 @@ While the initial codebase established a baseline Mark-and-Sweep garbage collect
   - Mark-Compact & Copying collectors
   - Reference Counting with cycle detection
 - **Tooling & Safety**: Strict AddressSanitizer/UBSan verification, leak detection, and micro-benchmarking.
+
 
 ---
 
