@@ -41,8 +41,12 @@ def run_clang_documentation_check(c_files, cpp_files):
 
     if cpp_files:
         print("=== Running Clang++ -Wdocumentation Linting (C++) ===")
-        bench_inc = "/opt/homebrew/opt/google-benchmark/include"
-        extra_inc = ["-I" + bench_inc] if os.path.isdir(bench_inc) else []
+        bench_paths = [
+            "/opt/homebrew/opt/google-benchmark/include",
+            "/usr/include",
+            "/usr/local/include",
+        ]
+        extra_inc = ["-I" + p for p in bench_paths if os.path.isdir(p)]
 
         cmd_cpp = [
             "clang++",
@@ -58,7 +62,11 @@ def run_clang_documentation_check(c_files, cpp_files):
 
         res_cpp = subprocess.run(cmd_cpp, capture_output=True, text=True)
         if res_cpp.returncode != 0 or res_cpp.stderr:
-            doc_warnings = [line for line in res_cpp.stderr.splitlines() if "warning:" in line or "error:" in line]
+            # Filter out missing external header errors (e.g. benchmark/benchmark.h if not installed)
+            doc_warnings = [
+                line for line in res_cpp.stderr.splitlines()
+                if ("warning:" in line or "error:" in line) and "file not found" not in line
+            ]
             if doc_warnings:
                 print("\n".join(doc_warnings))
                 errors += len(doc_warnings)
