@@ -25,6 +25,7 @@ indent-style = "space"
 [tool.pyrefly]
 # Only check project scripts, not vendor/venv
 project-includes = ["scripts/**/*.py"]
+preset = "strict"
 
 [dependency-groups]
 dev = [

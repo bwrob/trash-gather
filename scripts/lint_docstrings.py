@@ -11,7 +11,7 @@ import subprocess
 import sys
 
 
-def run_clang_documentation_check(c_files, cpp_files):
+def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> int:
     """Run clang/clang++ with -Wdocumentation flags to catch Doxygen syntax/command errors."""
     errors = 0
 
@@ -85,7 +85,7 @@ def run_clang_documentation_check(c_files, cpp_files):
     return errors
 
 
-def lint_file_docstrings(file_path):
+def lint_file_docstrings(file_path: str) -> int:
     """Verify presence and tag completeness (@brief, @param, @return) for declarations/definitions."""
     print(f"\n=== Linting Doxygen Docstrings in {os.path.basename(file_path)} ===")
     errors = 0
@@ -201,7 +201,7 @@ def lint_file_docstrings(file_path):
     return errors
 
 
-def discover_files(input_paths):
+def discover_files(input_paths: list[str]) -> tuple[list[str], list[str]]:
     """Discover C/C++ header, source, and benchmark files from input paths."""
     c_files = []
     cpp_files = []
