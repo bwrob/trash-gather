@@ -60,6 +60,14 @@
 #define assert_null_2(ptr, msg) munit_assert_null(ptr)
 #define assert_null(...) GET_ASSERT_NULL_MACRO(__VA_ARGS__, assert_null_2, assert_null_1)(__VA_ARGS__)
 
+#ifdef assert_ptr_equal
+#undef assert_ptr_equal
+#endif
+#define GET_ASSERT_PTR_EQ_MACRO(_1, _2, _3, NAME, ...) NAME
+#define assert_ptr_eq_2(a, b) munit_assert_ptr_equal(a, b)
+#define assert_ptr_eq_3(a, b, msg) munit_assert_ptr_equal(a, b)
+#define assert_ptr_equal(...) GET_ASSERT_PTR_EQ_MACRO(__VA_ARGS__, assert_ptr_eq_3, assert_ptr_eq_2)(__VA_ARGS__)
+
 // Memory tracking declarations
 void *boot_malloc(size_t size, const char *file, int line);
 void boot_free(void *ptr);
