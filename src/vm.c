@@ -37,7 +37,7 @@ void mark() {
   for (size_t i = 0; i < CURRENT_VM->frames->count; i++) {
     frame_t *frame = CURRENT_VM->frames->data[i];
     for (size_t j = 0; j < frame->references->count; j++) {
-      void *obj_ = CURRENT_VM->objects->data[j];
+      void *obj_ = frame->references->data[j];
       if (obj_ == NULL) {
         continue;
       }
@@ -139,8 +139,9 @@ void vm_free() {
   stack_free(CURRENT_VM->frames);
 
   // Free the objects, and then their container
-  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
-    void *obj_ = CURRENT_VM->objects->data[i];
+  // Looping from the top to free parents before children
+  for (size_t i = CURRENT_VM->objects->count; i > 0; i--) {
+    void *obj_ = CURRENT_VM->objects->data[i - 1];
     if (obj_ == NULL) {
       continue;
     }
@@ -181,4 +182,12 @@ void frame_free(frame_t *frame) {
 
 void vm_track_object(object_t *obj) {
   stack_push(CURRENT_VM->objects, obj);
+  obj->tracker_id = (CURRENT_VM->objects->count) - 1;
+}
+
+void vm_untrack_object(object_t *obj) {
+  if (obj->tracker_id < CURRENT_VM->objects->count &&
+      CURRENT_VM->objects->data[obj->tracker_id] == obj) {
+    CURRENT_VM->objects->data[obj->tracker_id] = NULL;
+  }
 }

@@ -1,6 +1,7 @@
 #include "object.h"
 
 #include "new.h"
+#include "vm.h"
 
 #include <string.h>
 
@@ -26,6 +27,8 @@ void refcount_dec(object_t *obj) {
 }
 
 void object_free(object_t *obj) {
+  // If this object was tracked in the VM object list, clear its entry
+
   switch (obj->kind) {
   case INTEGER:
   case FLOAT:
@@ -49,7 +52,7 @@ void object_free(object_t *obj) {
     break;
   }
   }
-
+  vm_untrack_object(obj);
   free(obj);
 }
 

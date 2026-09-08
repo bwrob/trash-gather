@@ -70,3 +70,17 @@ The tooling setup aims to provide a **professional-grade development environment
 - **`uv`** manages the Python environment reproducibly via `pyproject.toml` + `uv.lock`.
 - **GitHub Actions CI** mirrors the local pre-commit checks and adds `clang-tidy` + coverage, so nothing passes locally that would fail in CI.
 - **`Brewfile`** makes onboarding a single `brew bundle` command.
+
+---
+
+## 📚 6. Role 4: Educational Knowledge Retention (`lessons/`)
+
+Because this is an educational solo learning project, retaining and structuring knowledge is just as important as the code:
+
+- **One Lesson per Milestone / MR**: Every Merge Request (MR), pull request, or milestone branch must correspond to one educational lesson file inside `lessons/` (e.g. `lessons/01_mark_and_sweep_basics.md`, `lessons/02_hybrid_gc_and_desneking.md`).
+- **Content Requirements**: Each lesson must capture:
+  1. Underlying system concepts and architecture trade-offs.
+  2. Bugs, pitfalls, and edge cases discovered (e.g. ASan use-after-free, namespace collisions).
+  3. Mental models and solutions developed.
+  4. Tooling insights and debugging strategies.
+- **AI Agent Directive**: AI agents must actively assist in documenting, synthesizing, and maintaining the `lessons/` directory so the human developer has a durable, structured record of everything learned throughout the journey.

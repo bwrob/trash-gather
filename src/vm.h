@@ -15,26 +15,20 @@ typedef struct StackFrame {
   vm_stack_t *references;
 } frame_t;
 
-/// Our main functions for garbage collection.
 void mark();
 void trace();
 void sweep();
 
 void vm_collect_garbage();
 
-/// Helper functions for `trace`
 void trace_blacken_object(vm_stack_t *gray_objects, object_t *ref);
 void trace_mark_object(vm_stack_t *gray_objects, object_t *ref);
 
-/// This is the function that gets called to actually do the garbage collection,
-/// but is just composed of `mark`, `trace`, and `sweep`.
-///
-/// Don't worry, it's not going to delete your code (hopefully!)
-
-/// Already implemented
 void vm_new(void);
 void vm_free();
+
 void vm_track_object(object_t *obj);
+void vm_untrack_object(object_t *obj);
 
 frame_t *vm_new_frame();
 void vm_frame_push(frame_t *frame);

@@ -67,11 +67,11 @@ test-list: test-build
 
 # Run tests matching a specific pattern or prefix (e.g. `just test-filter trace` or `just test-filter stack`)
 test-filter pattern: test-build
-    @TESTS=$$(./{{BIN_DIR}}/test_runner --list | grep "{{pattern}}"); \
-    if [ -z "$$TESTS" ]; then \
+    @TESTS=$(./{{BIN_DIR}}/test_runner --list | grep "{{pattern}}"); \
+    if [ -z "$TESTS" ]; then \
         echo "No tests matched pattern: '{{pattern}}'"; exit 1; \
     else \
-        ./{{BIN_DIR}}/test_runner $$TESTS; \
+        ./{{BIN_DIR}}/test_runner $TESTS; \
     fi
 
 # Run interactive LLDB debugger on test suite with --no-fork (or on matching test pattern)
@@ -79,11 +79,11 @@ debug filter="": test-build
     @if [ -z "{{filter}}" ]; then \
         lldb -- ./{{BIN_DIR}}/test_runner --no-fork; \
     else \
-        TESTS=$$(./{{BIN_DIR}}/test_runner --list | grep "{{filter}}"); \
-        if [ -z "$$TESTS" ]; then \
+        TESTS=$(./{{BIN_DIR}}/test_runner --list | grep "{{filter}}"); \
+        if [ -z "$TESTS" ]; then \
             echo "No tests matched pattern: '{{filter}}'"; exit 1; \
         else \
-            lldb -- ./{{BIN_DIR}}/test_runner --no-fork $$TESTS; \
+            lldb -- ./{{BIN_DIR}}/test_runner --no-fork $TESTS; \
         fi; \
     fi
 

@@ -37,6 +37,8 @@ typedef union ObjectData {
 struct Object {
   bool is_marked;
   size_t refcount;
+  size_t tracker_id;
+
   object_kind_t kind;
   object_data_t data;
 };
