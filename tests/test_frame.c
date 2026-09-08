@@ -6,6 +6,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+munit_case(RUN, test_vm_new_frame, {
+  vm_t *vm = vm_new();
+  frame_t *frame = vm_new_frame(vm);
+  assert_ptr(frame->references, !=, NULL,
+             "frame->references must be allocated");
+  assert_int(frame->references->count, ==, 0,
+             "references stack should start empty");
+  assert(frame->references->capacity >
+         0); // references stack must have capacity > 0
+  assert_ptr(frame->references->data, !=, NULL,
+             "references stack backing array must be allocated");
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
 munit_case(RUN, test_one_ref, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);
@@ -38,6 +53,7 @@ munit_case(SUBMIT, test_multi_ref, {
 });
 
 MunitTest frame_tests[] = {
+    munit_test("/vm_new_frame", test_vm_new_frame),
     munit_test("/one_ref", test_one_ref),
     munit_test("/multi_ref", test_multi_ref),
     munit_null_test,
