@@ -34,3 +34,13 @@ When writing or updating unit tests in `tests/`:
   - Circular object references and unreachable cycles
   - Double frees and memory leaks
 - **Enforce Verification**: Ensure tests check assertion outcomes strictly and verify zero memory leaks via `boot_all_freed()`.
+
+---
+
+## ⚡ 4. Role 3: Performance Benchmarking Mandate
+
+AI agents are fully authorized to create, edit, maintain, and expand performance benchmarks in `bench/`:
+
+- **Google Benchmark Suite**: Write and update benchmarks in `bench/` (e.g. `bench/bench_gc.cpp`) to measure allocation throughput, memory fragmentation, pointer traversal overhead, and GC pause durations.
+- **Stress Workloads**: Construct benchmarks representing real-world allocation patterns (e.g. high-churn short-lived objects, deep object trees, large array graphs, and 100% root retention vs 0% retention).
+- **Performance Insights**: Help the developer evaluate trade-offs between different Garbage Collection algorithms and data structure designs using benchmark data.
