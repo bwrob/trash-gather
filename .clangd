@@ -1,0 +1,4 @@
+CompileFlags:
+  CompilationDatabase: "."
+  Add:
+    - "-Wno-unknown-warning-option"

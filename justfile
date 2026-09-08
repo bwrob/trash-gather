@@ -20,8 +20,8 @@ BENCH_LIBS := "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"
 
 # ==============================================================================
 
-# Build all binaries
-all: test build
+# Build all binaries and generate compile_commands.json
+all: test build compiledb
 
 # Create build output directory
 [private]
@@ -42,8 +42,8 @@ src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
 
-# Compile and run unit tests
-test: src-objs munit-obj
+# Compile test runner binary
+test-build: src-objs munit-obj
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
@@ -53,7 +53,34 @@ test: src-objs munit-obj
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
     {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_snekobject.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_sneknew.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
+
+# Run all unit tests
+test: test-build
     ./{{BIN_DIR}}/test_runner
+
+# List all available unit tests
+test-list: test-build
+    ./{{BIN_DIR}}/test_runner --list
+
+# Run tests matching a specific pattern or prefix (e.g. `just test-filter trace` or `just test-filter stack`)
+test-filter pattern: test-build
+    ./{{BIN_DIR}}/test_runner $(./{{BIN_DIR}}/test_runner --list | grep "{{pattern}}")
+
+# Run interactive LLDB debugger on test suite with --no-fork (or on matching test pattern)
+debug filter="": test-build
+    @if [ -z "{{filter}}" ]; then \
+        lldb -- ./{{BIN_DIR}}/test_runner --no-fork; \
+    else \
+        lldb -- ./{{BIN_DIR}}/test_runner --no-fork $(./{{BIN_DIR}}/test_runner --list | grep "{{filter}}"); \
+    fi
+
+# Continuous watch mode: auto-recompiles and tests on any .c/.h file save
+watch:
+    watchexec -e c,h,cpp "just test"
+
+# Inspect OS-level memory leaks on macOS
+leaks: test-build
+    leaks --atExit -- ./{{BIN_DIR}}/test_runner
 
 # Measure line coverage using gcov / llvm-cov
 coverage: mkdir-bin
@@ -90,9 +117,13 @@ build: src-objs
 run: build
     ./{{BIN_DIR}}/main_app
 
-# Remove build artifacts
+# Remove build artifacts and temporary files
 clean:
     rm -rf {{BIN_DIR}} *.gcov
+
+# Generate compile_commands.json for clangd / language server intelligence
+compiledb:
+    python3 scripts/gen_compile_commands.py
 
 # Format all C source and header files using clang-format
 format:
@@ -125,7 +156,7 @@ bench-objs: mkdir-bin
 
 # Compile and run Google Benchmark performance benchmarks
 bench: bench-objs
-    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
+    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BIN_DIR}}/bench_bootlib.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
     ./{{BIN_DIR}}/bench_runner
 
 # Install local Git pre-commit hook (format-check, docstring lint & test verification)
