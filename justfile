@@ -89,10 +89,13 @@ format-check:
     find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
 
 
-# Run static analysis using clang-tidy (strictly on src/ files, ignoring vendor and tests)
-lint:
-    clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+# Run docstring linting for vendor/bootlib
+lint-docs:
+    python3 scripts/lint_docstrings.py
 
+# Run static analysis using clang-tidy and docstring linter
+lint: lint-docs
+    clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
 # Install development dependencies via Homebrew Brewfile (macOS)
 install-deps:
@@ -117,12 +120,13 @@ bench: bench-objs
     {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
     ./{{BIN_DIR}}/bench_runner
 
-# Install local Git pre-commit hook (format-check & test verification)
+# Install local Git pre-commit hook (format-check, docstring lint & test verification)
 setup-hooks:
     @mkdir -p .git/hooks
     @echo '#!/bin/sh' > .git/hooks/pre-commit
-    @echo 'echo "=== [Pre-commit Hook] Verifying format and running tests ==="' >> .git/hooks/pre-commit
+    @echo 'echo "=== [Pre-commit Hook] Verifying format, docstrings, and running tests ==="' >> .git/hooks/pre-commit
     @echo 'just format-check || { echo "[Pre-commit Error] Formatting check failed! Run '\''just format'\'' to fix."; exit 1; }' >> .git/hooks/pre-commit
+    @echo 'just lint-docs || { echo "[Pre-commit Error] Docstring linting failed!"; exit 1; }' >> .git/hooks/pre-commit
     @echo 'just test || { echo "[Pre-commit Error] Unit tests failed!"; exit 1; }' >> .git/hooks/pre-commit
     @chmod +x .git/hooks/pre-commit
     @echo "Git pre-commit hook successfully installed to .git/hooks/pre-commit!"
