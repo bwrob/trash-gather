@@ -36,17 +36,15 @@ typedef union SnekObjectData {
 
 struct SnekObject {
   bool is_marked;
-
+  size_t refcount;
   snek_object_kind_t kind;
   snek_object_data_t data;
 };
 
-struct VirtualMachine;
-
+void refcount_inc(snek_object_t *obj);
+void refcount_dec(snek_object_t *obj);
 void snek_object_free(snek_object_t *obj);
 
 bool snek_array_set(snek_object_t *array, size_t index, snek_object_t *value);
 snek_object_t *snek_array_get(snek_object_t *array, size_t index);
-
-snek_object_t *snek_add(struct VirtualMachine *vm, snek_object_t *a,
-                        snek_object_t *b);
+snek_object_t *snek_add(snek_object_t *a, snek_object_t *b);

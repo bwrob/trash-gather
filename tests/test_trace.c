@@ -17,13 +17,13 @@
  * @brief Test pointer graph tracing through 3D vector object references.
  */
 munit_case(RUN, test_trace_vector, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
+  vm_new();
+  frame_t *frame = vm_new_frame();
 
-  snek_object_t *x = new_snek_integer(vm, 5);
-  snek_object_t *y = new_snek_integer(vm, 5);
-  snek_object_t *z = new_snek_integer(vm, 5);
-  snek_object_t *vector = new_snek_vector3(vm, x, y, z);
+  snek_object_t *x = new_snek_integer(5);
+  snek_object_t *y = new_snek_integer(5);
+  snek_object_t *z = new_snek_integer(5);
+  snek_object_t *vector = new_snek_vector3(x, y, z);
 
   // nothing is marked
   assert_false(x->is_marked);
@@ -34,20 +34,20 @@ munit_case(RUN, test_trace_vector, {
   // After referencing and marking, the
   // vector should be marked, but not the contents
   frame_reference_object(frame, vector);
-  mark(vm);
+  mark();
   assert_true(vector->is_marked);
   assert_false(x->is_marked);
   assert_false(y->is_marked);
   assert_false(z->is_marked);
 
   // After tracing, the contents should be marked
-  trace(vm);
+  trace();
   assert_true(vector->is_marked);
   assert_true(x->is_marked);
   assert_true(y->is_marked);
   assert_true(z->is_marked);
 
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 
@@ -55,12 +55,12 @@ munit_case(RUN, test_trace_vector, {
  * @brief Test pointer graph tracing through array element object references.
  */
 munit_case(SUBMIT, test_trace_array, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
+  vm_new();
+  frame_t *frame = vm_new_frame();
 
-  snek_object_t *devs = new_snek_array(vm, 2);
-  snek_object_t *lane = new_snek_string(vm, "Lane");
-  snek_object_t *teej = new_snek_string(vm, "Teej");
+  snek_object_t *devs = new_snek_array(2);
+  snek_object_t *lane = new_snek_string("Lane");
+  snek_object_t *teej = new_snek_string("Teej");
   snek_array_set(devs, 0, lane);
   snek_array_set(devs, 1, teej);
 
@@ -72,18 +72,18 @@ munit_case(SUBMIT, test_trace_array, {
   // After referencing and marking, the
   // array should be marked, but not the contents
   frame_reference_object(frame, devs);
-  mark(vm);
+  mark();
   assert_true(devs->is_marked);
   assert_false(lane->is_marked);
   assert_false(teej->is_marked);
 
   // After tracing, the contents should be marked
-  trace(vm);
+  trace();
   assert_true(devs->is_marked);
   assert_true(lane->is_marked);
   assert_true(teej->is_marked);
 
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 
@@ -91,32 +91,32 @@ munit_case(SUBMIT, test_trace_array, {
  * @brief Test pointer graph tracing through deeply nested arrays of arrays.
  */
 munit_case(SUBMIT, test_trace_nested, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
+  vm_new();
+  frame_t *frame = vm_new_frame();
 
-  snek_object_t *bootdevs = new_snek_array(vm, 2);
-  snek_object_t *lane = new_snek_string(vm, "Lane");
-  snek_object_t *hunter = new_snek_string(vm, "Hunter");
+  snek_object_t *bootdevs = new_snek_array(2);
+  snek_object_t *lane = new_snek_string("Lane");
+  snek_object_t *hunter = new_snek_string("Hunter");
   snek_array_set(bootdevs, 0, lane);
   snek_array_set(bootdevs, 1, hunter);
 
-  snek_object_t *terminaldevs = new_snek_array(vm, 4);
-  snek_object_t *prime = new_snek_string(vm, "Prime");
-  snek_object_t *teej = new_snek_string(vm, "Teej");
-  snek_object_t *dax = new_snek_string(vm, "Dax");
-  snek_object_t *adam = new_snek_string(vm, "Adam");
+  snek_object_t *terminaldevs = new_snek_array(4);
+  snek_object_t *prime = new_snek_string("Prime");
+  snek_object_t *teej = new_snek_string("Teej");
+  snek_object_t *dax = new_snek_string("Dax");
+  snek_object_t *adam = new_snek_string("Adam");
   snek_array_set(terminaldevs, 0, prime);
   snek_array_set(terminaldevs, 1, teej);
   snek_array_set(terminaldevs, 2, dax);
   snek_array_set(terminaldevs, 3, adam);
 
-  snek_object_t *alldevs = new_snek_array(vm, 2);
+  snek_object_t *alldevs = new_snek_array(2);
   snek_array_set(alldevs, 0, bootdevs);
   snek_array_set(alldevs, 1, terminaldevs);
 
   frame_reference_object(frame, alldevs);
-  mark(vm);
-  trace(vm);
+  mark();
+  trace();
 
   assert_true(bootdevs->is_marked);
   assert_true(lane->is_marked);
@@ -128,7 +128,7 @@ munit_case(SUBMIT, test_trace_nested, {
   assert_true(adam->is_marked);
   assert_true(alldevs->is_marked);
 
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 
@@ -137,9 +137,9 @@ munit_case(SUBMIT, test_trace_nested, {
  * marked.
  */
 munit_case(SUBMIT, test_trace_mark_object_already_marked, {
-  vm_t *vm = vm_new();
+  vm_new();
   stack_t *gray_objects = stack_new(8);
-  snek_object_t *obj = new_snek_integer(vm, 7);
+  snek_object_t *obj = new_snek_integer(7);
 
   assert_not_null(gray_objects, "must allocate gray object stack");
   assert_not_null(obj, "must allocate object");
@@ -151,7 +151,7 @@ munit_case(SUBMIT, test_trace_mark_object_already_marked, {
               "already-marked objects must not be pushed");
 
   stack_free(gray_objects);
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 
@@ -160,17 +160,17 @@ munit_case(SUBMIT, test_trace_mark_object_already_marked, {
  * unmarked after tracing.
  */
 munit_case(SUBMIT, test_trace_unreachable_cycle, {
-  vm_t *vm = vm_new();
-  snek_object_t *unreachable = new_snek_array(vm, 1);
+  vm_new();
+  snek_object_t *unreachable = new_snek_array(1);
 
   snek_array_set(unreachable, 0, unreachable);
 
-  mark(vm);
-  trace(vm);
+  mark();
+  trace();
 
   assert_false(unreachable->is_marked);
 
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 

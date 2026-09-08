@@ -28,12 +28,15 @@ jobs:
       - name: Install Python dependencies
         run: uv sync
 
-      - name: Run Pre-commit Checks (Ruff, Pyrefly, Clang-Format, Docs, Tests)
+      - name: Run Pre-commit Checks (Ruff, Pyrefly, Clang-Format, Docs)
         run: uv run pre-commit run --all-files
 
       - name: Run Static Analysis (clang-tidy)
-        # clang-tidy is not in pre-commit (too slow); lint-docs/tests are already run above
+        # clang-tidy is not in pre-commit (too slow)
         run: just lint-c
+
+      - name: Run Unit Tests
+        run: just test
 
       - name: Build Main Binary
         run: just build

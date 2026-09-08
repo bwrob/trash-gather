@@ -4,6 +4,27 @@
 
 #include <string.h>
 
+void refcount_inc(snek_object_t *obj) {
+  if (obj == NULL) {
+    return;
+  }
+
+  obj->refcount++;
+  return;
+}
+
+void refcount_dec(snek_object_t *obj) {
+  if (obj == NULL) {
+    return;
+  }
+  obj->refcount--;
+  if (obj->refcount == 0) {
+    snek_object_free(obj);
+    return;
+  }
+  return;
+}
+
 void snek_object_free(snek_object_t *obj) {
   switch (obj->kind) {
   case INTEGER:
@@ -13,12 +34,18 @@ void snek_object_free(snek_object_t *obj) {
     free(obj->data.v_string);
     break;
   case VECTOR3: {
+    snek_vector_t vec = obj->data.v_vector3;
+    refcount_dec(vec.x);
+    refcount_dec(vec.y);
+    refcount_dec(vec.z);
     break;
   }
   case ARRAY: {
-    snek_array_t *array = &obj->data.v_array;
-    free(array->elements);
-
+    snek_array_t arr = obj->data.v_array;
+    for (size_t i = 0; i < arr.size; i++) {
+      refcount_dec(arr.elements[i]);
+    }
+    free(arr.elements);
     break;
   }
   }
@@ -39,7 +66,12 @@ bool snek_array_set(snek_object_t *array, size_t index, snek_object_t *value) {
     return false;
   }
 
+  if (array->data.v_array.elements[index] != NULL) {
+    refcount_dec(array->data.v_array.elements[index]);
+  }
+
   array->data.v_array.elements[index] = value;
+  refcount_inc(value);
   return true;
 }
 
@@ -60,7 +92,7 @@ snek_object_t *snek_array_get(snek_object_t *array, size_t index) {
   return array->data.v_array.elements[index];
 }
 
-snek_object_t *snek_add(vm_t *vm, snek_object_t *a, snek_object_t *b) {
+snek_object_t *snek_add(snek_object_t *a, snek_object_t *b) {
   if (a == NULL || b == NULL) {
     return NULL;
   }
@@ -69,18 +101,18 @@ snek_object_t *snek_add(vm_t *vm, snek_object_t *a, snek_object_t *b) {
   case INTEGER:
     switch (b->kind) {
     case INTEGER:
-      return new_snek_integer(vm, a->data.v_int + b->data.v_int);
+      return new_snek_integer(a->data.v_int + b->data.v_int);
     case FLOAT:
-      return new_snek_float(vm, (float)a->data.v_int + b->data.v_float);
+      return new_snek_float((float)a->data.v_int + b->data.v_float);
     default:
       return NULL;
     }
   case FLOAT:
     switch (b->kind) {
     case FLOAT:
-      return new_snek_float(vm, a->data.v_float + b->data.v_float);
+      return new_snek_float(a->data.v_float + b->data.v_float);
     default:
-      return snek_add(vm, b, a);
+      return snek_add(b, a);
     }
   case STRING:
     switch (b->kind) {
@@ -94,7 +126,7 @@ snek_object_t *snek_add(vm_t *vm, snek_object_t *a, snek_object_t *b) {
       strcat(dst, a->data.v_string);
       strcat(dst, b->data.v_string);
 
-      snek_object_t *obj = new_snek_string(vm, dst);
+      snek_object_t *obj = new_snek_string(dst);
       free(dst);
 
       return obj;
@@ -106,9 +138,9 @@ snek_object_t *snek_add(vm_t *vm, snek_object_t *a, snek_object_t *b) {
     switch (b->kind) {
     case VECTOR3:
       return new_snek_vector3(
-          vm, snek_add(vm, a->data.v_vector3.x, b->data.v_vector3.x),
-          snek_add(vm, a->data.v_vector3.y, b->data.v_vector3.y),
-          snek_add(vm, a->data.v_vector3.z, b->data.v_vector3.z));
+          snek_add(a->data.v_vector3.x, b->data.v_vector3.x),
+          snek_add(a->data.v_vector3.y, b->data.v_vector3.y),
+          snek_add(a->data.v_vector3.z, b->data.v_vector3.z));
     default:
       return NULL;
     }
@@ -119,7 +151,7 @@ snek_object_t *snek_add(vm_t *vm, snek_object_t *a, snek_object_t *b) {
       size_t b_len = b->data.v_array.size;
       size_t length = a_len + b_len;
 
-      snek_object_t *array = new_snek_array(vm, length);
+      snek_object_t *array = new_snek_array(length);
 
       for (size_t i = 0; i < a_len; i++) {
         snek_array_set(array, i, snek_array_get(a, i));

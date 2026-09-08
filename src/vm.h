@@ -16,11 +16,11 @@ typedef struct StackFrame {
 } frame_t;
 
 /// Our main functions for garbage collection.
-void mark(vm_t *vm);
-void trace(vm_t *vm);
-void sweep(vm_t *vm);
+void mark();
+void trace();
+void sweep();
 
-void vm_collect_garbage(vm_t *vm);
+void vm_collect_garbage();
 
 /// Helper functions for `trace`
 void trace_blacken_object(stack_t *gray_objects, snek_object_t *ref);
@@ -32,15 +32,16 @@ void trace_mark_object(stack_t *gray_objects, snek_object_t *ref);
 /// Don't worry, it's not going to delete your code (hopefully!)
 
 /// Already implemented
-vm_t *vm_new(void);
-void vm_free(vm_t *vm);
-void vm_track_object(vm_t *vm, snek_object_t *obj);
+void vm_new(void);
+void vm_free();
+void vm_track_object(snek_object_t *obj);
 
-frame_t *vm_new_frame(vm_t *vm);
-void vm_frame_push(vm_t *vm, frame_t *frame);
-frame_t *vm_frame_pop(vm_t *vm);
+frame_t *vm_new_frame();
+void vm_frame_push(frame_t *frame);
+frame_t *vm_frame_pop();
 
 void frame_free(frame_t *frame);
 
 // Marks the object as referenced in the current stack frame.
 void frame_reference_object(frame_t *frame, snek_object_t *obj);
+vm_t *vm_get_current(void);
