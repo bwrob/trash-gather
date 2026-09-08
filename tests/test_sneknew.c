@@ -1,3 +1,9 @@
+/**
+ * @file test_sneknew.c
+ * @brief Unit tests for object allocation constructors (integers, floats,
+ * strings, vectors, arrays) and failure injection.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 #include "sneknew.h"
@@ -7,6 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Test allocating positive integer objects.
+ */
 munit_case(RUN, test_positive_integer, {
   vm_t *vm = vm_new();
   snek_object_t *int_object = new_snek_integer(vm, 42);
@@ -16,6 +25,9 @@ munit_case(RUN, test_positive_integer, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test allocating zero integer objects.
+ */
 munit_case(RUN, test_zero_integer, {
   vm_t *vm = vm_new();
   snek_object_t *int_object = new_snek_integer(vm, 0);
@@ -27,6 +39,9 @@ munit_case(RUN, test_zero_integer, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test allocating negative integer objects.
+ */
 munit_case(SUBMIT, test_negative_integer, {
   vm_t *vm = vm_new();
   snek_object_t *int_object = new_snek_integer(vm, -5);
@@ -38,6 +53,9 @@ munit_case(SUBMIT, test_negative_integer, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test allocating floating-point objects.
+ */
 munit_case(RUN, test_float_object, {
   vm_t *vm = vm_new();
   snek_object_t *float_object = new_snek_float(vm, 3.14f);
@@ -49,6 +67,9 @@ munit_case(RUN, test_float_object, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test allocating copied string objects.
+ */
 munit_case(RUN, test_string_object, {
   vm_t *vm = vm_new();
   snek_object_t *string_object = new_snek_string(vm, "Hello Snek");
@@ -61,6 +82,9 @@ munit_case(RUN, test_string_object, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test allocating 3D vector objects referencing component objects.
+ */
 munit_case(RUN, test_vector3_object, {
   vm_t *vm = vm_new();
   snek_object_t *x = new_snek_integer(vm, 1);
@@ -77,6 +101,9 @@ munit_case(RUN, test_vector3_object, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test vector allocation safety when passed NULL component references.
+ */
 munit_case(RUN, test_vec_returns_null, {
   vm_t *vm = vm_new();
   snek_object_t *vec = new_snek_vector3(vm, NULL, NULL, NULL);
@@ -87,6 +114,9 @@ munit_case(RUN, test_vec_returns_null, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test vector object reference identity across multiple objects.
+ */
 munit_case(RUN, test_vec_multiple_objects, {
   vm_t *vm = vm_new();
   snek_object_t *x = new_snek_integer(vm, 1);
@@ -110,6 +140,9 @@ munit_case(RUN, test_vec_multiple_objects, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test vector object sharing identical reference across dimensions.
+ */
 munit_case(SUBMIT, test_vec_same_object, {
   vm_t *vm = vm_new();
   snek_object_t *i = new_snek_integer(vm, 1);
@@ -138,6 +171,9 @@ munit_case(SUBMIT, test_vec_same_object, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test allocating non-empty array objects.
+ */
 munit_case(RUN, test_array_object, {
   vm_t *vm = vm_new();
   snek_object_t *arr = new_snek_array(vm, 5);
@@ -153,6 +189,9 @@ munit_case(RUN, test_array_object, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test allocating zero-sized empty array objects.
+ */
 munit_case(RUN, test_array_empty, {
   vm_t *vm = vm_new();
   snek_object_t *arr = new_snek_array(vm, 0);
@@ -164,6 +203,9 @@ munit_case(RUN, test_array_empty, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test memory allocation failure simulation across object constructors.
+ */
 munit_case(RUN, test_alloc_failures, {
   vm_t *vm = vm_new();
 

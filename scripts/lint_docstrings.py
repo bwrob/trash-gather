@@ -109,15 +109,25 @@ def lint_file_docstrings(file_path):
             i += 1
             continue
 
-        # Prototype or function definition matcher
+        # Prototype or function definition matcher (including munit_case test wrappers)
         proto_match = re.match(
-            r'^(?!typedef\b)(?:static\s+)?(?:const\s+)?(?:[a-zA-Z0-9_]+\s+\*?|\*[a-zA-Z0-9_]+\s+)([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(?:;|\{)',
+            r'^(?!typedef\b)(?!return\b)(?:static\s+)?(?:const\s+)?(?:[a-zA-Z0-9_]+\s+\*?|\*[a-zA-Z0-9_]+\s+)([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(?:;|\{)',
             line
         )
-        if proto_match:
+        munit_match = re.match(r'^munit_case\s*\(\s*[A-Z_]+\s*,\s*([a-zA-Z0-9_]+)', line)
+
+        func_name = None
+        params_raw = ""
+        is_munit = False
+
+        if munit_match:
+            func_name = munit_match.group(1)
+            is_munit = True
+        elif proto_match:
             func_name = proto_match.group(1)
             params_raw = proto_match.group(2).strip()
 
+        if func_name:
             # Ignore main entrypoints and macro constructs like BENCHMARK(...)
             if func_name not in ("main", "BENCHMARK", "BENCHMARK_MAIN"):
                 j = i - 1
@@ -145,14 +155,14 @@ def lint_file_docstrings(file_path):
                         print(f"ERROR: {file_path}:{i+1}: Docstring for '{func_name}' lacks a @brief tag or description.")
                         errors += 1
 
-                    if params_raw and params_raw != "void":
+                    if not is_munit and params_raw and params_raw != "void":
                         param_list = [p.strip().split()[-1].lstrip("*&") for p in params_raw.split(",") if p.strip()]
                         for p_name in param_list:
                             if not re.search(r"@param\s+(?:\[[^\]]+\]\s+)?" + re.escape(p_name) + r"\b", comment_block):
                                 print(f"ERROR: {file_path}:{i+1}: Docstring for '{func_name}' missing '@param {p_name}'.")
                                 errors += 1
 
-                    if not line.startswith("void ") and not line.startswith("static void ") and not line.startswith("void\t"):
+                    if not is_munit and not line.startswith("void ") and not line.startswith("static void ") and not line.startswith("void\t"):
                         if "@return" not in comment_block and "@returns" not in comment_block:
                             print(f"ERROR: {file_path}:{i+1}: Docstring for '{func_name}' missing '@return' tag.")
                             errors += 1

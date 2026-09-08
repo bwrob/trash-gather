@@ -1,3 +1,9 @@
+/**
+ * @file test_snekobject.c
+ * @brief Unit tests for snekobject field properties, array bounds/mutation, and
+ * polymorphic addition operations.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 #include "sneknew.h"
@@ -7,6 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Test existence of marking flags on allocated objects.
+ */
 munit_case(RUN, test_field_exists, {
   vm_t *vm = vm_new();
   snek_object_t *lane_courses = new_snek_integer(vm, 20);
@@ -17,6 +26,9 @@ munit_case(RUN, test_field_exists, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test that newly allocated objects are unmarked by default.
+ */
 munit_case(SUBMIT, test_marked_is_false, {
   vm_t *vm = vm_new();
   snek_object_t *lane_courses = new_snek_integer(vm, 20);
@@ -27,9 +39,15 @@ munit_case(SUBMIT, test_marked_is_false, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test integer type enum constant definition.
+ */
 munit_case(RUN, test_integer_constant,
            { assert_int(INTEGER, ==, 0, "INTEGER is defined as 0"); });
 
+/**
+ * @brief Test raw integer object structure initialization.
+ */
 munit_case(RUN, test_integer_obj, {
   snek_object_t *obj = malloc(sizeof(snek_object_t));
   obj->kind = INTEGER;
@@ -40,6 +58,9 @@ munit_case(RUN, test_integer_obj, {
   free(obj);
 });
 
+/**
+ * @brief Test array object creation with specified element capacity.
+ */
 munit_case(RUN, test_create_empty_array, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_array(vm, 2);
@@ -51,6 +72,9 @@ munit_case(RUN, test_create_empty_array, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test zero-initialization of allocated array slots.
+ */
 munit_case(SUBMIT, test_used_calloc, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_array(vm, 2);
@@ -62,6 +86,9 @@ munit_case(SUBMIT, test_used_calloc, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test setting elements within valid array index bounds.
+ */
 munit_case(RUN, test_array_set, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_array(vm, 2);
@@ -80,6 +107,9 @@ munit_case(RUN, test_array_set, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test array set rejection for out-of-bounds indices.
+ */
 munit_case(RUN, test_array_set_outside_bounds, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_array(vm, 2);
@@ -95,6 +125,9 @@ munit_case(RUN, test_array_set_outside_bounds, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test array set error handling for NULL pointers or non-array inputs.
+ */
 munit_case(SUBMIT, test_array_set_rejects_invalid_inputs, {
   vm_t *vm = vm_new();
   snek_object_t *array = new_snek_array(vm, 1);
@@ -109,6 +142,9 @@ munit_case(SUBMIT, test_array_set_rejects_invalid_inputs, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test retrieving elements from populated array slots.
+ */
 munit_case(RUN, test_array_get, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_array(vm, 2);
@@ -132,6 +168,9 @@ munit_case(RUN, test_array_get, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test retrieving elements from uninitialized empty array slots.
+ */
 munit_case(RUN, test_array_get_empty_slot, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_array(vm, 2);
@@ -142,6 +181,9 @@ munit_case(RUN, test_array_get_empty_slot, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test array get rejection for out-of-bounds indices.
+ */
 munit_case(SUBMIT, test_array_get_outside_bounds, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_array(vm, 1);
@@ -154,6 +196,9 @@ munit_case(SUBMIT, test_array_get_outside_bounds, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test array get rejection for NULL or non-array inputs.
+ */
 munit_case(SUBMIT, test_array_get_rejects_invalid_inputs, {
   vm_t *vm = vm_new();
   snek_object_t *not_array = new_snek_integer(vm, 5);
@@ -165,6 +210,9 @@ munit_case(SUBMIT, test_array_get_rejects_invalid_inputs, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test adding integer objects together.
+ */
 munit_case(RUN, test_add_integers, {
   vm_t *vm = vm_new();
   snek_object_t *a = new_snek_integer(vm, 10);
@@ -179,6 +227,10 @@ munit_case(RUN, test_add_integers, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test polymorphic addition promoting integer and float operands to
+ * float.
+ */
 munit_case(RUN, test_add_integer_and_float, {
   vm_t *vm = vm_new();
   snek_object_t *a = new_snek_integer(vm, 5);
@@ -198,6 +250,9 @@ munit_case(RUN, test_add_integer_and_float, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test adding float objects together.
+ */
 munit_case(RUN, test_add_floats, {
   vm_t *vm = vm_new();
   snek_object_t *a = new_snek_float(vm, 1.5f);
@@ -212,6 +267,9 @@ munit_case(RUN, test_add_floats, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test concatenating string objects together.
+ */
 munit_case(RUN, test_add_strings, {
   vm_t *vm = vm_new();
   snek_object_t *a = new_snek_string(vm, "Hello ");
@@ -226,6 +284,9 @@ munit_case(RUN, test_add_strings, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test component-wise addition of 3D vector objects.
+ */
 munit_case(RUN, test_add_vectors, {
   vm_t *vm = vm_new();
   snek_object_t *x1 = new_snek_integer(vm, 1);
@@ -250,6 +311,9 @@ munit_case(RUN, test_add_vectors, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test array concatenation via addition operator.
+ */
 munit_case(RUN, test_add_arrays, {
   vm_t *vm = vm_new();
   snek_object_t *arr1 = new_snek_array(vm, 2);
@@ -275,6 +339,9 @@ munit_case(RUN, test_add_arrays, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test addition rejection for invalid or mismatched object types.
+ */
 munit_case(RUN, test_add_invalid_mismatched, {
   vm_t *vm = vm_new();
   snek_object_t *i = new_snek_integer(vm, 1);

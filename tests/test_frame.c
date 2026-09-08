@@ -1,3 +1,9 @@
+/**
+ * @file test_frame.c
+ * @brief Unit tests for Virtual Machine stack frame creation and object
+ * reference tracking.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 #include "sneknew.h"
@@ -7,6 +13,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Test creating a new VM stack frame and verifying initial stack
+ * allocation.
+ */
 munit_case(RUN, test_vm_new_frame, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);
@@ -22,6 +32,9 @@ munit_case(RUN, test_vm_new_frame, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test referencing a single object within a stack frame.
+ */
 munit_case(RUN, test_one_ref, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);
@@ -36,6 +49,9 @@ munit_case(RUN, test_one_ref, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test referencing multiple distinct objects within a stack frame.
+ */
 munit_case(SUBMIT, test_multi_ref, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);

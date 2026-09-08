@@ -89,8 +89,8 @@ format-check:
     find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
 
 
-# Run docstring linting (specify directories to scan, e.g. vendor/bootlib bench)
-DOC_LINT_DIRS := "vendor/bootlib bench"
+# Run docstring linting (specify directories to scan, e.g. vendor/bootlib bench tests)
+DOC_LINT_DIRS := "vendor/bootlib bench tests"
 
 lint-docs:
     python3 scripts/lint_docstrings.py {{DOC_LINT_DIRS}}

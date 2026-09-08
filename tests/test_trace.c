@@ -1,3 +1,9 @@
+/**
+ * @file test_trace.c
+ * @brief Unit tests for garbage collector pointer graph tracing phase across
+ * vectors, arrays, nested graphs, and unreachable cycles.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 #include "sneknew.h"
@@ -7,6 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Test pointer graph tracing through 3D vector object references.
+ */
 munit_case(RUN, test_trace_vector, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);
@@ -42,6 +51,9 @@ munit_case(RUN, test_trace_vector, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test pointer graph tracing through array element object references.
+ */
 munit_case(SUBMIT, test_trace_array, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);
@@ -75,6 +87,9 @@ munit_case(SUBMIT, test_trace_array, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test pointer graph tracing through deeply nested arrays of arrays.
+ */
 munit_case(SUBMIT, test_trace_nested, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);
@@ -117,6 +132,10 @@ munit_case(SUBMIT, test_trace_nested, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test that trace_mark_object skips pushing objects that are already
+ * marked.
+ */
 munit_case(SUBMIT, test_trace_mark_object_already_marked, {
   vm_t *vm = vm_new();
   stack_t *gray_objects = stack_new(8);
@@ -136,6 +155,10 @@ munit_case(SUBMIT, test_trace_mark_object_already_marked, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test that unreachable self-referential cyclic structures remain
+ * unmarked after tracing.
+ */
 munit_case(SUBMIT, test_trace_unreachable_cycle, {
   vm_t *vm = vm_new();
   snek_object_t *unreachable = new_snek_array(vm, 1);

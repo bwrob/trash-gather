@@ -1,3 +1,9 @@
+/**
+ * @file test_mark.c
+ * @brief Unit tests for garbage collector root marking phase across single and
+ * multiple stack frames.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 #include "sneknew.h"
@@ -7,6 +13,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Test root marking behavior for objects referenced within a single
+ * stack frame.
+ */
 munit_case(RUN, test_single_frame, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);
@@ -31,6 +41,9 @@ munit_case(RUN, test_single_frame, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test root marking behavior across multiple stack frames.
+ */
 munit_case(SUBMIT, test_multi_frame, {
   vm_t *vm = vm_new();
   frame_t *frame = vm_new_frame(vm);

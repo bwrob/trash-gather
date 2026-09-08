@@ -1,3 +1,9 @@
+/**
+ * @file test_stack.c
+ * @brief Unit tests for generic pointer stack allocation, dynamic capacity
+ * doubling, heterogenous push/pop, and memory safety.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 #include "stack.h"
@@ -7,6 +13,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief Helper pushing mixed pointer and cast int values onto a stack.
+ * @param s Target stack instance.
+ */
 static void scary_double_push(stack_t *s) {
   stack_push(s, (void *)(uintptr_t)1337);
   int *p = malloc(sizeof(int));
@@ -14,6 +24,11 @@ static void scary_double_push(stack_t *s) {
   stack_push(s, p);
 }
 
+/**
+ * @brief Helper pushing dynamically allocated float and string pointers onto a
+ * stack.
+ * @param s Target stack instance.
+ */
 static void stack_push_multiple_types(stack_t *s) {
   float *f = malloc(sizeof(float));
   *f = 3.14f;
@@ -24,6 +39,9 @@ static void stack_push_multiple_types(stack_t *s) {
   stack_push(s, str);
 }
 
+/**
+ * @brief Test creating a small stack instance with initial capacity.
+ */
 munit_case(RUN, create_stack_small, {
   stack_t *s = stack_new(3);
   assert_int(s->capacity, ==, 3, "Sets capacity to 3");
@@ -34,6 +52,9 @@ munit_case(RUN, create_stack_small, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test creating a large stack instance with high initial capacity.
+ */
 munit_case(SUBMIT, create_stack_large, {
   stack_t *s = stack_new(100);
   assert_int(s->capacity, ==, 100, "Sets capacity to 100");
@@ -44,6 +65,10 @@ munit_case(SUBMIT, create_stack_large, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test verifying total allocation byte size of stack structure and
+ * backing array.
+ */
 munit_case(SUBMIT, create_stack_allocation_size, {
   size_t capacity = 5;
   stack_t *s = stack_new(capacity);
@@ -58,6 +83,9 @@ munit_case(SUBMIT, create_stack_allocation_size, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test basic stack push operation within initial capacity bounds.
+ */
 munit_case(RUN, push_stack, {
   stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
@@ -79,6 +107,9 @@ munit_case(RUN, push_stack, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test dynamic capacity doubling when pushing beyond capacity limit.
+ */
 munit_case(RUN, push_double_capacity, {
   stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
@@ -108,6 +139,9 @@ munit_case(RUN, push_double_capacity, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test order preservation when pushing multiple distinct elements.
+ */
 munit_case(SUBMIT, push_multiple_values, {
   stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
@@ -130,6 +164,9 @@ munit_case(SUBMIT, push_multiple_values, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test LIFO (last-in, first-out) popping behavior.
+ */
 munit_case(RUN, pop_stack, {
   stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
@@ -168,6 +205,9 @@ munit_case(RUN, pop_stack, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test pop safety when stack is completely empty.
+ */
 munit_case(SUBMIT, pop_stack_empty, {
   stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
@@ -183,6 +223,9 @@ munit_case(SUBMIT, pop_stack_empty, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test pushing heterogenous pointer and integer value types onto stack.
+ */
 munit_case(RUN, heterogenous_stack, {
   stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
@@ -201,6 +244,9 @@ munit_case(RUN, heterogenous_stack, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test storing multiple distinct memory pointer types on a single stack.
+ */
 munit_case(RUN, multiple_types_stack, {
   stack_t *s = stack_new(4);
   assert_ptr_not_null(s, "Must allocate a new stack");
@@ -220,11 +266,18 @@ munit_case(RUN, multiple_types_stack, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test stack_free handling when passed NULL pointer.
+ */
 munit_case(RUN, free_stack_null, {
   stack_free(NULL);
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test stack creation failure handling under simulated allocation
+ * failures.
+ */
 munit_case(RUN, stack_alloc_failures, {
   boot_set_fail_alloc_after(0);
   assert_null(stack_new(5));

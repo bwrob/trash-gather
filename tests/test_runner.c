@@ -1,3 +1,9 @@
+/**
+ * @file test_runner.c
+ * @brief Master µnit test suite runner aggregating all GC, stack, frame, and
+ * object unit test suites.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 

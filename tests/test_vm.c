@@ -1,3 +1,9 @@
+/**
+ * @file test_vm.c
+ * @brief Unit tests for Virtual Machine lifecycle, mark-and-sweep garbage
+ * collection passes, and allocation safety.
+ */
+
 #include "bootlib.h"
 #include "munit.h"
 #include "sneknew.h"
@@ -7,6 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Test basic garbage collection pass on a single stack frame.
+ */
 munit_case(RUN, test_simple, {
   vm_t *vm = vm_new();
   frame_t *f1 = vm_new_frame(vm);
@@ -26,6 +35,10 @@ munit_case(RUN, test_simple, {
   assert_true(boot_all_freed());
 });
 
+/**
+ * @brief Test full mark-and-sweep garbage collection across multiple stack
+ * frames and nested objects.
+ */
 munit_case(SUBMIT, test_full, {
   vm_t *vm = vm_new();
   frame_t *f1 = vm_new_frame(vm);
@@ -77,6 +90,9 @@ munit_case(SUBMIT, test_full, {
   assert_true(boot_all_freed());
 });
 
+/**
+ * @brief Test automatic cleanup of unreferenced objects when vm_free is called.
+ */
 munit_case(RUN, test_reference_object, {
   vm_t *vm = vm_new();
   new_snek_integer(vm, 5);
@@ -85,6 +101,9 @@ munit_case(RUN, test_reference_object, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test array object deallocation during vm_free.
+ */
 munit_case(RUN, test_array_freed, {
   vm_t *vm = vm_new();
   new_snek_array(vm, 3);
@@ -92,6 +111,9 @@ munit_case(RUN, test_array_freed, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test stack frame deallocation during vm_free.
+ */
 munit_case(SUBMIT, test_frames_are_freed, {
   vm_t *vm = vm_new();
   vm_new_frame(vm);
@@ -99,6 +121,10 @@ munit_case(SUBMIT, test_frames_are_freed, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test virtual machine initialization and internal stack/object pool
+ * allocation.
+ */
 munit_case(RUN, test_vm_new, {
   vm_t *vm = vm_new();
   assert_ptr_not_null(vm->frames, "frames must not be NULL");
@@ -107,6 +133,9 @@ munit_case(RUN, test_vm_new, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test object tracking registration upon creation in VM pool.
+ */
 munit_case(RUN, test_new_object, {
   vm_t *vm = vm_new();
   snek_object_t *obj = new_snek_integer(vm, 5);
@@ -116,6 +145,9 @@ munit_case(RUN, test_new_object, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Test virtual machine allocation failure simulation.
+ */
 munit_case(RUN, test_vm_alloc_failures, {
   for (int i = 0; i <= 4; i++) {
     boot_set_fail_alloc_after(i);
