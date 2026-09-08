@@ -93,6 +93,27 @@ lint:
 install-deps:
     brew bundle
 
+BENCH_CXX := "clang++"
+BENCH_FLAGS := "-O3 -std=c++17 -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib -I/opt/homebrew/opt/google-benchmark/include"
+BENCH_LIBS := "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"
+
+
+# Compile src objects for benchmarks (without bootlib override)
+[private]
+bench-objs: mkdir-bin
+    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bench_bootlib.o
+    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/sneknew.c -o {{BIN_DIR}}/bench_sneknew.o
+    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/snekobject.c -o {{BIN_DIR}}/bench_snekobject.o
+    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/stack.c -o {{BIN_DIR}}/bench_stack.o
+    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/vm.c -o {{BIN_DIR}}/bench_vm.o
+
+# Compile and run Google Benchmark performance benchmarks
+bench: bench-objs
+    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
+    ./{{BIN_DIR}}/bench_runner
+
+
+
 
 
 
