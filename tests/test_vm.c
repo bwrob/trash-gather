@@ -76,14 +76,8 @@ munit_case(SUBMIT, test_full, {
   assert_true(boot_all_freed());
 });
 
-int main(int argc, char *argv[]) {
-  MunitTest tests[] = {
-      munit_test("/test_simple", test_simple),
-      munit_test("/test_full", test_full),
-      munit_null_test,
-  };
-
-  MunitSuite suite = munit_suite("mark-and-sweep", tests);
-
-  return munit_suite_main(&suite, NULL, argc, argv);
-}
+MunitTest vm_tests[] = {
+    munit_test("/simple", test_simple),
+    munit_test("/full", test_full),
+    munit_null_test,
+};

@@ -27,7 +27,7 @@
 #define munit_suite(name, tests) \
   (MunitSuite){ (char*)(name), (tests), NULL, 1, MUNIT_SUITE_OPTION_NONE }
 
-// Support 3 or 4 arguments for assert_int (ignoring optional msg in standard munit)
+// Variadic assertion macros supporting optional message parameters
 #ifdef assert_int
 #undef assert_int
 #endif
@@ -35,6 +35,30 @@
 #define assert_int_3(a, op, b) munit_assert_int(a, op, b)
 #define assert_int_4(a, op, b, msg) munit_assert_int(a, op, b)
 #define assert_int(...) GET_ASSERT_INT_MACRO(__VA_ARGS__, assert_int_4, assert_int_3)(__VA_ARGS__)
+
+#ifdef assert_size
+#undef assert_size
+#endif
+#define GET_ASSERT_SIZE_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+#define assert_size_3(a, op, b) munit_assert_size(a, op, b)
+#define assert_size_4(a, op, b, msg) munit_assert_size(a, op, b)
+#define assert_size(...) GET_ASSERT_SIZE_MACRO(__VA_ARGS__, assert_size_4, assert_size_3)(__VA_ARGS__)
+
+#ifdef assert_not_null
+#undef assert_not_null
+#endif
+#define GET_ASSERT_NOT_NULL_MACRO(_1, _2, NAME, ...) NAME
+#define assert_not_null_1(ptr) munit_assert_not_null(ptr)
+#define assert_not_null_2(ptr, msg) munit_assert_not_null(ptr)
+#define assert_not_null(...) GET_ASSERT_NOT_NULL_MACRO(__VA_ARGS__, assert_not_null_2, assert_not_null_1)(__VA_ARGS__)
+
+#ifdef assert_null
+#undef assert_null
+#endif
+#define GET_ASSERT_NULL_MACRO(_1, _2, NAME, ...) NAME
+#define assert_null_1(ptr) munit_assert_null(ptr)
+#define assert_null_2(ptr, msg) munit_assert_null(ptr)
+#define assert_null(...) GET_ASSERT_NULL_MACRO(__VA_ARGS__, assert_null_2, assert_null_1)(__VA_ARGS__)
 
 // Memory tracking declarations
 void *boot_malloc(size_t size, const char *file, int line);
