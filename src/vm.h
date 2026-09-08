@@ -31,7 +31,6 @@ void trace_mark_object(stack_t *gray_objects, snek_object_t *ref);
 ///
 /// Don't worry, it's not going to delete your code (hopefully!)
 
-
 /// Already implemented
 vm_t *vm_new(void);
 void vm_free(vm_t *vm);

@@ -112,6 +112,17 @@ bench: bench-objs
     {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
     ./{{BIN_DIR}}/bench_runner
 
+# Install local Git pre-commit hook (format-check & test verification)
+setup-hooks:
+    @mkdir -p .git/hooks
+    @echo '#!/bin/sh' > .git/hooks/pre-commit
+    @echo 'echo "=== [Pre-commit Hook] Verifying format and running tests ==="' >> .git/hooks/pre-commit
+    @echo 'just format-check || { echo "[Pre-commit Error] Formatting check failed! Run '\''just format'\'' to fix."; exit 1; }' >> .git/hooks/pre-commit
+    @echo 'just test || { echo "[Pre-commit Error] Unit tests failed!"; exit 1; }' >> .git/hooks/pre-commit
+    @chmod +x .git/hooks/pre-commit
+    @echo "Git pre-commit hook successfully installed to .git/hooks/pre-commit!"
+
+
 
 
 
