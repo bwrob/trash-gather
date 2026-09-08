@@ -26,8 +26,23 @@ munit_case(SUBMIT, test_marked_is_false, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, test_integer_constant,
+           { assert_int(INTEGER, ==, 0, "INTEGER is defined as 0"); });
+
+munit_case(RUN, test_integer_obj, {
+  snek_object_t *obj = malloc(sizeof(snek_object_t));
+  obj->kind = INTEGER;
+  obj->data.v_int = 0;
+  assert_int(obj->kind, ==, INTEGER, "must be INTEGER type");
+  assert_int(obj->data.v_int, ==, 0, "must equal zero");
+
+  free(obj);
+});
+
 MunitTest snekobject_tests[] = {
     munit_test("/field_exists", test_field_exists),
     munit_test("/marked_is_false", test_marked_is_false),
+    munit_test("/integer_constant", test_integer_constant),
+    munit_test("/integer_obj", test_integer_obj),
     munit_null_test,
 };
