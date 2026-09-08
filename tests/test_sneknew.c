@@ -86,6 +86,30 @@ munit_case(RUN, test_vector3_null, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, test_array_object, {
+  vm_t *vm = vm_new();
+  snek_object_t *arr = new_snek_array(vm, 5);
+
+  assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
+  assert_size(arr->data.v_array.size, ==, 5, "size must be 5");
+  assert_ptr_not_null(arr->data.v_array.elements, "elements array must be allocated");
+  assert_ptr_null(arr->data.v_array.elements[0], "elements must be initialized to NULL");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_array_empty, {
+  vm_t *vm = vm_new();
+  snek_object_t *arr = new_snek_array(vm, 0);
+
+  assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
+  assert_size(arr->data.v_array.size, ==, 0, "size must be 0");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
 MunitTest sneknew_tests[] = {
     munit_test("/integer_positive", test_positive_integer),
     munit_test("/integer_zero", test_zero_integer),
@@ -94,5 +118,7 @@ MunitTest sneknew_tests[] = {
     munit_test("/string_object", test_string_object),
     munit_test("/vector3_object", test_vector3_object),
     munit_test("/vector3_null", test_vector3_null),
+    munit_test("/array_object", test_array_object),
+    munit_test("/array_empty", test_array_empty),
     munit_null_test,
 };
