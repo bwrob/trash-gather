@@ -4,11 +4,13 @@
 extern MunitTest vm_tests[];
 extern MunitTest mark_tests[];
 extern MunitTest trace_tests[];
+extern MunitTest snekobject_tests[];
 
 static MunitSuite child_suites[] = {
     munit_suite("mark-and-sweep", vm_tests),
     munit_suite("mark", mark_tests),
     munit_suite("trace", trace_tests),
+    munit_suite("snekobject", snekobject_tests),
     { NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE }
 };
 
