@@ -59,11 +59,40 @@ munit_case(RUN, test_string_object, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, test_vector3_object, {
+  vm_t *vm = vm_new();
+  snek_object_t *x = new_snek_integer(vm, 1);
+  snek_object_t *y = new_snek_integer(vm, 2);
+  snek_object_t *z = new_snek_integer(vm, 3);
+  snek_object_t *vec = new_snek_vector3(vm, x, y, z);
+
+  assert_int(vec->kind, ==, VECTOR3, "must be VECTOR3 type");
+  assert_ptr_equal(vec->data.v_vector3.x, x);
+  assert_ptr_equal(vec->data.v_vector3.y, y);
+  assert_ptr_equal(vec->data.v_vector3.z, z);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_vector3_null, {
+  vm_t *vm = vm_new();
+  snek_object_t *x = new_snek_integer(vm, 1);
+  snek_object_t *vec = new_snek_vector3(vm, x, NULL, NULL);
+
+  assert_ptr_null(vec, "must return NULL if any component is NULL");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
 MunitTest sneknew_tests[] = {
     munit_test("/integer_positive", test_positive_integer),
     munit_test("/integer_zero", test_zero_integer),
     munit_test("/integer_negative", test_negative_integer),
     munit_test("/float_object", test_float_object),
     munit_test("/string_object", test_string_object),
+    munit_test("/vector3_object", test_vector3_object),
+    munit_test("/vector3_null", test_vector3_null),
     munit_null_test,
 };
