@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Docstring Linter for Bootlib C code.
-Validates presence, completeness, and Doxygen formatting of docstrings in vendor/bootlib/.
+Docstring Linter for C codebase headers and implementation files.
+Validates presence, completeness, and Doxygen formatting of docstrings.
 """
 
+import argparse
 import os
 import re
 import sys
@@ -11,6 +12,9 @@ import subprocess
 
 def run_clang_documentation_check(target_files):
     """Run clang with -Wdocumentation flags to catch Doxygen syntax/command errors."""
+    if not target_files:
+        return 0
+
     print("=== Running Clang -Wdocumentation Linting ===")
     errors = 0
     cmd = [
@@ -56,7 +60,8 @@ def lint_header_docstrings(header_path):
     i = 0
     while i < len(lines):
         line = lines[i].strip()
-        proto_match = re.match(r'^(?:void|size_t|bool|void\s*\*)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*;', line)
+        # Generalized C prototype matcher (supports struct pointers, primitives, typedef return types)
+        proto_match = re.match(r'^(?!typedef\b)(?:const\s+)?(?:[a-zA-Z0-9_]+\s+\*?|\*[a-zA-Z0-9_]+\s+)([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*;', line)
         if proto_match:
             func_name = proto_match.group(1)
             params_raw = proto_match.group(2).strip()
@@ -106,15 +111,52 @@ def lint_header_docstrings(header_path):
     return errors
 
 
+def discover_files(input_paths):
+    """Discover C header and source files from a list of directory/file paths."""
+    headers = []
+    sources = []
+
+    for path in input_paths:
+        if os.path.isfile(path):
+            if path.endswith(".h"):
+                headers.append(path)
+            elif path.endswith(".c"):
+                sources.append(path)
+        elif os.path.isdir(path):
+            for root, _, files in os.walk(path):
+                for f in sorted(files):
+                    file_path = os.path.join(root, f)
+                    if f.endswith(".h"):
+                        headers.append(file_path)
+                    elif f.endswith(".c"):
+                        sources.append(file_path)
+        else:
+            print(f"WARNING: Path '{path}' does not exist or is not a file/directory.")
+
+    return sorted(headers), sorted(sources)
+
+
 def main():
-    target_files = [
-        os.path.join("vendor", "bootlib", "bootlib.h"),
-        os.path.join("vendor", "bootlib", "bootlib.c"),
-    ]
+    parser = argparse.ArgumentParser(description="Lint C docstrings across specified directories and files.")
+    parser.add_argument(
+        "paths",
+        nargs="+",
+        help="One or more file or directory paths to lint (e.g. vendor/bootlib include src)",
+    )
+    args = parser.parse_args()
+
+    headers, sources = discover_files(args.paths)
+    all_target_files = headers + sources
+
+    if not all_target_files:
+        print(f"No C header (.h) or source (.c) files found in paths: {args.paths}")
+        sys.exit(0)
 
     total_errors = 0
-    total_errors += run_clang_documentation_check(target_files)
-    total_errors += lint_header_docstrings(target_files[0])
+    total_errors += run_clang_documentation_check(all_target_files)
+
+    for header in headers:
+        total_errors += lint_header_docstrings(header)
 
     if total_errors > 0:
         print(f"\n❌ Docstring linting failed with {total_errors} error(s).")

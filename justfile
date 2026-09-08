@@ -89,9 +89,11 @@ format-check:
     find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
 
 
-# Run docstring linting for vendor/bootlib
+# Run docstring linting (specify directories to scan, e.g. vendor/bootlib src include)
+DOC_LINT_DIRS := "vendor/bootlib"
+
 lint-docs:
-    python3 scripts/lint_docstrings.py
+    python3 scripts/lint_docstrings.py {{DOC_LINT_DIRS}}
 
 # Run static analysis using clang-tidy and docstring linter
 lint: lint-docs
