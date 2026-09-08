@@ -76,8 +76,34 @@ munit_case(SUBMIT, test_full, {
   assert_true(boot_all_freed());
 });
 
+munit_case(RUN, test_reference_object, {
+  vm_t *vm = vm_new();
+  new_snek_integer(vm, 5);
+  new_snek_string(vm, "hello");
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_array_freed, {
+  vm_t *vm = vm_new();
+  new_snek_array(vm, 3);
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(SUBMIT, test_frames_are_freed, {
+  vm_t *vm = vm_new();
+  vm_new_frame(vm);
+  vm_new_frame(vm);
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
 MunitTest vm_tests[] = {
     munit_test("/simple", test_simple),
     munit_test("/full", test_full),
+    munit_test("/reference_object", test_reference_object),
+    munit_test("/array_freed", test_array_freed),
+    munit_test("/frames_are_freed", test_frames_are_freed),
     munit_null_test,
 };
