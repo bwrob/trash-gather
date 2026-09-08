@@ -1,9 +1,24 @@
 default: test
 
+# ==============================================================================
+# Global Configuration Variables
+# ==============================================================================
+
+# C Compiler & Build Tooling
 CC := "gcc"
 CFLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
 COV_FLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined --coverage -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
 BIN_DIR := "bin"
+
+# Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
+DOC_LINT_DIRS := "vendor/bootlib bench tests"
+
+# Benchmark Configuration (Google Benchmark / C++)
+BENCH_CXX := "clang++"
+BENCH_FLAGS := "-O3 -std=c++17 -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib -I/opt/homebrew/opt/google-benchmark/include"
+BENCH_LIBS := "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"
+
+# ==============================================================================
 
 # Build all binaries
 all: test build
@@ -66,7 +81,6 @@ coverage: mkdir-bin
         gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/stack.o; \
     fi
 
-
 # Build the main sandbox executable
 build: src-objs
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/main.c -o {{BIN_DIR}}/main.o
@@ -88,10 +102,7 @@ format:
 format-check:
     find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
 
-
-# Run docstring linting (specify directories to scan, e.g. vendor/bootlib bench tests)
-DOC_LINT_DIRS := "vendor/bootlib bench tests"
-
+# Run docstring linting across configured DOC_LINT_DIRS
 lint-docs:
     python3 scripts/lint_docstrings.py {{DOC_LINT_DIRS}}
 
@@ -102,11 +113,6 @@ lint: lint-docs
 # Install development dependencies via Homebrew Brewfile (macOS)
 install-deps:
     brew bundle
-
-BENCH_CXX := "clang++"
-BENCH_FLAGS := "-O3 -std=c++17 -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib -I/opt/homebrew/opt/google-benchmark/include"
-BENCH_LIBS := "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"
-
 
 # Compile src objects for benchmarks (without bootlib override)
 [private]
@@ -132,11 +138,3 @@ setup-hooks:
     @echo 'just test || { echo "[Pre-commit Error] Unit tests failed!"; exit 1; }' >> .git/hooks/pre-commit
     @chmod +x .git/hooks/pre-commit
     @echo "Git pre-commit hook successfully installed to .git/hooks/pre-commit!"
-
-
-
-
-
-
-
-
