@@ -87,6 +87,8 @@ format-check:
 
 # Run static analysis using clang-tidy
 lint:
-    @/opt/homebrew/opt/llvm/bin/clang-tidy src/*.c tests/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+    clang-tidy src/*.c tests/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+
+
 
 
