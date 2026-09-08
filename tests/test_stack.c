@@ -218,6 +218,21 @@ munit_case(RUN, multiple_types_stack, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, free_stack_null, {
+  stack_free(NULL);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, stack_alloc_failures, {
+  boot_set_fail_alloc_after(0);
+  assert_null(stack_new(5));
+
+  boot_set_fail_alloc_after(1);
+  assert_null(stack_new(5));
+
+  assert(boot_all_freed());
+});
+
 MunitTest stack_tests[] = {
     munit_test("/create_small", create_stack_small),
     munit_test("/create_large", create_stack_large),
@@ -229,5 +244,9 @@ MunitTest stack_tests[] = {
     munit_test("/pop_empty", pop_stack_empty),
     munit_test("/heterogenous", heterogenous_stack),
     munit_test("/multiple_types", multiple_types_stack),
+    munit_test("/free_null", free_stack_null),
+    munit_test("/alloc_failures", stack_alloc_failures),
     munit_null_test,
 };
+
+

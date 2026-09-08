@@ -101,8 +101,15 @@ vm_t *vm_new(void) {
 
   vm->frames = stack_new(8);
   vm->objects = stack_new(8);
+  if (vm->frames == NULL || vm->objects == NULL) {
+    if (vm->frames != NULL) stack_free(vm->frames);
+    if (vm->objects != NULL) stack_free(vm->objects);
+    free(vm);
+    return NULL;
+  }
   return vm;
 }
+
 
 void vm_free(vm_t *vm) {
   // Free the stack frames, and then their container

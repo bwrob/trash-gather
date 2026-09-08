@@ -1,7 +1,8 @@
 default: test
 
 CC := "gcc"
-CFLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit"
+CFLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
+COV_FLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined --coverage -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
 BIN_DIR := "bin"
 
 # Build all binaries
@@ -20,7 +21,7 @@ munit-obj: mkdir-bin
 # Compile src objects
 [private]
 src-objs: mkdir-bin
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/bootlib.c -o {{BIN_DIR}}/bootlib.o
+    {{CC}} {{CFLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/sneknew.c -o {{BIN_DIR}}/sneknew.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/snekobject.c -o {{BIN_DIR}}/snekobject.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
@@ -39,6 +40,29 @@ test: src-objs munit-obj
     {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_snekobject.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_sneknew.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
     ./{{BIN_DIR}}/test_runner
 
+# Measure line coverage using gcov / llvm-cov
+coverage: mkdir-bin
+    @rm -f {{BIN_DIR}}/*.gcda {{BIN_DIR}}/*.gcno
+    {{CC}} {{CFLAGS}} -c vendor/munit/munit.c -o {{BIN_DIR}}/munit.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
+
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/sneknew.c -o {{BIN_DIR}}/sneknew.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/snekobject.c -o {{BIN_DIR}}/snekobject.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_snekobject.c -o {{BIN_DIR}}/test_snekobject.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_frame.c -o {{BIN_DIR}}/test_frame.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_sneknew.c -o {{BIN_DIR}}/test_sneknew.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
+    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_snekobject.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_sneknew.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
+    ./{{BIN_DIR}}/cov_runner > /dev/null
+    @echo "\n=== Code Coverage Summary ==="
+    xcrun llvm-cov gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/stack.o
+
 # Build the main sandbox executable
 build: src-objs
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/main.c -o {{BIN_DIR}}/main.o
@@ -50,4 +74,4 @@ run: build
 
 # Remove build artifacts
 clean:
-    rm -rf {{BIN_DIR}}
+    rm -rf {{BIN_DIR}} *.gcov

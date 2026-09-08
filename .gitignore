@@ -56,4 +56,8 @@ dkms.conf
 
 # Build output
 bin/
+*.gcda
+*.gcno
+*.gcov
+
 

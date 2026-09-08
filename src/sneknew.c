@@ -18,14 +18,14 @@ snek_object_t *_new_snek_object(vm_t *vm) {
 }
 
 snek_object_t *new_snek_array(vm_t *vm, size_t size) {
-  snek_object_t *obj = _new_snek_object(vm);
-  if (obj == NULL) {
+  snek_object_t **elements = calloc(size, sizeof(snek_object_t *));
+  if (elements == NULL) {
     return NULL;
   }
 
-  snek_object_t **elements = calloc(size, sizeof(snek_object_t *));
-  if (elements == NULL) {
-    free(obj);
+  snek_object_t *obj = _new_snek_object(vm);
+  if (obj == NULL) {
+    free(elements);
     return NULL;
   }
 
@@ -76,15 +76,15 @@ snek_object_t *new_snek_float(vm_t *vm, float value) {
 }
 
 snek_object_t *new_snek_string(vm_t *vm, char *value) {
-  snek_object_t *obj = _new_snek_object(vm);
-  if (obj == NULL) {
-    return NULL;
-  }
-
   int len = strlen(value);
   char *dst = malloc(len + 1);
   if (dst == NULL) {
-    free(obj);
+    return NULL;
+  }
+
+  snek_object_t *obj = _new_snek_object(vm);
+  if (obj == NULL) {
+    free(dst);
     return NULL;
   }
 
@@ -94,3 +94,4 @@ snek_object_t *new_snek_string(vm_t *vm, char *value) {
   obj->data.v_string = dst;
   return obj;
 }
+

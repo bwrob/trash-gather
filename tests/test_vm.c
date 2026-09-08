@@ -115,6 +115,26 @@ munit_case(RUN, test_new_object, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, test_vm_alloc_failures, {
+  for (int i = 0; i <= 4; i++) {
+    boot_set_fail_alloc_after(i);
+    assert_null(vm_new());
+  }
+
+  vm_t *vm = vm_new();
+  snek_object_t *obj = new_snek_integer(vm, 42);
+  frame_t *f = vm_new_frame(vm);
+  frame_reference_object(f, obj);
+  mark(vm);
+
+  boot_set_fail_alloc_after(0);
+  trace(vm);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+
 MunitTest vm_tests[] = {
     munit_test("/simple", test_simple),
     munit_test("/full", test_full),
@@ -123,5 +143,7 @@ MunitTest vm_tests[] = {
     munit_test("/frames_are_freed", test_frames_are_freed),
     munit_test("/vm_new", test_vm_new),
     munit_test("/new_object", test_new_object),
+    munit_test("/vm_alloc_failures", test_vm_alloc_failures),
     munit_null_test,
 };
+

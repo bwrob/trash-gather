@@ -67,7 +67,27 @@ static void track_free(void *ptr) {
   }
 }
 
+static size_t g_last_realloc_size = 0;
+static size_t g_realloc_count = 0;
+static int g_fail_alloc_after = -1;
+
+void boot_set_fail_alloc_after(int count) {
+  g_fail_alloc_after = count;
+}
+
+static bool check_should_fail(void) {
+  if (g_fail_alloc_after == 0) {
+    g_fail_alloc_after = -1;
+    return true;
+  }
+  if (g_fail_alloc_after > 0) {
+    g_fail_alloc_after--;
+  }
+  return false;
+}
+
 void *boot_malloc(size_t size, const char *file, int line) {
+  if (check_should_fail()) return NULL;
   void *ptr = malloc(size);
   track_add(ptr, size, file, line);
   return ptr;
@@ -79,10 +99,8 @@ void boot_free(void *ptr) {
   free(ptr);
 }
 
-static size_t g_last_realloc_size = 0;
-static size_t g_realloc_count = 0;
-
 void *boot_realloc(void *ptr, size_t size, const char *file, int line) {
+  if (check_should_fail()) return NULL;
   g_last_realloc_size = size;
   g_realloc_count++;
   if (ptr != NULL) {
@@ -96,6 +114,7 @@ void *boot_realloc(void *ptr, size_t size, const char *file, int line) {
 }
 
 void *boot_calloc(size_t count, size_t size, const char *file, int line) {
+  if (check_should_fail()) return NULL;
   void *ptr = calloc(count, size);
   track_add(ptr, count * size, file, line);
   return ptr;
@@ -159,4 +178,5 @@ void boot_reset_tracking(void) {
   g_alloc_count = 0;
   g_last_realloc_size = 0;
   g_realloc_count = 0;
+  g_fail_alloc_after = -1;
 }

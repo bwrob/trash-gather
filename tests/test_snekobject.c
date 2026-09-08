@@ -164,6 +164,139 @@ munit_case(SUBMIT, test_array_get_rejects_invalid_inputs, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, test_add_integers, {
+  vm_t *vm = vm_new();
+  snek_object_t *a = new_snek_integer(vm, 10);
+  snek_object_t *b = new_snek_integer(vm, 20);
+  snek_object_t *res = snek_add(vm, a, b);
+
+  assert_not_null(res);
+  assert_int(res->kind, ==, INTEGER);
+  assert_int(res->data.v_int, ==, 30);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_add_integer_and_float, {
+  vm_t *vm = vm_new();
+  snek_object_t *a = new_snek_integer(vm, 5);
+  snek_object_t *b = new_snek_float(vm, 2.5f);
+  snek_object_t *res1 = snek_add(vm, a, b);
+  snek_object_t *res2 = snek_add(vm, b, a);
+
+  assert_not_null(res1);
+  assert_int(res1->kind, ==, FLOAT);
+  assert_float(res1->data.v_float, ==, 7.5f);
+
+  assert_not_null(res2);
+  assert_int(res2->kind, ==, FLOAT);
+  assert_float(res2->data.v_float, ==, 7.5f);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_add_floats, {
+  vm_t *vm = vm_new();
+  snek_object_t *a = new_snek_float(vm, 1.5f);
+  snek_object_t *b = new_snek_float(vm, 2.5f);
+  snek_object_t *res = snek_add(vm, a, b);
+
+  assert_not_null(res);
+  assert_int(res->kind, ==, FLOAT);
+  assert_float(res->data.v_float, ==, 4.0f);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_add_strings, {
+  vm_t *vm = vm_new();
+  snek_object_t *a = new_snek_string(vm, "Hello ");
+  snek_object_t *b = new_snek_string(vm, "World!");
+  snek_object_t *res = snek_add(vm, a, b);
+
+  assert_not_null(res);
+  assert_int(res->kind, ==, STRING);
+  assert_string_equal(res->data.v_string, "Hello World!");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_add_vectors, {
+  vm_t *vm = vm_new();
+  snek_object_t *x1 = new_snek_integer(vm, 1);
+  snek_object_t *y1 = new_snek_integer(vm, 2);
+  snek_object_t *z1 = new_snek_integer(vm, 3);
+  snek_object_t *v1 = new_snek_vector3(vm, x1, y1, z1);
+
+  snek_object_t *x2 = new_snek_integer(vm, 4);
+  snek_object_t *y2 = new_snek_integer(vm, 5);
+  snek_object_t *z2 = new_snek_integer(vm, 6);
+  snek_object_t *v2 = new_snek_vector3(vm, x2, y2, z2);
+
+  snek_object_t *res = snek_add(vm, v1, v2);
+
+  assert_not_null(res);
+  assert_int(res->kind, ==, VECTOR3);
+  assert_int(res->data.v_vector3.x->data.v_int, ==, 5);
+  assert_int(res->data.v_vector3.y->data.v_int, ==, 7);
+  assert_int(res->data.v_vector3.z->data.v_int, ==, 9);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_add_arrays, {
+  vm_t *vm = vm_new();
+  snek_object_t *arr1 = new_snek_array(vm, 2);
+  snek_object_t *elem1 = new_snek_integer(vm, 10);
+  snek_object_t *elem2 = new_snek_integer(vm, 20);
+  snek_array_set(arr1, 0, elem1);
+  snek_array_set(arr1, 1, elem2);
+
+  snek_object_t *arr2 = new_snek_array(vm, 1);
+  snek_object_t *elem3 = new_snek_integer(vm, 30);
+  snek_array_set(arr2, 0, elem3);
+
+  snek_object_t *res = snek_add(vm, arr1, arr2);
+
+  assert_not_null(res);
+  assert_int(res->kind, ==, ARRAY);
+  assert_size(res->data.v_array.size, ==, 3);
+  assert_int(snek_array_get(res, 0)->data.v_int, ==, 10);
+  assert_int(snek_array_get(res, 1)->data.v_int, ==, 20);
+  assert_int(snek_array_get(res, 2)->data.v_int, ==, 30);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_add_invalid_mismatched, {
+  vm_t *vm = vm_new();
+  snek_object_t *i = new_snek_integer(vm, 1);
+  snek_object_t *f = new_snek_float(vm, 1.0f);
+  snek_object_t *s = new_snek_string(vm, "hi");
+  snek_object_t *v = new_snek_vector3(vm, i, i, i);
+  snek_object_t *a = new_snek_array(vm, 1);
+
+  assert_null(snek_add(vm, NULL, i));
+  assert_null(snek_add(vm, i, NULL));
+  assert_null(snek_add(vm, i, s));
+  assert_null(snek_add(vm, f, s));
+  assert_null(snek_add(vm, s, i));
+  assert_null(snek_add(vm, v, i));
+  assert_null(snek_add(vm, a, i));
+
+  snek_object_t invalid_obj = {.kind = (snek_object_kind_t)999};
+  assert_null(snek_add(vm, &invalid_obj, i));
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
 MunitTest snekobject_tests[] = {
     munit_test("/field_exists", test_field_exists),
     munit_test("/marked_is_false", test_marked_is_false),
@@ -178,5 +311,13 @@ MunitTest snekobject_tests[] = {
     munit_test("/array_get_empty", test_array_get_empty_slot),
     munit_test("/array_get_outside", test_array_get_outside_bounds),
     munit_test("/array_get_invalid", test_array_get_rejects_invalid_inputs),
+    munit_test("/add_integers", test_add_integers),
+    munit_test("/add_integer_and_float", test_add_integer_and_float),
+    munit_test("/add_floats", test_add_floats),
+    munit_test("/add_strings", test_add_strings),
+    munit_test("/add_vectors", test_add_vectors),
+    munit_test("/add_arrays", test_add_arrays),
+    munit_test("/add_invalid_mismatched", test_add_invalid_mismatched),
     munit_null_test,
 };
+

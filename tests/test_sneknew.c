@@ -160,6 +160,37 @@ munit_case(RUN, test_array_empty, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, test_alloc_failures, {
+  vm_t *vm = vm_new();
+
+  boot_set_fail_alloc_after(0);
+  assert_null(new_snek_integer(vm, 1));
+
+  boot_set_fail_alloc_after(0);
+  assert_null(new_snek_float(vm, 1.0f));
+
+  boot_set_fail_alloc_after(0);
+  assert_null(new_snek_string(vm, "test"));
+
+  boot_set_fail_alloc_after(1);
+  assert_null(new_snek_string(vm, "test"));
+
+  boot_set_fail_alloc_after(0);
+  assert_null(new_snek_array(vm, 5));
+
+  boot_set_fail_alloc_after(1);
+  assert_null(new_snek_array(vm, 5));
+
+  snek_object_t *x = new_snek_integer(vm, 1);
+  snek_object_t *y = new_snek_integer(vm, 2);
+  snek_object_t *z = new_snek_integer(vm, 3);
+  boot_set_fail_alloc_after(0);
+  assert_null(new_snek_vector3(vm, x, y, z));
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
 MunitTest sneknew_tests[] = {
     munit_test("/integer_positive", test_positive_integer),
     munit_test("/integer_zero", test_zero_integer),
@@ -172,5 +203,7 @@ MunitTest sneknew_tests[] = {
     munit_test("/vector3_same_object", test_vec_same_object),
     munit_test("/array_object", test_array_object),
     munit_test("/array_empty", test_array_empty),
+    munit_test("/alloc_failures", test_alloc_failures),
     munit_null_test,
 };
+

@@ -130,6 +130,7 @@ size_t boot_alloc_size(void);
 size_t boot_last_realloc_size(void);
 size_t boot_realloc_count(void);
 void boot_reset_tracking(void);
+void boot_set_fail_alloc_after(int count);
 
 #ifndef BOOTLIB_NO_OVERRIDE
 #define malloc(size) boot_malloc(size, __FILE__, __LINE__)
