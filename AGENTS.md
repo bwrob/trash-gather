@@ -4,6 +4,37 @@ This document defines the strict rules of engagement and operational directives 
 
 ---
 
+## 🧭 0. Project Philosophy: Learn with Modern Tooling from Day One
+
+This is a **solo learning project** — not a production codebase, not a team effort. The entire purpose is for a single developer to deeply understand C memory management, garbage collection algorithms, and VM runtime internals by writing them from scratch.
+
+The tooling infrastructure exists to **optimize the learning experience**, not to satisfy external stakeholders. The guiding principles:
+
+- **Professional habits from the beginning**: Rather than bolting on CI, linters, formatters, and type checkers retroactively, this project adopts them from the start. Learning to work *with* modern tooling — not around it — is part of the education.
+- **Fast feedback loops**: Every commit is automatically checked by `pre-commit` hooks (formatting, linting, docstrings, tests). Mistakes surface instantly, not hours later in a CI log.
+- **Safety nets, not bureaucracy**: ASan, UBSan, `bootlib` leak tracking, and adversarial unit tests exist to catch the subtle memory bugs that are the *point* of this project. When the allocator double-frees or the GC misses a root, the tooling should scream — that's a learning moment.
+- **No convenience shortcuts in `src/`**: AI agents write tests, benchmarks, and infrastructure. The human writes the runtime. Struggling with pointer arithmetic, reference graphs, and mark-and-sweep logic is the entire value proposition.
+
+### Tooling Stack Overview
+
+| Layer | Tool | Purpose |
+|---|---|---|
+| **Build & Tasks** | `just` (justfile) | Single command runner for build, test, lint, format, bench, coverage |
+| **C Compiler** | `gcc` with `-fsanitize=address,undefined` | Compile with AddressSanitizer + UndefinedBehaviorSanitizer always on |
+| **C Formatting** | `clang-format` | Consistent code style across `src/`, `tests/`, `bench/` |
+| **C Static Analysis** | `clang-tidy` | Deep bug detection (bugprone, performance, readability checks) |
+| **C Docstrings** | `scripts/lint_docstrings.py` + Clang `-Wdocumentation` | Enforce Doxygen `@brief`, `@param`, `@return` on every function |
+| **C Testing** | µnit + `bootlib` | Unit tests with allocation tracking and leak verification |
+| **C Benchmarks** | Google Benchmark | Micro-benchmarks for GC throughput, pause times, traversal |
+| **Python Env** | `uv` | Fast, modern Python package/environment manager |
+| **Python Linting** | `ruff` (check + format) | Lint and format `scripts/` with a broad ruleset (I, B, SIM, N, UP) |
+| **Python Types** | `pyrefly` (strict mode) | Static type checking — all function signatures must be annotated |
+| **Git Hooks** | `pre-commit` framework | Runs all checks automatically on every commit |
+| **CI** | GitHub Actions | pre-commit + clang-tidy + build + coverage on every push |
+| **macOS Deps** | Brewfile | `brew bundle` installs the full toolchain in one command |
+
+---
+
 ## 🚫 1. Strict Boundary: NEVER TOUCH `src/`
 
 - **Rule**: AI Agents must **NEVER** create, modify, edit, refactor, or delete any file inside the `src/` directory.
