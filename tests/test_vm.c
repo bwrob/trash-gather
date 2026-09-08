@@ -94,7 +94,23 @@ munit_case(RUN, test_array_freed, {
 munit_case(SUBMIT, test_frames_are_freed, {
   vm_t *vm = vm_new();
   vm_new_frame(vm);
-  vm_new_frame(vm);
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_vm_new, {
+  vm_t *vm = vm_new();
+  assert_ptr_not_null(vm->frames, "frames must not be NULL");
+  assert_ptr_not_null(vm->objects, "objects must not be NULL");
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_new_object, {
+  vm_t *vm = vm_new();
+  snek_object_t *obj = new_snek_integer(vm, 5);
+  assert_int(obj->kind, ==, INTEGER, "kind must be INTEGER");
+  assert_ptr_equal(vm->objects->data[0], obj, "object must be tracked");
   vm_free(vm);
   assert(boot_all_freed());
 });
@@ -105,5 +121,7 @@ MunitTest vm_tests[] = {
     munit_test("/reference_object", test_reference_object),
     munit_test("/array_freed", test_array_freed),
     munit_test("/frames_are_freed", test_frames_are_freed),
+    munit_test("/vm_new", test_vm_new),
+    munit_test("/new_object", test_new_object),
     munit_null_test,
 };

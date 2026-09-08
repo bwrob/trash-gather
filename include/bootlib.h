@@ -60,6 +60,22 @@
 #define assert_null_2(ptr, msg) munit_assert_null(ptr)
 #define assert_null(...) GET_ASSERT_NULL_MACRO(__VA_ARGS__, assert_null_2, assert_null_1)(__VA_ARGS__)
 
+#ifdef assert_ptr_not_null
+#undef assert_ptr_not_null
+#endif
+#define GET_ASSERT_PTR_NOT_NULL_MACRO(_1, _2, NAME, ...) NAME
+#define assert_ptr_not_null_1(ptr) munit_assert_not_null(ptr)
+#define assert_ptr_not_null_2(ptr, msg) munit_assert_not_null(ptr)
+#define assert_ptr_not_null(...) GET_ASSERT_PTR_NOT_NULL_MACRO(__VA_ARGS__, assert_ptr_not_null_2, assert_ptr_not_null_1)(__VA_ARGS__)
+
+#ifdef assert_ptr_null
+#undef assert_ptr_null
+#endif
+#define GET_ASSERT_PTR_NULL_MACRO(_1, _2, NAME, ...) NAME
+#define assert_ptr_null_1(ptr) munit_assert_null(ptr)
+#define assert_ptr_null_2(ptr, msg) munit_assert_null(ptr)
+#define assert_ptr_null(...) GET_ASSERT_PTR_NULL_MACRO(__VA_ARGS__, assert_ptr_null_2, assert_ptr_null_1)(__VA_ARGS__)
+
 #ifdef assert_ptr_equal
 #undef assert_ptr_equal
 #endif
