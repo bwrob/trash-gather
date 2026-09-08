@@ -7,6 +7,7 @@ extern MunitTest trace_tests[];
 extern MunitTest snekobject_tests[];
 extern MunitTest frame_tests[];
 extern MunitTest sneknew_tests[];
+extern MunitTest stack_tests[];
 
 static MunitSuite child_suites[] = {
     munit_suite("mark-and-sweep", vm_tests),
@@ -15,6 +16,7 @@ static MunitSuite child_suites[] = {
     munit_suite("snekobject", snekobject_tests),
     munit_suite("frame", frame_tests),
     munit_suite("sneknew", sneknew_tests),
+    munit_suite("stack", stack_tests),
     { NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE }
 };
 

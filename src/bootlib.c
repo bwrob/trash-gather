@@ -132,6 +132,16 @@ bool boot_all_freed(void) {
   return all_freed;
 }
 
+size_t boot_alloc_size(void) {
+  size_t total = 0;
+  for (size_t i = 0; i < g_alloc_count; i++) {
+    if (!g_allocs[i].freed) {
+      total += g_allocs[i].size;
+    }
+  }
+  return total;
+}
+
 void boot_reset_tracking(void) {
   g_alloc_count = 0;
 }

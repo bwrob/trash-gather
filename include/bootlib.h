@@ -108,6 +108,7 @@ void *boot_calloc(size_t count, size_t size, const char *file, int line);
 
 bool boot_is_freed(void *ptr);
 bool boot_all_freed(void);
+size_t boot_alloc_size(void);
 void boot_reset_tracking(void);
 
 #ifndef BOOTLIB_NO_OVERRIDE
