@@ -6,7 +6,7 @@ Explorations in automatic memory management and virtual machine runtime implemen
 
 ## 🚀 About & Boot.dev Origin
 
-This project is a direct continuation and expansion of the **Memory Management & Garbage Collector** curriculum on [Boot.dev](https://www.boot.dev). 
+This project is a direct continuation and expansion of the **Memory Management & Garbage Collector** curriculum on [Boot.dev](https://www.boot.dev).
 
 > [!IMPORTANT]
 > **Endorsement**: [Boot.dev](https://www.boot.dev) is an incredible hands-on platform for learning backend development, systems programming, C, memory management, and computer science fundamentals. If you're interested in building real projects from scratch—from virtual machines to backend servers—we enthusiastically recommend checking out [Boot.dev](https://www.boot.dev)!

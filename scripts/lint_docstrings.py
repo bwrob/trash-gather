@@ -7,8 +7,9 @@ Validates presence, completeness, and Doxygen formatting of docstrings.
 import argparse
 import os
 import re
-import sys
 import subprocess
+import sys
+
 
 def run_clang_documentation_check(c_files, cpp_files):
     """Run clang/clang++ with -Wdocumentation flags to catch Doxygen syntax/command errors."""
@@ -29,9 +30,13 @@ def run_clang_documentation_check(c_files, cpp_files):
             "-Ivendor/bootlib",
         ] + c_files
 
-        res_c = subprocess.run(cmd_c, capture_output=True, text=True)
+        res_c = subprocess.run(cmd_c, capture_output=True, text=True, check=False)
         if res_c.returncode != 0 or res_c.stderr:
-            doc_warnings = [line for line in res_c.stderr.splitlines() if "warning:" in line or "error:" in line]
+            doc_warnings = [
+                line
+                for line in res_c.stderr.splitlines()
+                if "warning:" in line or "error:" in line
+            ]
             if doc_warnings:
                 print("\n".join(doc_warnings))
                 errors += len(doc_warnings)
@@ -48,24 +53,30 @@ def run_clang_documentation_check(c_files, cpp_files):
         ]
         extra_inc = ["-I" + p for p in bench_paths if os.path.isdir(p)]
 
-        cmd_cpp = [
-            "clang++",
-            "-fsyntax-only",
-            "-Wdocumentation",
-            "-Wdocumentation-unknown-command",
-            "-Wdocumentation-pedantic",
-            "-std=c++17",
-            "-Iinclude",
-            "-Isrc",
-            "-Ivendor/bootlib",
-        ] + extra_inc + cpp_files
+        cmd_cpp = (
+            [
+                "clang++",
+                "-fsyntax-only",
+                "-Wdocumentation",
+                "-Wdocumentation-unknown-command",
+                "-Wdocumentation-pedantic",
+                "-std=c++17",
+                "-Iinclude",
+                "-Isrc",
+                "-Ivendor/bootlib",
+            ]
+            + extra_inc
+            + cpp_files
+        )
 
-        res_cpp = subprocess.run(cmd_cpp, capture_output=True, text=True)
+        res_cpp = subprocess.run(cmd_cpp, capture_output=True, text=True, check=False)
         if res_cpp.returncode != 0 or res_cpp.stderr:
             # Filter out missing external header errors (e.g. benchmark/benchmark.h if not installed)
             doc_warnings = [
-                line for line in res_cpp.stderr.splitlines()
-                if ("warning:" in line or "error:" in line) and "file not found" not in line
+                line
+                for line in res_cpp.stderr.splitlines()
+                if ("warning:" in line or "error:" in line)
+                and "file not found" not in line
             ]
             if doc_warnings:
                 print("\n".join(doc_warnings))
@@ -111,10 +122,12 @@ def lint_file_docstrings(file_path):
 
         # Prototype or function definition matcher (including munit_case test wrappers)
         proto_match = re.match(
-            r'^(?!typedef\b)(?!return\b)(?:static\s+)?(?:const\s+)?(?:[a-zA-Z0-9_]+\s+\*?|\*[a-zA-Z0-9_]+\s+)([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(?:;|\{)',
-            line
+            r"^(?!typedef\b)(?!return\b)(?:static\s+)?(?:const\s+)?(?:[a-zA-Z0-9_]+\s+\*?|\*[a-zA-Z0-9_]+\s+)([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(?:;|\{)",
+            line,
         )
-        munit_match = re.match(r'^munit_case\s*\(\s*[A-Z_]+\s*,\s*([a-zA-Z0-9_]+)', line)
+        munit_match = re.match(
+            r"^munit_case\s*\(\s*[A-Z_]+\s*,\s*([a-zA-Z0-9_]+)", line
+        )
 
         func_name = None
         params_raw = ""
@@ -127,50 +140,75 @@ def lint_file_docstrings(file_path):
             func_name = proto_match.group(1)
             params_raw = proto_match.group(2).strip()
 
-        if func_name:
-            # Ignore main entrypoints and macro constructs like BENCHMARK(...)
-            if func_name not in ("main", "BENCHMARK", "BENCHMARK_MAIN"):
-                j = i - 1
-                comment_lines = []
-                in_comment = False
-                while j >= 0:
-                    prev_line = lines[j].strip()
-                    if prev_line.endswith("*/"):
-                        in_comment = True
-                    if in_comment:
-                        comment_lines.insert(0, prev_line)
-                        if prev_line.startswith("/**") or prev_line.startswith("/*"):
-                            break
-                    elif prev_line and not prev_line.startswith("//") and not prev_line.startswith("/*"):
+        if func_name and func_name not in ("main", "BENCHMARK", "BENCHMARK_MAIN"):
+            j = i - 1
+            comment_lines = []
+            in_comment = False
+            while j >= 0:
+                prev_line = lines[j].strip()
+                if prev_line.endswith("*/"):
+                    in_comment = True
+                if in_comment:
+                    comment_lines.insert(0, prev_line)
+                    if prev_line.startswith(("/**", "/*")):
                         break
-                    j -= 1
+                elif prev_line and not prev_line.startswith(("//", "/*")):
+                    break
+                j -= 1
 
-                comment_block = "\n".join(comment_lines)
+            comment_block = "\n".join(comment_lines)
 
-                if not comment_block or not ("/**" in comment_block or "/*" in comment_block):
-                    print(f"ERROR: {file_path}:{i+1}: Function '{func_name}' is missing a Doxygen docstring comment.")
+            if not comment_block or not (
+                "/**" in comment_block or "/*" in comment_block
+            ):
+                print(
+                    f"ERROR: {file_path}:{i + 1}: Function '{func_name}' is missing a Doxygen docstring comment."
+                )
+                errors += 1
+            else:
+                if "@brief" not in comment_block and not re.search(
+                    r"\*\s+[A-Z]", comment_block
+                ):
+                    print(
+                        f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' lacks a @brief tag or description."
+                    )
                     errors += 1
-                else:
-                    if "@brief" not in comment_block and not re.search(r"\*\s+[A-Z]", comment_block):
-                        print(f"ERROR: {file_path}:{i+1}: Docstring for '{func_name}' lacks a @brief tag or description.")
-                        errors += 1
 
-                    if not is_munit and params_raw and params_raw != "void":
-                        param_list = [p.strip().split()[-1].lstrip("*&") for p in params_raw.split(",") if p.strip()]
-                        for p_name in param_list:
-                            if not re.search(r"@param\s+(?:\[[^\]]+\]\s+)?" + re.escape(p_name) + r"\b", comment_block):
-                                print(f"ERROR: {file_path}:{i+1}: Docstring for '{func_name}' missing '@param {p_name}'.")
-                                errors += 1
-
-                    if not is_munit and not line.startswith("void ") and not line.startswith("static void ") and not line.startswith("void\t"):
-                        if "@return" not in comment_block and "@returns" not in comment_block:
-                            print(f"ERROR: {file_path}:{i+1}: Docstring for '{func_name}' missing '@return' tag.")
+                if not is_munit and params_raw and params_raw != "void":
+                    param_list = [
+                        p.strip().split()[-1].lstrip("*&")
+                        for p in params_raw.split(",")
+                        if p.strip()
+                    ]
+                    for p_name in param_list:
+                        if not re.search(
+                            r"@param\s+(?:\[[^\]]+\]\s+)?" + re.escape(p_name) + r"\b",
+                            comment_block,
+                        ):
+                            print(
+                                f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' missing '@param {p_name}'."
+                            )
                             errors += 1
+
+                if (
+                    not is_munit
+                    and not line.startswith(("void ", "static void ", "void\t"))
+                    and (
+                        "@return" not in comment_block
+                        and "@returns" not in comment_block
+                    )
+                ):
+                    print(
+                        f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' missing '@return' tag."
+                    )
+                    errors += 1
 
         i += 1
 
     if errors == 0:
-        print(f"  ✓ All declarations/functions in {os.path.basename(file_path)} have complete Doxygen docstrings.")
+        print(
+            f"  ✓ All declarations/functions in {os.path.basename(file_path)} have complete Doxygen docstrings."
+        )
 
     return errors
 
@@ -201,7 +239,9 @@ def discover_files(input_paths):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Lint C/C++ docstrings across specified directories and files.")
+    parser = argparse.ArgumentParser(
+        description="Lint C/C++ docstrings across specified directories and files."
+    )
     parser.add_argument(
         "paths",
         nargs="+",
@@ -226,8 +266,11 @@ def main():
         print(f"\n❌ Docstring linting failed with {total_errors} error(s).")
         sys.exit(1)
 
-    print("\n✅ Docstring linting passed! All docstrings are present and correctly formatted.")
+    print(
+        "\n✅ Docstring linting passed! All docstrings are present and correctly formatted."
+    )
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

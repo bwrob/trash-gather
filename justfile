@@ -123,7 +123,7 @@ clean:
 
 # Generate compile_commands.json for clangd / language server intelligence
 compiledb:
-    python3 scripts/gen_compile_commands.py
+    uv run python scripts/gen_compile_commands.py
 
 # Format all C source and header files using clang-format
 format:
@@ -133,12 +133,23 @@ format:
 format-check:
     find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
 
+# Check Python code formatting, linting, and types (ruff & pyrefly)
+lint-py:
+    uv run ruff check scripts/
+    uv run ruff format --check scripts/
+    uv run pyrefly check scripts/
+
+# Automatically format Python scripts and fix lint issues
+format-py:
+    uv run ruff format scripts/
+    uv run ruff check --fix scripts/
+
 # Run docstring linting across configured DOC_LINT_DIRS
 lint-docs:
-    python3 scripts/lint_docstrings.py {{DOC_LINT_DIRS}}
+    uv run python scripts/lint_docstrings.py {{DOC_LINT_DIRS}}
 
-# Run static analysis using clang-tidy and docstring linter
-lint: lint-docs
+# Run static analysis using clang-tidy, docstring linter, and Python checks
+lint: lint-docs lint-py
     clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
 # Install development dependencies via Homebrew Brewfile (macOS)
@@ -156,16 +167,13 @@ bench-objs: mkdir-bin
 
 # Compile and run Google Benchmark performance benchmarks
 bench: bench-objs
-    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BIN_DIR}}/bench_bootlib.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
+    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
     ./{{BIN_DIR}}/bench_runner
 
-# Install local Git pre-commit hook (format-check, docstring lint & test verification)
+# Run all pre-commit hooks manually across all files
+check:
+    uv run pre-commit run --all-files
+
+# Install Git pre-commit hook via pre-commit tool
 setup-hooks:
-    @mkdir -p .git/hooks
-    @echo '#!/bin/sh' > .git/hooks/pre-commit
-    @echo 'echo "=== [Pre-commit Hook] Verifying format, docstrings, and running tests ==="' >> .git/hooks/pre-commit
-    @echo 'just format-check || { echo "[Pre-commit Error] Formatting check failed! Run '\''just format'\'' to fix."; exit 1; }' >> .git/hooks/pre-commit
-    @echo 'just lint-docs || { echo "[Pre-commit Error] Docstring linting failed!"; exit 1; }' >> .git/hooks/pre-commit
-    @echo 'just test || { echo "[Pre-commit Error] Unit tests failed!"; exit 1; }' >> .git/hooks/pre-commit
-    @chmod +x .git/hooks/pre-commit
-    @echo "Git pre-commit hook successfully installed to .git/hooks/pre-commit!"
+    uv run pre-commit install

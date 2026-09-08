@@ -1,0 +1,50 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]
+
+      - id: pyrefly
+        name: pyrefly
+        entry: uv run pyrefly check scripts/
+        language: system
+        pass_filenames: false
+        files: ^scripts/.*\.py$
+
+      - id: clang-format
+        name: clang-format
+        entry: just format-check
+        language: system
+        pass_filenames: false
+        files: \.(c|h|cpp)$
+
+      - id: lint-docs
+        name: lint docstrings
+        entry: just lint-docs
+        language: system
+        pass_filenames: false
+        files: \.(c|h|cpp)$
+
+      - id: test
+        name: unit tests
+        entry: just test
+        language: system
+        pass_filenames: false
+        files: \.(c|h)$
