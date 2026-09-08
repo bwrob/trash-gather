@@ -9,7 +9,7 @@ import json
 import os
 
 
-def generate_compile_commands():
+def generate_compile_commands() -> None:
     workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     cflags = (
         "gcc -Wall -Wextra -std=c99 -g -fsanitize=address,undefined "
@@ -28,7 +28,7 @@ def generate_compile_commands():
         f"-Iinclude -Isrc -Ivendor/bootlib {extra_inc}"
     )
 
-    entries = []
+    entries: list[dict[str, str]] = []
 
     # C source files in src, tests, vendor
     c_files = (

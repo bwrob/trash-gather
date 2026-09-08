@@ -30,14 +30,19 @@ def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> i
             "-Ivendor/bootlib",
         ] + c_files
 
-        res_c = subprocess.run(cmd_c, capture_output=True, text=True, check=False)
-        if res_c.returncode != 0 or res_c.stderr:
-            doc_warnings = [
-                line for line in res_c.stderr.splitlines() if "warning:" in line or "error:" in line
-            ]
-            if doc_warnings:
-                print("\n".join(doc_warnings))
-                errors += len(doc_warnings)
+        try:
+            res_c = subprocess.run(cmd_c, capture_output=True, text=True, check=False)
+            if res_c.returncode != 0 or res_c.stderr:
+                doc_warnings = [
+                    line
+                    for line in res_c.stderr.splitlines()
+                    if "warning:" in line or "error:" in line
+                ]
+                if doc_warnings:
+                    print("\n".join(doc_warnings))
+                    errors += len(doc_warnings)
+        except FileNotFoundError:
+            print("WARNING: 'clang' not found in PATH; skipping Clang C -Wdocumentation check.")
 
         if errors == 0:
             print("  ✓ Clang C -Wdocumentation syntax checks passed cleanly.")
@@ -46,6 +51,7 @@ def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> i
         print("=== Running Clang++ -Wdocumentation Linting (C++) ===")
         bench_paths = [
             "/opt/homebrew/opt/google-benchmark/include",
+            "/usr/local/opt/google-benchmark/include",
             "/usr/include",
             "/usr/local/include",
         ]
@@ -67,17 +73,20 @@ def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> i
             + cpp_files
         )
 
-        res_cpp = subprocess.run(cmd_cpp, capture_output=True, text=True, check=False)
-        if res_cpp.returncode != 0 or res_cpp.stderr:
-            # Filter out missing external header errors (e.g. benchmark/benchmark.h if not installed)
-            doc_warnings = [
-                line
-                for line in res_cpp.stderr.splitlines()
-                if ("warning:" in line or "error:" in line) and "file not found" not in line
-            ]
-            if doc_warnings:
-                print("\n".join(doc_warnings))
-                errors += len(doc_warnings)
+        try:
+            res_cpp = subprocess.run(cmd_cpp, capture_output=True, text=True, check=False)
+            if res_cpp.returncode != 0 or res_cpp.stderr:
+                # Filter out missing external header errors (e.g. benchmark/benchmark.h if not installed)
+                doc_warnings = [
+                    line
+                    for line in res_cpp.stderr.splitlines()
+                    if ("warning:" in line or "error:" in line) and "file not found" not in line
+                ]
+                if doc_warnings:
+                    print("\n".join(doc_warnings))
+                    errors += len(doc_warnings)
+        except FileNotFoundError:
+            print("WARNING: 'clang++' not found in PATH; skipping Clang++ -Wdocumentation check.")
 
         if errors == 0:
             print("  ✓ Clang++ C++ -Wdocumentation syntax checks passed cleanly.")
@@ -167,7 +176,7 @@ def lint_file_docstrings(file_path: str) -> int:
 
                 if not is_munit and params_raw and params_raw != "void":
                     param_list = [
-                        p.strip().split()[-1].lstrip("*&")
+                        p.strip().split()[-1].lstrip("*&").rstrip("[]")
                         for p in params_raw.split(",")
                         if p.strip()
                     ]
@@ -181,11 +190,13 @@ def lint_file_docstrings(file_path: str) -> int:
                             )
                             errors += 1
 
+                # Check @return only for non-void functions (note: void* returns non-void!)
+                is_pure_void = bool(
+                    re.match(r"^(?:(?:static|inline|extern)\s+)*void(?:\s+|\t+)[^*]", line)
+                )
                 if (
                     not is_munit
-                    and not line.startswith(
-                        ("void ", "static void ", "inline void ", "extern void ", "void\t")
-                    )
+                    and not is_pure_void
                     and ("@return" not in comment_block and "@returns" not in comment_block)
                 ):
                     print(
@@ -228,7 +239,7 @@ def discover_files(input_paths: list[str]) -> tuple[list[str], list[str]]:
     return sorted(c_files), sorted(cpp_files)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Lint C/C++ docstrings across specified directories and files."
     )

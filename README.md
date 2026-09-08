@@ -44,10 +44,12 @@ This project uses [`just`](https://github.com/casey/just) to automate developmen
 | `just test-filter <pattern>` | Run only tests matching a name prefix/pattern |
 | `just coverage` | Measure line coverage using `gcov` / `llvm-cov` |
 | `just bench` | Compile and run Google Benchmark microbenchmarks |
+| `just bench-build` | Compile benchmark runner binary without running it |
 | `just format` | Format all C/C++ files in-place using `clang-format` |
 | `just format-check` | Check C/C++ formatting compliance without mutating files |
 | `just format-py` | Format Python scripts in-place (`ruff format`) |
 | `just lint` | Run `clang-tidy` static analysis + docstring lint + Python checks |
+| `just lint-c` | Run `clang-tidy` static analysis on C source files |
 | `just lint-py` | Check Python scripts (`ruff` + `pyrefly`) |
 | `just lint-docs` | Check Doxygen docstrings across configured dirs |
 | `just check` | Run all pre-commit hooks across the entire repo |
@@ -55,6 +57,7 @@ This project uses [`just`](https://github.com/casey/just) to automate developmen
 | `just run` | Build and execute the sandbox app |
 | `just watch` | Watch `.c/.h/.cpp/.py` files and auto-rerun tests |
 | `just debug [filter]` | Launch lldb on the test suite (optionally filtered) |
+| `just leaks` | Inspect OS-level memory leaks on macOS |
 | `just clean` | Remove build binaries and gcov artifacts |
 | `just compiledb` | Regenerate `compile_commands.json` for clangd |
 | `just install-deps` | Install all macOS dev dependencies via Homebrew |
@@ -70,6 +73,7 @@ This project uses [`just`](https://github.com/casey/just) to automate developmen
 All commits and pull requests automatically trigger GitHub Actions (`.github/workflows/ci.yml`):
 
 1. **pre-commit** — `ruff`, `pyrefly`, `clang-format`, Doxygen docstring lint, and unit tests
-2. **clang-tidy** — deep static analysis on `src/*.c`
-3. **build** — compile the main sandbox binary
-4. **coverage** — line coverage via `gcov`
+2. **clang-tidy** — deep static analysis on `src/*.c` (`just lint-c`)
+3. **build** — compile the main sandbox binary (`just build`)
+4. **benchmark build** — verify benchmark compilation (`just bench-build`)
+5. **coverage** — line coverage via `gcov` (`just coverage`)

@@ -7,7 +7,7 @@ default: test
 # C Compiler & Build Tooling
 CC := "gcc"
 CFLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
-COV_FLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined --coverage -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
+COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
 
 # Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
@@ -181,9 +181,12 @@ bench-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/stack.c -o {{BIN_DIR}}/bench_stack.o
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/vm.c -o {{BIN_DIR}}/bench_vm.o
 
-# Compile and run Google Benchmark performance benchmarks
-bench: bench-objs
+# Compile benchmark runner binary
+bench-build: bench-objs
     {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
+
+# Compile and run Google Benchmark performance benchmarks
+bench: bench-build
     ./{{BIN_DIR}}/bench_runner
 
 # Run all pre-commit hooks manually across all files

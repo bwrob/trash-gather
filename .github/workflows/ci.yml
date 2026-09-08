@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies (LLVM tooling, Just & Google Benchmark)
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc g++ clang-format clang-tidy just libbenchmark-dev
+          sudo apt-get install -y gcc g++ clang clang-format clang-tidy just libbenchmark-dev pkg-config
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
@@ -39,7 +39,7 @@ jobs:
         run: just build
 
       - name: Verify Benchmark Build
-        run: just bench-objs
+        run: just bench-build
 
       - name: Measure Code Coverage (gcov)
         run: just coverage
