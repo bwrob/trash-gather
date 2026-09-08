@@ -1,3 +1,8 @@
+/**
+ * @file bench_gc.cpp
+ * @brief Google Benchmark suite for Garbage Collector throughput, pause durations, and pointer graph traversal.
+ */
+
 #include <benchmark/benchmark.h>
 
 extern "C" {
@@ -7,6 +12,10 @@ extern "C" {
 #include "vm.h"
 }
 
+/**
+ * @brief Benchmark object allocation throughput without garbage collection.
+ * @param state Google Benchmark state iterator.
+ */
 static void BM_ObjectAllocation(benchmark::State& state) {
   for (auto _ : state) {
     vm_t* vm = vm_new();
@@ -18,6 +27,10 @@ static void BM_ObjectAllocation(benchmark::State& state) {
 }
 BENCHMARK(BM_ObjectAllocation);
 
+/**
+ * @brief Benchmark mark-and-sweep GC pause time when 100% of objects are unreachable.
+ * @param state Google Benchmark state iterator.
+ */
 static void BM_GarbageCollection_Sweep(benchmark::State& state) {
   for (auto _ : state) {
     state.PauseTiming();
@@ -38,6 +51,10 @@ static void BM_GarbageCollection_Sweep(benchmark::State& state) {
 }
 BENCHMARK(BM_GarbageCollection_Sweep);
 
+/**
+ * @brief Benchmark mark-and-sweep GC pause time when 50% of objects are retained in root frames.
+ * @param state Google Benchmark state iterator.
+ */
 static void BM_GarbageCollection_Retained(benchmark::State& state) {
   for (auto _ : state) {
     state.PauseTiming();
@@ -61,6 +78,10 @@ static void BM_GarbageCollection_Retained(benchmark::State& state) {
 }
 BENCHMARK(BM_GarbageCollection_Retained);
 
+/**
+ * @brief Benchmark recursive pointer graph tracing performance across deep object trees.
+ * @param state Google Benchmark state iterator.
+ */
 static void BM_NestedVectorTracing(benchmark::State& state) {
   for (auto _ : state) {
     state.PauseTiming();
