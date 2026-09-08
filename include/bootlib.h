@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #define MUNIT_ENABLE_ASSERT_ALIASES
 #include "munit.h"
@@ -44,6 +45,14 @@
 #define assert_int_eq_2(a, b) munit_assert_int(a, ==, b)
 #define assert_int_eq_3(a, b, msg) munit_assert_int(a, ==, b)
 #define assert_int_equal(...) GET_ASSERT_INT_EQ_MACRO(__VA_ARGS__, assert_int_eq_3, assert_int_eq_2)(__VA_ARGS__)
+
+#ifdef assert_float
+#undef assert_float
+#endif
+#define GET_ASSERT_FLOAT_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+#define assert_float_3(a, op, b) munit_assert_float(a, op, b)
+#define assert_float_4(a, op, b, msg) munit_assert_float(a, op, b)
+#define assert_float(...) GET_ASSERT_FLOAT_MACRO(__VA_ARGS__, assert_float_4, assert_float_3)(__VA_ARGS__)
 
 #ifdef assert_size
 #undef assert_size

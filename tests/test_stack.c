@@ -4,12 +4,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 static void scary_double_push(stack_t *s) {
   stack_push(s, (void *)(uintptr_t)1337);
   int *p = malloc(sizeof(int));
   *p = 1024;
   stack_push(s, p);
+}
+
+static void stack_push_multiple_types(stack_t *s) {
+  float *f = malloc(sizeof(float));
+  *f = 3.14f;
+  stack_push(s, f);
+
+  char *str = malloc(28 * sizeof(char));
+  strcpy(str, "Sneklang is blazingly slow!");
+  stack_push(s, str);
 }
 
 munit_case(RUN, create_stack_small, {
@@ -188,6 +199,25 @@ munit_case(RUN, heterogenous_stack, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, multiple_types_stack, {
+  stack_t *s = stack_new(4);
+  assert_ptr_not_null(s, "Must allocate a new stack");
+
+  stack_push_multiple_types(s);
+  assert_int(s->count, ==, 2, "Should have two items in the stack");
+
+  float *f = s->data[0];
+  assert_float(*f, ==, 3.14f, "Float is equal");
+
+  char *string = s->data[1];
+  assert_string_equal(string, "Sneklang is blazingly slow!", "char* is equal");
+
+  free(f);
+  free(string);
+  stack_free(s);
+  assert(boot_all_freed());
+});
+
 MunitTest stack_tests[] = {
     munit_test("/create_small", create_stack_small),
     munit_test("/create_large", create_stack_large),
@@ -198,5 +228,6 @@ MunitTest stack_tests[] = {
     munit_test("/pop", pop_stack),
     munit_test("/pop_empty", pop_stack_empty),
     munit_test("/heterogenous", heterogenous_stack),
+    munit_test("/multiple_types", multiple_types_stack),
     munit_null_test,
 };
