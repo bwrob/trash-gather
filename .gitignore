@@ -53,3 +53,18 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Build output
+bin/
+*.gcda
+*.gcno
+*.gcov
+compile_commands.json
+
+# Python & Tooling
+.venv/
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pyrefly/
+.DS_Store
