@@ -58,9 +58,7 @@ def generate_compile_commands():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(entries, f, indent=2)
 
-    print(
-        f"Generated compile_commands.json ({len(entries)} translation units) for clangd / LSP."
-    )
+    print(f"Generated compile_commands.json ({len(entries)} translation units) for clangd / LSP.")
 
 
 if __name__ == "__main__":

@@ -33,9 +33,7 @@ def run_clang_documentation_check(c_files, cpp_files):
         res_c = subprocess.run(cmd_c, capture_output=True, text=True, check=False)
         if res_c.returncode != 0 or res_c.stderr:
             doc_warnings = [
-                line
-                for line in res_c.stderr.splitlines()
-                if "warning:" in line or "error:" in line
+                line for line in res_c.stderr.splitlines() if "warning:" in line or "error:" in line
             ]
             if doc_warnings:
                 print("\n".join(doc_warnings))
@@ -75,8 +73,7 @@ def run_clang_documentation_check(c_files, cpp_files):
             doc_warnings = [
                 line
                 for line in res_cpp.stderr.splitlines()
-                if ("warning:" in line or "error:" in line)
-                and "file not found" not in line
+                if ("warning:" in line or "error:" in line) and "file not found" not in line
             ]
             if doc_warnings:
                 print("\n".join(doc_warnings))
@@ -93,7 +90,7 @@ def lint_file_docstrings(file_path):
     print(f"\n=== Linting Doxygen Docstrings in {os.path.basename(file_path)} ===")
     errors = 0
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # 1. Check for @file top-level docblock
@@ -125,9 +122,7 @@ def lint_file_docstrings(file_path):
             r"^(?!typedef\b)(?!return\b)(?:static\s+)?(?:const\s+)?(?:[a-zA-Z0-9_]+\s+\*?|\*[a-zA-Z0-9_]+\s+)([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(?:;|\{)",
             line,
         )
-        munit_match = re.match(
-            r"^munit_case\s*\(\s*[A-Z_]+\s*,\s*([a-zA-Z0-9_]+)", line
-        )
+        munit_match = re.match(r"^munit_case\s*\(\s*[A-Z_]+\s*,\s*([a-zA-Z0-9_]+)", line)
 
         func_name = None
         params_raw = ""
@@ -158,17 +153,13 @@ def lint_file_docstrings(file_path):
 
             comment_block = "\n".join(comment_lines)
 
-            if not comment_block or not (
-                "/**" in comment_block or "/*" in comment_block
-            ):
+            if not comment_block or not ("/**" in comment_block or "/*" in comment_block):
                 print(
                     f"ERROR: {file_path}:{i + 1}: Function '{func_name}' is missing a Doxygen docstring comment."
                 )
                 errors += 1
             else:
-                if "@brief" not in comment_block and not re.search(
-                    r"\*\s+[A-Z]", comment_block
-                ):
+                if "@brief" not in comment_block and not re.search(r"\*\s+[A-Z]", comment_block):
                     print(
                         f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' lacks a @brief tag or description."
                     )
@@ -193,10 +184,7 @@ def lint_file_docstrings(file_path):
                 if (
                     not is_munit
                     and not line.startswith(("void ", "static void ", "void\t"))
-                    and (
-                        "@return" not in comment_block
-                        and "@returns" not in comment_block
-                    )
+                    and ("@return" not in comment_block and "@returns" not in comment_block)
                 ):
                     print(
                         f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' missing '@return' tag."
@@ -266,9 +254,7 @@ def main():
         print(f"\n❌ Docstring linting failed with {total_errors} error(s).")
         sys.exit(1)
 
-    print(
-        "\n✅ Docstring linting passed! All docstrings are present and correctly formatted."
-    )
+    print("\n✅ Docstring linting passed! All docstrings are present and correctly formatted.")
     sys.exit(0)
 
 

@@ -19,6 +19,7 @@ While the initial codebase established a baseline Mark-and-Sweep garbage collect
 
 - [x] **Core Mark-and-Sweep GC & VM Baseline**
 - [x] **Tooling, CI & Safety Infrastructure** (ASan/UBSan, `bootlib`, `clang-format`, `clang-tidy`, Google Benchmark)
+- [x] **Python Toolchain** (`uv`, `ruff`, `pyrefly`, `pre-commit` hooks)
 - [ ] **Interactive Memory & GC REPL**: Live terminal CLI (`just run`) to allocate objects, push/pop stack frames, reference handles, and trigger GC passes interactively.
 - [ ] **ASCII Heap Visualizer & Object Inspector**: Real-time visual tree inspection of stack frame roots, object reference graphs, and reachable vs unreachable heap states.
 - [ ] **New Data Structures & Containers**: Custom hash maps, doubly linked lists, and dynamic buffer slices.
@@ -29,8 +30,6 @@ While the initial codebase established a baseline Mark-and-Sweep garbage collect
   - [ ] Mark-Compact & Copying collectors
   - [ ] Reference Counting with cycle detection
 
-
-
 ---
 
 ## 🛠️ Developer Commands (`justfile`)
@@ -40,16 +39,32 @@ This project uses [`just`](https://github.com/casey/just) to automate developmen
 | Command | Description |
 | :--- | :--- |
 | `just test` | Run the unit test suite via µnit with ASan/UBSan and `bootlib` leak tracking |
+| `just test-filter <pattern>` | Run only tests matching a name prefix/pattern |
 | `just coverage` | Measure line coverage using `gcov` / `llvm-cov` |
-| `just format` | Format code in-place using `clang-format` |
-| `just format-check` | Check formatting compliance without mutating files |
-| `just lint` | Run static analysis using `clang-tidy` |
+| `just bench` | Compile and run Google Benchmark microbenchmarks |
+| `just format` | Format all C/C++ files in-place using `clang-format` |
+| `just format-check` | Check C/C++ formatting compliance without mutating files |
+| `just format-py` | Format Python scripts in-place (`ruff format`) |
+| `just lint` | Run `clang-tidy` static analysis + docstring lint + Python checks |
+| `just lint-py` | Check Python scripts (`ruff` + `pyrefly`) |
+| `just lint-docs` | Check Doxygen docstrings across configured dirs |
+| `just check` | Run all pre-commit hooks across the entire repo |
 | `just build` | Compile the main sandbox application binary |
 | `just run` | Build and execute the sandbox app |
+| `just watch` | Watch `.c/.h/.cpp/.py` files and auto-rerun tests |
+| `just debug [filter]` | Launch lldb on the test suite (optionally filtered) |
 | `just clean` | Remove build binaries and gcov artifacts |
+| `just compiledb` | Regenerate `compile_commands.json` for clangd |
+| `just install-deps` | Install all macOS dev dependencies via Homebrew |
+| `just setup-hooks` | Install pre-commit git hooks |
 
 ---
 
 ## 🧪 Continuous Integration
 
-All commits and pull requests automatically trigger GitHub Actions (`.github/workflows/ci.yml`) to verify compilation, test execution, formatting compliance (`clang-format`), and static analysis (`clang-tidy`).
+All commits and pull requests automatically trigger GitHub Actions (`.github/workflows/ci.yml`):
+
+1. **pre-commit** — `ruff`, `pyrefly`, `clang-format`, Doxygen docstring lint, and unit tests
+2. **clang-tidy** — deep static analysis on `src/*.c`
+3. **build** — compile the main sandbox binary
+4. **coverage** — line coverage via `gcov`

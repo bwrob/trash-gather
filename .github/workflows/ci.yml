@@ -32,13 +32,11 @@ jobs:
         run: uv run pre-commit run --all-files
 
       - name: Run Static Analysis (clang-tidy)
-        run: just lint
+        # clang-tidy is not in pre-commit (too slow); lint-docs/tests are already run above
+        run: clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
       - name: Build Main Binary
         run: just build
-
-      - name: Run Test Suite (µnit + ASan + bootlib)
-        run: just test
 
       - name: Measure Code Coverage (gcov)
         run: just coverage

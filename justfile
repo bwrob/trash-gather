@@ -74,9 +74,9 @@ debug filter="": test-build
         lldb -- ./{{BIN_DIR}}/test_runner --no-fork $(./{{BIN_DIR}}/test_runner --list | grep "{{filter}}"); \
     fi
 
-# Continuous watch mode: auto-recompiles and tests on any .c/.h file save
+# Continuous watch mode: auto-recompiles and tests on any .c/.h/.py file save
 watch:
-    watchexec -e c,h,cpp "just test"
+    watchexec -e c,h,cpp,py "just test"
 
 # Inspect OS-level memory leaks on macOS
 leaks: test-build
@@ -107,6 +107,7 @@ coverage: mkdir-bin
     else \
         gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/stack.o; \
     fi
+    @rm -f *.gcov
 
 # Build the main sandbox executable
 build: src-objs
@@ -125,13 +126,13 @@ clean:
 compiledb:
     uv run python scripts/gen_compile_commands.py
 
-# Format all C source and header files using clang-format
+# Format all C/C++ source and header files using clang-format
 format:
-    find src tests -type f -name '*.[ch]' | xargs clang-format -i
+    find src tests bench -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format -i
 
 # Check formatting without modifying files
 format-check:
-    find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
+    find src tests bench -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format --dry-run --Werror
 
 # Check Python code formatting, linting, and types (ruff & pyrefly)
 lint-py:
