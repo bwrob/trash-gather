@@ -15,7 +15,7 @@ This project is a direct continuation and expansion of the **Memory Management &
 
 ## 🎯 Roadmap & Extended Architecture
 
-While the initial codebase established a baseline Mark-and-Sweep garbage collection runtime for Sneklang, this repository is actively expanding into advanced runtime mechanics:
+While the initial codebase established a baseline Mark-and-Sweep garbage collection runtime for lang, this repository is actively expanding into advanced runtime mechanics:
 
 - [x] **Core Mark-and-Sweep GC & VM Baseline**
 - [x] **Tooling, CI & Safety Infrastructure** (ASan/UBSan, `bootlib`, `clang-format`, `clang-tidy`, Google Benchmark)

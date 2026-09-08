@@ -1,6 +1,6 @@
 #include "vm.h"
 
-#include "snekobject.h"
+#include "object.h"
 #include "stack.h"
 
 static vm_t *CURRENT_VM = NULL;
@@ -21,13 +21,13 @@ void sweep() {
     if (obj_ == NULL) {
       continue;
     }
-    snek_object_t *obj = obj_;
+    object_t *obj = obj_;
     if (obj->is_marked) {
       obj->is_marked = false;
       continue;
     }
 
-    snek_object_free(obj);
+    object_free(obj);
     CURRENT_VM->objects->data[i] = NULL;
   }
   stack_remove_nulls(CURRENT_VM->objects);
@@ -41,14 +41,14 @@ void mark() {
       if (obj_ == NULL) {
         continue;
       }
-      snek_object_t *obj = obj_;
+      object_t *obj = obj_;
       obj->is_marked = true;
     }
   }
 }
 
 void trace() {
-  stack_t *gray_objects = stack_new(8);
+  vm_stack_t *gray_objects = stack_new(8);
   if (gray_objects == NULL) {
     return;
   }
@@ -59,7 +59,7 @@ void trace() {
     if (obj_ == NULL) {
       continue;
     }
-    snek_object_t *obj = obj_;
+    object_t *obj = obj_;
     if (obj->is_marked) {
       stack_push(gray_objects, obj);
     }
@@ -74,8 +74,8 @@ void trace() {
   stack_free(gray_objects);
 }
 
-void trace_blacken_object(stack_t *gray_objects, snek_object_t *ref) {
-  snek_object_t *obj = ref;
+void trace_blacken_object(vm_stack_t *gray_objects, object_t *ref) {
+  object_t *obj = ref;
 
   switch (obj->kind) {
   case INTEGER:
@@ -83,7 +83,7 @@ void trace_blacken_object(stack_t *gray_objects, snek_object_t *ref) {
   case STRING:
     break;
   case VECTOR3: {
-    snek_vector_t vec = obj->data.v_vector3;
+    vector_t vec = obj->data.v_vector3;
     trace_mark_object(gray_objects, vec.x);
     trace_mark_object(gray_objects, vec.y);
     trace_mark_object(gray_objects, vec.z);
@@ -98,7 +98,7 @@ void trace_blacken_object(stack_t *gray_objects, snek_object_t *ref) {
   }
 }
 
-void trace_mark_object(stack_t *gray_objects, snek_object_t *obj) {
+void trace_mark_object(vm_stack_t *gray_objects, object_t *obj) {
   if (obj == NULL || obj->is_marked) {
     return;
   }
@@ -107,7 +107,7 @@ void trace_mark_object(stack_t *gray_objects, snek_object_t *obj) {
   obj->is_marked = true;
 }
 
-void frame_reference_object(frame_t *frame, snek_object_t *obj) {
+void frame_reference_object(frame_t *frame, object_t *obj) {
   stack_push(frame->references, obj);
   refcount_inc(obj);
 }
@@ -144,8 +144,8 @@ void vm_free() {
     if (obj_ == NULL) {
       continue;
     }
-    snek_object_t *obj = obj_;
-    snek_object_free(obj);
+    object_t *obj = obj_;
+    object_free(obj);
   }
   stack_free(CURRENT_VM->objects);
 
@@ -179,6 +179,6 @@ void frame_free(frame_t *frame) {
   free(frame);
 }
 
-void vm_track_object(snek_object_t *obj) {
+void vm_track_object(object_t *obj) {
   stack_push(CURRENT_VM->objects, obj);
 }

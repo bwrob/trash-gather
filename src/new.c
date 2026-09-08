@@ -1,13 +1,13 @@
-#include "sneknew.h"
+#include "new.h"
 
-#include "snekobject.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-snek_object_t *_new_snek_object() {
-  snek_object_t *obj = calloc(1, sizeof(snek_object_t));
+object_t *_new_object() {
+  object_t *obj = calloc(1, sizeof(object_t));
   if (obj == NULL) {
     return NULL;
   }
@@ -19,37 +19,36 @@ snek_object_t *_new_snek_object() {
   return obj;
 }
 
-snek_object_t *new_snek_array(size_t size) {
-  snek_object_t **elements = calloc(size, sizeof(snek_object_t *));
+object_t *new_array(size_t size) {
+  object_t **elements = calloc(size, sizeof(object_t *));
   if (elements == NULL) {
     return NULL;
   }
 
-  snek_object_t *obj = _new_snek_object();
+  object_t *obj = _new_object();
   if (obj == NULL) {
     free(elements);
     return NULL;
   }
 
   obj->kind = ARRAY;
-  obj->data.v_array = (snek_array_t){.size = size, .elements = elements};
+  obj->data.v_array = (array_t){.size = size, .elements = elements};
 
   return obj;
 }
 
-snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
-                                snek_object_t *z) {
+object_t *new_vector3(object_t *x, object_t *y, object_t *z) {
   if (x == NULL || y == NULL || z == NULL) {
     return NULL;
   }
 
-  snek_object_t *obj = _new_snek_object();
+  object_t *obj = _new_object();
   if (obj == NULL) {
     return NULL;
   }
 
   obj->kind = VECTOR3;
-  obj->data.v_vector3 = (snek_vector_t){.x = x, .y = y, .z = z};
+  obj->data.v_vector3 = (vector_t){.x = x, .y = y, .z = z};
   refcount_inc(x);
   refcount_inc(y);
   refcount_inc(z);
@@ -57,8 +56,8 @@ snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
   return obj;
 }
 
-snek_object_t *new_snek_integer(int value) {
-  snek_object_t *obj = _new_snek_object();
+object_t *new_integer(int value) {
+  object_t *obj = _new_object();
   if (obj == NULL) {
     return NULL;
   }
@@ -69,8 +68,8 @@ snek_object_t *new_snek_integer(int value) {
   return obj;
 }
 
-snek_object_t *new_snek_float(float value) {
-  snek_object_t *obj = _new_snek_object();
+object_t *new_float(float value) {
+  object_t *obj = _new_object();
   if (obj == NULL) {
     return NULL;
   }
@@ -80,14 +79,14 @@ snek_object_t *new_snek_float(float value) {
   return obj;
 }
 
-snek_object_t *new_snek_string(char *value) {
+object_t *new_string(char *value) {
   int len = strlen(value);
   char *dst = malloc(len + 1);
   if (dst == NULL) {
     return NULL;
   }
 
-  snek_object_t *obj = _new_snek_object();
+  object_t *obj = _new_object();
   if (obj == NULL) {
     free(dst);
     return NULL;

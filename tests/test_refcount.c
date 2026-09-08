@@ -6,8 +6,8 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -33,7 +33,7 @@ static void vm_cleanup_after_refcount(void) {
  */
 munit_case(RUN, test_int_has_refcount, {
   vm_new();
-  snek_object_t *obj = new_snek_integer(10);
+  object_t *obj = new_integer(10);
   assert_int(obj->refcount, ==, 1, "Refcount should be 1 on creation");
 
   refcount_dec(obj);
@@ -46,7 +46,7 @@ munit_case(RUN, test_int_has_refcount, {
  */
 munit_case(RUN, test_inc_refcount, {
   vm_new();
-  snek_object_t *obj = new_snek_float(4.20f);
+  object_t *obj = new_float(4.20f);
   assert_int(obj->refcount, ==, 1, "Refcount should be 1 on creation");
 
   refcount_inc(obj);
@@ -63,7 +63,7 @@ munit_case(RUN, test_inc_refcount, {
  */
 munit_case(RUN, test_dec_refcount, {
   vm_new();
-  snek_object_t *obj = new_snek_float(4.20f);
+  object_t *obj = new_float(4.20f);
 
   refcount_inc(obj);
   assert_int(obj->refcount, ==, 2, "Refcount should be incremented");
@@ -82,7 +82,7 @@ munit_case(RUN, test_dec_refcount, {
  */
 munit_case(RUN, test_refcount_free_is_called, {
   vm_new();
-  snek_object_t *obj = new_snek_float(4.20f);
+  object_t *obj = new_float(4.20f);
 
   refcount_inc(obj);
   assert_int(obj->refcount, ==, 2, "Refcount should be incremented");
@@ -103,7 +103,7 @@ munit_case(RUN, test_refcount_free_is_called, {
  */
 munit_case(RUN, test_allocated_string_is_freed, {
   vm_new();
-  snek_object_t *obj = new_snek_string("Hello @wagslane!");
+  object_t *obj = new_string("Hello @wagslane!");
 
   refcount_inc(obj);
   assert_int(obj->refcount, ==, 2, "Refcount should be incremented");
@@ -124,10 +124,10 @@ munit_case(RUN, test_allocated_string_is_freed, {
  */
 munit_case(RUN, test_array_set, {
   vm_new();
-  snek_object_t *foo = new_snek_integer(1);
-  snek_object_t *array = new_snek_array(1);
+  object_t *foo = new_integer(1);
+  object_t *array = new_array(1);
 
-  snek_array_set(array, 0, foo);
+  array_set(array, 0, foo);
   assert_int(foo->refcount, ==, 2, "foo is now referenced by array");
   assert(!boot_is_freed(foo));
 
@@ -144,13 +144,13 @@ munit_case(RUN, test_array_set, {
  */
 munit_case(SUBMIT, test_array_free, {
   vm_new();
-  snek_object_t *foo = new_snek_integer(1);
-  snek_object_t *bar = new_snek_integer(2);
-  snek_object_t *baz = new_snek_integer(3);
+  object_t *foo = new_integer(1);
+  object_t *bar = new_integer(2);
+  object_t *baz = new_integer(3);
 
-  snek_object_t *array = new_snek_array(2);
-  snek_array_set(array, 0, foo);
-  snek_array_set(array, 1, bar);
+  object_t *array = new_array(2);
+  array_set(array, 0, foo);
+  array_set(array, 1, bar);
   assert_int(foo->refcount, ==, 2, "foo is now referenced by array");
   assert_int(bar->refcount, ==, 2, "bar is now referenced by array");
   assert_int(baz->refcount, ==, 1, "baz is not yet referenced by array");
@@ -160,7 +160,7 @@ munit_case(SUBMIT, test_array_free, {
   assert(!boot_is_freed(foo));
 
   // Overwrite index 0 (foo) with baz. foo refcount hits 0 and is freed.
-  snek_array_set(array, 0, baz);
+  array_set(array, 0, baz);
   assert(boot_is_freed(foo));
 
   refcount_dec(bar);
@@ -176,11 +176,11 @@ munit_case(SUBMIT, test_array_free, {
  */
 munit_case(RUN, test_vector3_refcounting, {
   vm_new();
-  snek_object_t *foo = new_snek_integer(1);
-  snek_object_t *bar = new_snek_integer(2);
-  snek_object_t *baz = new_snek_integer(3);
+  object_t *foo = new_integer(1);
+  object_t *bar = new_integer(2);
+  object_t *baz = new_integer(3);
 
-  snek_object_t *vec = new_snek_vector3(foo, bar, baz);
+  object_t *vec = new_vector3(foo, bar, baz);
   assert_int(foo->refcount, ==, 2, "foo is now referenced by vec");
   assert_int(bar->refcount, ==, 2, "bar is now referenced by vec");
   assert_int(baz->refcount, ==, 2, "baz is now referenced by vec");
@@ -220,12 +220,12 @@ munit_case(RUN, test_refcount_null_safety, {
  */
 munit_case(RUN, test_cycle_refcount_limitation, {
   vm_new();
-  snek_object_t *arr_a = new_snek_array(1);
-  snek_object_t *arr_b = new_snek_array(1);
+  object_t *arr_a = new_array(1);
+  object_t *arr_b = new_array(1);
 
   // arr_a -> arr_b and arr_b -> arr_a
-  snek_array_set(arr_a, 0, arr_b);
-  snek_array_set(arr_b, 0, arr_a);
+  array_set(arr_a, 0, arr_b);
+  array_set(arr_b, 0, arr_a);
 
   assert_int(arr_a->refcount, ==, 2, "arr_a referenced by caller and arr_b");
   assert_int(arr_b->refcount, ==, 2, "arr_b referenced by caller and arr_a");

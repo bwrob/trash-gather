@@ -39,8 +39,8 @@ munit-obj: mkdir-bin
 [private]
 src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/sneknew.c -o {{BIN_DIR}}/sneknew.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/snekobject.c -o {{BIN_DIR}}/snekobject.o
+    {{CC}} {{CFLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
+    {{CC}} {{CFLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
 
@@ -49,13 +49,13 @@ test-build: src-objs munit-obj
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_snekobject.c -o {{BIN_DIR}}/test_snekobject.o
+    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_object.c -o {{BIN_DIR}}/test_object.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_frame.c -o {{BIN_DIR}}/test_frame.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_sneknew.c -o {{BIN_DIR}}/test_sneknew.o
+    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_new.c -o {{BIN_DIR}}/test_new.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_snekobject.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_sneknew.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
+    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
 
 # Run all unit tests
 test: test-build
@@ -101,32 +101,32 @@ coverage: mkdir-bin
     {{CC}} {{CFLAGS}} -c vendor/munit/munit.c -o {{BIN_DIR}}/munit.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
 
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/sneknew.c -o {{BIN_DIR}}/sneknew.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/snekobject.c -o {{BIN_DIR}}/snekobject.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_snekobject.c -o {{BIN_DIR}}/test_snekobject.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_object.c -o {{BIN_DIR}}/test_object.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_frame.c -o {{BIN_DIR}}/test_frame.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_sneknew.c -o {{BIN_DIR}}/test_sneknew.o
+    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_new.c -o {{BIN_DIR}}/test_new.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_snekobject.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_sneknew.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
+    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
     ./{{BIN_DIR}}/cov_runner > /dev/null
     @if command -v xcrun >/dev/null 2>&1; then \
-        xcrun llvm-cov gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/stack.o; \
+        xcrun llvm-cov gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/object.o {{BIN_DIR}}/new.o {{BIN_DIR}}/stack.o; \
     else \
-        gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/stack.o; \
+        gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/object.o {{BIN_DIR}}/new.o {{BIN_DIR}}/stack.o; \
     fi
     @rm -f *.gcov
 
 # Build the main sandbox executable
 build: src-objs
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/main.c -o {{BIN_DIR}}/main.o
-    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/sneknew.o {{BIN_DIR}}/snekobject.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/main.o -o {{BIN_DIR}}/main_app
+    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/main.o -o {{BIN_DIR}}/main_app
 
 # Run the main sandbox executable
 run: build
@@ -178,14 +178,14 @@ install-deps:
 [private]
 bench-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bench_bootlib.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/sneknew.c -o {{BIN_DIR}}/bench_sneknew.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/snekobject.c -o {{BIN_DIR}}/bench_snekobject.o
+    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/new.c -o {{BIN_DIR}}/bench_new.o
+    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/object.c -o {{BIN_DIR}}/bench_object.o
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/stack.c -o {{BIN_DIR}}/bench_stack.o
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/vm.c -o {{BIN_DIR}}/bench_vm.o
 
 # Compile benchmark runner binary
 bench-build: bench-objs
-    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_sneknew.o {{BIN_DIR}}/bench_snekobject.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
+    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_new.o {{BIN_DIR}}/bench_object.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
 
 # Compile and run Google Benchmark performance benchmarks
 bench: bench-build

@@ -17,7 +17,7 @@
  * @brief Helper pushing mixed pointer and cast int values onto a stack.
  * @param s Target stack instance.
  */
-static void scary_double_push(stack_t *s) {
+static void scary_double_push(vm_stack_t *s) {
   stack_push(s, (void *)(uintptr_t)1337);
   int *p = malloc(sizeof(int));
   *p = 1024;
@@ -29,13 +29,13 @@ static void scary_double_push(stack_t *s) {
  * stack.
  * @param s Target stack instance.
  */
-static void stack_push_multiple_types(stack_t *s) {
+static void stack_push_multiple_types(vm_stack_t *s) {
   float *f = malloc(sizeof(float));
   *f = 3.14f;
   stack_push(s, f);
 
   char *str = malloc(28 * sizeof(char));
-  strcpy(str, "Sneklang is blazingly slow!");
+  strcpy(str, "lang is blazingly slow!");
   stack_push(s, str);
 }
 
@@ -43,7 +43,7 @@ static void stack_push_multiple_types(stack_t *s) {
  * @brief Test creating a small stack instance with initial capacity.
  */
 munit_case(RUN, create_stack_small, {
-  stack_t *s = stack_new(3);
+  vm_stack_t *s = stack_new(3);
   assert_int(s->capacity, ==, 3, "Sets capacity to 3");
   assert_int(s->count, ==, 0, "No elements in the stack yet");
   assert_ptr_not_null(s->data, "Allocates the stack data");
@@ -56,7 +56,7 @@ munit_case(RUN, create_stack_small, {
  * @brief Test creating a large stack instance with high initial capacity.
  */
 munit_case(SUBMIT, create_stack_large, {
-  stack_t *s = stack_new(100);
+  vm_stack_t *s = stack_new(100);
   assert_int(s->capacity, ==, 100, "Sets capacity to 100");
   assert_int(s->count, ==, 0, "No elements in the stack yet");
   assert_ptr_not_null(s->data, "Allocates the stack data");
@@ -71,12 +71,12 @@ munit_case(SUBMIT, create_stack_large, {
  */
 munit_case(SUBMIT, create_stack_allocation_size, {
   size_t capacity = 5;
-  stack_t *s = stack_new(capacity);
+  vm_stack_t *s = stack_new(capacity);
   assert_int(s->capacity, ==, capacity, "Sets capacity to 5");
   assert_int(s->count, ==, 0, "No elements in the stack yet");
   assert_ptr_not_null(s->data, "Allocates the stack data");
   assert_size(boot_alloc_size(), ==,
-              sizeof(stack_t) + capacity * sizeof(void *),
+              sizeof(vm_stack_t) + capacity * sizeof(void *),
               "Allocates memory for one stack and the stack data");
 
   stack_free(s);
@@ -87,7 +87,7 @@ munit_case(SUBMIT, create_stack_allocation_size, {
  * @brief Test basic stack push operation within initial capacity bounds.
  */
 munit_case(RUN, push_stack, {
-  stack_t *s = stack_new(2);
+  vm_stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
 
   assert_int(s->capacity, ==, 2, "Sets capacity to 2");
@@ -111,7 +111,7 @@ munit_case(RUN, push_stack, {
  * @brief Test dynamic capacity doubling when pushing beyond capacity limit.
  */
 munit_case(RUN, push_double_capacity, {
-  stack_t *s = stack_new(2);
+  vm_stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
 
   assert_int(s->capacity, ==, 2, "Sets capacity to 2");
@@ -143,7 +143,7 @@ munit_case(RUN, push_double_capacity, {
  * @brief Test order preservation when pushing multiple distinct elements.
  */
 munit_case(SUBMIT, push_multiple_values, {
-  stack_t *s = stack_new(2);
+  vm_stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
 
   int one = 1;
@@ -168,7 +168,7 @@ munit_case(SUBMIT, push_multiple_values, {
  * @brief Test LIFO (last-in, first-out) popping behavior.
  */
 munit_case(RUN, pop_stack, {
-  stack_t *s = stack_new(2);
+  vm_stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
 
   assert_int(s->capacity, ==, 2, "Sets capacity to 2");
@@ -209,7 +209,7 @@ munit_case(RUN, pop_stack, {
  * @brief Test pop safety when stack is completely empty.
  */
 munit_case(SUBMIT, pop_stack_empty, {
-  stack_t *s = stack_new(2);
+  vm_stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
 
   assert_int(s->capacity, ==, 2, "Sets capacity to 2");
@@ -227,7 +227,7 @@ munit_case(SUBMIT, pop_stack_empty, {
  * @brief Test pushing heterogenous pointer and integer value types onto stack.
  */
 munit_case(RUN, heterogenous_stack, {
-  stack_t *s = stack_new(2);
+  vm_stack_t *s = stack_new(2);
   assert_ptr_not_null(s, "Must allocate a new stack");
 
   scary_double_push(s);
@@ -248,7 +248,7 @@ munit_case(RUN, heterogenous_stack, {
  * @brief Test storing multiple distinct memory pointer types on a single stack.
  */
 munit_case(RUN, multiple_types_stack, {
-  stack_t *s = stack_new(4);
+  vm_stack_t *s = stack_new(4);
   assert_ptr_not_null(s, "Must allocate a new stack");
 
   stack_push_multiple_types(s);
@@ -258,7 +258,7 @@ munit_case(RUN, multiple_types_stack, {
   assert_float(*f, ==, 3.14f, "Float is equal");
 
   char *string = s->data[1];
-  assert_string_equal(string, "Sneklang is blazingly slow!", "char* is equal");
+  assert_string_equal(string, "lang is blazingly slow!", "char* is equal");
 
   free(f);
   free(string);
@@ -288,7 +288,7 @@ munit_case(RUN, stack_alloc_failures, {
   assert(boot_all_freed());
 });
 
-MunitTest stack_tests[] = {
+MunitTest vm_stack_tests[] = {
     munit_test("/create_small", create_stack_small),
     munit_test("/create_large", create_stack_large),
     munit_test("/allocation_size", create_stack_allocation_size),

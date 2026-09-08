@@ -1,13 +1,13 @@
 /**
- * @file test_sneknew.c
+ * @file test_new.c
  * @brief Unit tests for object allocation constructors (integers, floats,
  * strings, vectors, arrays) and failure injection.
  */
 
 #include "bootlib.h"
 #include "munit.h"
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
  */
 munit_case(RUN, test_positive_integer, {
   vm_new();
-  snek_object_t *int_object = new_snek_integer(42);
+  object_t *int_object = new_integer(42);
   assert_int(int_object->data.v_int, ==, 42, "must allow positive numbers");
 
   vm_free();
@@ -30,7 +30,7 @@ munit_case(RUN, test_positive_integer, {
  */
 munit_case(RUN, test_zero_integer, {
   vm_new();
-  snek_object_t *int_object = new_snek_integer(0);
+  object_t *int_object = new_integer(0);
 
   assert_int(int_object->kind, ==, INTEGER, "must be INTEGER type");
   assert_int(int_object->data.v_int, ==, 0, "must equal zero");
@@ -44,7 +44,7 @@ munit_case(RUN, test_zero_integer, {
  */
 munit_case(SUBMIT, test_negative_integer, {
   vm_new();
-  snek_object_t *int_object = new_snek_integer(-5);
+  object_t *int_object = new_integer(-5);
 
   assert_int(int_object->kind, ==, INTEGER, "must be INTEGER type");
   assert_int(int_object->data.v_int, ==, -5, "must allow negative numbers");
@@ -58,7 +58,7 @@ munit_case(SUBMIT, test_negative_integer, {
  */
 munit_case(RUN, test_float_object, {
   vm_new();
-  snek_object_t *float_object = new_snek_float(3.14f);
+  object_t *float_object = new_float(3.14f);
 
   assert_int(float_object->kind, ==, FLOAT, "must be FLOAT type");
   assert_double_equal((double)float_object->data.v_float, 3.14, 2);
@@ -72,10 +72,10 @@ munit_case(RUN, test_float_object, {
  */
 munit_case(RUN, test_string_object, {
   vm_new();
-  snek_object_t *string_object = new_snek_string("Hello Snek");
+  object_t *string_object = new_string("Hello ");
 
   assert_int(string_object->kind, ==, STRING, "must be STRING type");
-  assert_string_equal(string_object->data.v_string, "Hello Snek",
+  assert_string_equal(string_object->data.v_string, "Hello ",
                       "must copy string content");
 
   vm_free();
@@ -87,10 +87,10 @@ munit_case(RUN, test_string_object, {
  */
 munit_case(RUN, test_vector3_object, {
   vm_new();
-  snek_object_t *x = new_snek_integer(1);
-  snek_object_t *y = new_snek_integer(2);
-  snek_object_t *z = new_snek_integer(3);
-  snek_object_t *vec = new_snek_vector3(x, y, z);
+  object_t *x = new_integer(1);
+  object_t *y = new_integer(2);
+  object_t *z = new_integer(3);
+  object_t *vec = new_vector3(x, y, z);
 
   assert_int(vec->kind, ==, VECTOR3, "must be VECTOR3 type");
   assert_ptr_equal(vec->data.v_vector3.x, x);
@@ -106,7 +106,7 @@ munit_case(RUN, test_vector3_object, {
  */
 munit_case(RUN, test_vec_returns_null, {
   vm_new();
-  snek_object_t *vec = new_snek_vector3(NULL, NULL, NULL);
+  object_t *vec = new_vector3(NULL, NULL, NULL);
 
   assert_null(vec, "Should return null when input is null");
 
@@ -119,10 +119,10 @@ munit_case(RUN, test_vec_returns_null, {
  */
 munit_case(RUN, test_vec_multiple_objects, {
   vm_new();
-  snek_object_t *x = new_snek_integer(1);
-  snek_object_t *y = new_snek_integer(2);
-  snek_object_t *z = new_snek_integer(3);
-  snek_object_t *vec = new_snek_vector3(x, y, z);
+  object_t *x = new_integer(1);
+  object_t *y = new_integer(2);
+  object_t *z = new_integer(3);
+  object_t *vec = new_vector3(x, y, z);
 
   assert_ptr_not_null(vec, "should allocate a new object");
 
@@ -145,8 +145,8 @@ munit_case(RUN, test_vec_multiple_objects, {
  */
 munit_case(SUBMIT, test_vec_same_object, {
   vm_new();
-  snek_object_t *i = new_snek_integer(1);
-  snek_object_t *vec = new_snek_vector3(i, i, i);
+  object_t *i = new_integer(1);
+  object_t *vec = new_vector3(i, i, i);
 
   assert_ptr_not_null(vec, "should allocate a new object");
 
@@ -176,7 +176,7 @@ munit_case(SUBMIT, test_vec_same_object, {
  */
 munit_case(RUN, test_array_object, {
   vm_new();
-  snek_object_t *arr = new_snek_array(5);
+  object_t *arr = new_array(5);
 
   assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
   assert_size(arr->data.v_array.size, ==, 5, "size must be 5");
@@ -194,7 +194,7 @@ munit_case(RUN, test_array_object, {
  */
 munit_case(RUN, test_array_empty, {
   vm_new();
-  snek_object_t *arr = new_snek_array(0);
+  object_t *arr = new_array(0);
 
   assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
   assert_size(arr->data.v_array.size, ==, 0, "size must be 0");
@@ -210,34 +210,34 @@ munit_case(RUN, test_alloc_failures, {
   vm_new();
 
   boot_set_fail_alloc_after(0);
-  assert_null(new_snek_integer(1));
+  assert_null(new_integer(1));
 
   boot_set_fail_alloc_after(0);
-  assert_null(new_snek_float(1.0f));
+  assert_null(new_float(1.0f));
 
   boot_set_fail_alloc_after(0);
-  assert_null(new_snek_string("test"));
+  assert_null(new_string("test"));
 
   boot_set_fail_alloc_after(1);
-  assert_null(new_snek_string("test"));
+  assert_null(new_string("test"));
 
   boot_set_fail_alloc_after(0);
-  assert_null(new_snek_array(5));
+  assert_null(new_array(5));
 
   boot_set_fail_alloc_after(1);
-  assert_null(new_snek_array(5));
+  assert_null(new_array(5));
 
-  snek_object_t *x = new_snek_integer(1);
-  snek_object_t *y = new_snek_integer(2);
-  snek_object_t *z = new_snek_integer(3);
+  object_t *x = new_integer(1);
+  object_t *y = new_integer(2);
+  object_t *z = new_integer(3);
   boot_set_fail_alloc_after(0);
-  assert_null(new_snek_vector3(x, y, z));
+  assert_null(new_vector3(x, y, z));
 
   vm_free();
   assert(boot_all_freed());
 });
 
-MunitTest sneknew_tests[] = {
+MunitTest new_tests[] = {
     munit_test("/integer_positive", test_positive_integer),
     munit_test("/integer_zero", test_zero_integer),
     munit_test("/integer_negative", test_negative_integer),

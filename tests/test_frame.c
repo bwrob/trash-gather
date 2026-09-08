@@ -6,8 +6,8 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -39,7 +39,7 @@ munit_case(RUN, test_one_ref, {
   vm_new();
   frame_t *frame = vm_new_frame();
 
-  snek_object_t *lanes_wpm = new_snek_integer(9);
+  object_t *lanes_wpm = new_integer(9);
   frame_reference_object(frame, lanes_wpm);
 
   assert_int(frame->references->count, ==, 1, "Only one reference");
@@ -56,8 +56,8 @@ munit_case(SUBMIT, test_multi_ref, {
   vm_new();
   frame_t *frame = vm_new_frame();
 
-  snek_object_t *lanes_wpm = new_snek_integer(9);
-  snek_object_t *teej_wpm = new_snek_integer(160);
+  object_t *lanes_wpm = new_integer(9);
+  object_t *teej_wpm = new_integer(160);
   frame_reference_object(frame, lanes_wpm);
   frame_reference_object(frame, teej_wpm);
 

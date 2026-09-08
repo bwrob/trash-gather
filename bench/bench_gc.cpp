@@ -7,8 +7,8 @@
 #include <benchmark/benchmark.h>
 
 extern "C" {
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "stack.h"
 #include "vm.h"
 }
@@ -21,7 +21,7 @@ static void BM_ObjectAllocation(benchmark::State &state) {
   for (auto _ : state) {
     vm_new();
     for (int i = 0; i < 1000; ++i) {
-      new_snek_integer(i);
+      new_integer(i);
     }
     vm_free();
   }
@@ -39,7 +39,7 @@ static void BM_GarbageCollection_Sweep(benchmark::State &state) {
     vm_new();
     // Allocate 5,000 transient objects
     for (int i = 0; i < 5000; ++i) {
-      new_snek_integer(i);
+      new_integer(i);
     }
     state.ResumeTiming();
 
@@ -65,7 +65,7 @@ static void BM_GarbageCollection_Retained(benchmark::State &state) {
     frame_t *frame = vm_new_frame();
     // Allocate 5,000 objects, retain every 2nd object in stack frame
     for (int i = 0; i < 5000; ++i) {
-      snek_object_t *obj = new_snek_integer(i);
+      object_t *obj = new_integer(i);
       if (i % 2 == 0) {
         frame_reference_object(frame, obj);
       }
@@ -92,14 +92,14 @@ static void BM_NestedVectorTracing(benchmark::State &state) {
     vm_new();
     frame_t *frame = vm_new_frame();
 
-    snek_object_t *root = new_snek_integer(0);
+    object_t *root = new_integer(0);
     frame_reference_object(frame, root);
 
     // Build a deep vector hierarchy
     for (int i = 0; i < 500; ++i) {
-      snek_object_t *a = new_snek_integer(i);
-      snek_object_t *b = new_snek_integer(i + 1);
-      root = new_snek_vector3(root, a, b);
+      object_t *a = new_integer(i);
+      object_t *b = new_integer(i + 1);
+      root = new_vector3(root, a, b);
     }
     state.ResumeTiming();
 

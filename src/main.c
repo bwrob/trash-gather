@@ -1,6 +1,6 @@
 #include "bootlib.h"
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -12,7 +12,7 @@ int main(void) {
   vm_new();
   frame_t *f1 = vm_new_frame();
 
-  snek_object_t *s = new_snek_string("Hello from Snek VM!");
+  object_t *s = new_string("Hello from  VM!");
   frame_reference_object(f1, s);
 
   printf("Created string object in frame 1. Collecting garbage...\n");

@@ -6,8 +6,8 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -20,7 +20,7 @@ munit_case(RUN, test_simple, {
   vm_new();
   frame_t *f1 = vm_new_frame();
 
-  snek_object_t *s = new_snek_string("I wish I knew how to read.");
+  object_t *s = new_string("I wish I knew how to read.");
   frame_reference_object(f1, s);
   vm_collect_garbage();
   // nothing should be collected because
@@ -46,19 +46,19 @@ munit_case(SUBMIT, test_full, {
   frame_t *f2 = vm_new_frame();
   frame_t *f3 = vm_new_frame();
 
-  snek_object_t *s1 = new_snek_string("This string is going into frame 1");
+  object_t *s1 = new_string("This string is going into frame 1");
   frame_reference_object(f1, s1);
 
-  snek_object_t *s2 = new_snek_string("This string is going into frame 2");
+  object_t *s2 = new_string("This string is going into frame 2");
   frame_reference_object(f2, s2);
 
-  snek_object_t *s3 = new_snek_string("This string is going into frame 3");
+  object_t *s3 = new_string("This string is going into frame 3");
   frame_reference_object(f3, s3);
 
-  snek_object_t *i1 = new_snek_integer(69);
-  snek_object_t *i2 = new_snek_integer(420);
-  snek_object_t *i3 = new_snek_integer(1337);
-  snek_object_t *v = new_snek_vector3(i1, i2, i3);
+  object_t *i1 = new_integer(69);
+  object_t *i2 = new_integer(420);
+  object_t *i3 = new_integer(1337);
+  object_t *v = new_vector3(i1, i2, i3);
   frame_reference_object(f2, v);
   frame_reference_object(f3, v);
 
@@ -96,8 +96,8 @@ munit_case(SUBMIT, test_full, {
  */
 munit_case(RUN, test_reference_object, {
   vm_new();
-  new_snek_integer(5);
-  new_snek_string("hello");
+  new_integer(5);
+  new_string("hello");
   vm_free();
   assert(boot_all_freed());
 });
@@ -107,7 +107,7 @@ munit_case(RUN, test_reference_object, {
  */
 munit_case(RUN, test_array_freed, {
   vm_new();
-  new_snek_array(3);
+  new_array(3);
   vm_free();
   assert(boot_all_freed());
 });
@@ -141,7 +141,7 @@ munit_case(RUN, test_vm_new, {
 munit_case(RUN, test_new_object, {
   vm_new();
   vm_t *vm = vm_get_current();
-  snek_object_t *obj = new_snek_integer(5);
+  object_t *obj = new_integer(5);
   assert_int(obj->kind, ==, INTEGER, "kind must be INTEGER");
   assert_ptr_equal(vm->objects->data[0], obj, "object must be tracked");
   vm_free();
@@ -159,7 +159,7 @@ munit_case(RUN, test_vm_alloc_failures, {
   }
 
   vm_new();
-  snek_object_t *obj = new_snek_integer(42);
+  object_t *obj = new_integer(42);
   frame_t *f = vm_new_frame();
   frame_reference_object(f, obj);
   mark();
