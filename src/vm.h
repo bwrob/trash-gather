@@ -30,7 +30,7 @@ void trace_mark_object(stack_t *gray_objects, snek_object_t *ref);
 /// but is just composed of `mark`, `trace`, and `sweep`.
 ///
 /// Don't worry, it's not going to delete your code (hopefully!)
-void vm_collect_garbage(vm_t *vm);
+
 
 /// Already implemented
 vm_t *vm_new(void);

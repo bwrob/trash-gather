@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stack.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -47,6 +48,5 @@ void snek_object_free(snek_object_t *obj);
 bool snek_array_set(snek_object_t *array, size_t index, snek_object_t *value);
 snek_object_t *snek_array_get(snek_object_t *array, size_t index);
 
-snek_object_t *snek_add(struct VirtualMachine *vm, snek_object_t *a, snek_object_t *b);
-
-
+snek_object_t *snek_add(struct VirtualMachine *vm, snek_object_t *a,
+                        snek_object_t *b);

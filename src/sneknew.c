@@ -1,6 +1,8 @@
 #include "sneknew.h"
+
 #include "snekobject.h"
 #include "vm.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -94,4 +96,3 @@ snek_object_t *new_snek_string(vm_t *vm, char *value) {
   obj->data.v_string = dst;
   return obj;
 }
-

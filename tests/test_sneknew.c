@@ -3,6 +3,7 @@
 #include "sneknew.h"
 #include "snekobject.h"
 #include "vm.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -53,7 +54,8 @@ munit_case(RUN, test_string_object, {
   snek_object_t *string_object = new_snek_string(vm, "Hello Snek");
 
   assert_int(string_object->kind, ==, STRING, "must be STRING type");
-  assert_string_equal(string_object->data.v_string, "Hello Snek", "must copy string content");
+  assert_string_equal(string_object->data.v_string, "Hello Snek",
+                      "must copy string content");
 
   vm_free(vm);
   assert(boot_all_freed());
@@ -142,8 +144,10 @@ munit_case(RUN, test_array_object, {
 
   assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
   assert_size(arr->data.v_array.size, ==, 5, "size must be 5");
-  assert_ptr_not_null(arr->data.v_array.elements, "elements array must be allocated");
-  assert_ptr_null(arr->data.v_array.elements[0], "elements must be initialized to NULL");
+  assert_ptr_not_null(arr->data.v_array.elements,
+                      "elements array must be allocated");
+  assert_ptr_null(arr->data.v_array.elements[0],
+                  "elements must be initialized to NULL");
 
   vm_free(vm);
   assert(boot_all_freed());
@@ -206,4 +210,3 @@ MunitTest sneknew_tests[] = {
     munit_test("/alloc_failures", test_alloc_failures),
     munit_null_test,
 };
-

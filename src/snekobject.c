@@ -1,5 +1,7 @@
 #include "snekobject.h"
+
 #include "sneknew.h"
+
 #include <string.h>
 
 void snek_object_free(snek_object_t *obj) {

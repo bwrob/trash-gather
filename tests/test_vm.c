@@ -3,6 +3,7 @@
 #include "sneknew.h"
 #include "snekobject.h"
 #include "vm.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -134,7 +135,6 @@ munit_case(RUN, test_vm_alloc_failures, {
   assert(boot_all_freed());
 });
 
-
 MunitTest vm_tests[] = {
     munit_test("/simple", test_simple),
     munit_test("/full", test_full),
@@ -146,4 +146,3 @@ MunitTest vm_tests[] = {
     munit_test("/vm_alloc_failures", test_vm_alloc_failures),
     munit_null_test,
 };
-

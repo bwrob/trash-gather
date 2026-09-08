@@ -3,6 +3,7 @@
 #include "sneknew.h"
 #include "snekobject.h"
 #include "vm.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -320,4 +321,3 @@ MunitTest snekobject_tests[] = {
     munit_test("/add_invalid_mismatched", test_add_invalid_mismatched),
     munit_null_test,
 };
-

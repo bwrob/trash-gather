@@ -2,6 +2,7 @@
 #include "sneknew.h"
 #include "snekobject.h"
 #include "vm.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -20,7 +21,8 @@ int main(void) {
 
   frame_free(vm_frame_pop(vm));
   vm_collect_garbage(vm);
-  printf("Freed frame 1 and collected garbage. Object count in VM: %zu\n", vm->objects->count);
+  printf("Freed frame 1 and collected garbage. Object count in VM: %zu\n",
+         vm->objects->count);
 
   vm_free(vm);
 

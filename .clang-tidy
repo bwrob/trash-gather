@@ -1,0 +1,13 @@
+Checks: '
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  -readability-identifier-length,
+  -modernize-*,
+  -cppcoreguidelines-*
+'
+WarningsAsErrors: ''
+HeaderFilterRegex: 'src/.*\.h'
+FormatStyle: 'file'

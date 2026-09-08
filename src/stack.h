@@ -18,4 +18,3 @@ void *stack_pop(snek_stack_t *stack);
 
 void stack_free(snek_stack_t *stack);
 void stack_remove_nulls(snek_stack_t *stack);
-

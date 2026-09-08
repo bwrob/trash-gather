@@ -1,9 +1,10 @@
 #include "bootlib.h"
 #include "munit.h"
 #include "stack.h"
+
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 static void scary_double_push(stack_t *s) {
@@ -49,7 +50,8 @@ munit_case(SUBMIT, create_stack_allocation_size, {
   assert_int(s->capacity, ==, capacity, "Sets capacity to 5");
   assert_int(s->count, ==, 0, "No elements in the stack yet");
   assert_ptr_not_null(s->data, "Allocates the stack data");
-  assert_size(boot_alloc_size(), ==, sizeof(stack_t) + capacity * sizeof(void *),
+  assert_size(boot_alloc_size(), ==,
+              sizeof(stack_t) + capacity * sizeof(void *),
               "Allocates memory for one stack and the stack data");
 
   stack_free(s);
@@ -248,5 +250,3 @@ MunitTest stack_tests[] = {
     munit_test("/alloc_failures", stack_alloc_failures),
     munit_null_test,
 };
-
-

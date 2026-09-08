@@ -75,3 +75,18 @@ run: build
 # Remove build artifacts
 clean:
     rm -rf {{BIN_DIR}} *.gcov
+
+# Format all C source and header files using clang-format
+format:
+    find src tests -type f -name '*.[ch]' | xargs clang-format -i
+
+# Check formatting without modifying files
+format-check:
+    find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
+
+
+# Run static analysis using clang-tidy
+lint:
+    @/opt/homebrew/opt/llvm/bin/clang-tidy src/*.c tests/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+
+

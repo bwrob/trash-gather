@@ -17,16 +17,10 @@ static MunitSuite child_suites[] = {
     munit_suite("frame", frame_tests),
     munit_suite("sneknew", sneknew_tests),
     munit_suite("stack", stack_tests),
-    { NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE }
-};
+    {NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE}};
 
-static const MunitSuite master_suite = {
-    (char*) "",
-    NULL,
-    child_suites,
-    1,
-    MUNIT_SUITE_OPTION_NONE
-};
+static const MunitSuite master_suite = {(char *)"", NULL, child_suites, 1,
+                                        MUNIT_SUITE_OPTION_NONE};
 
 int main(int argc, char *argv[]) {
   return munit_suite_main(&master_suite, NULL, argc, argv);

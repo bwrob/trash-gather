@@ -1,4 +1,5 @@
 #include "vm.h"
+
 #include "snekobject.h"
 #include "stack.h"
 
@@ -11,7 +12,7 @@ void vm_collect_garbage(vm_t *vm) {
 void sweep(vm_t *vm) {
   for (size_t i = 0; i < vm->objects->count; i++) {
     snek_object_t *obj = vm->objects->data[i];
-    if (obj->is_marked){
+    if (obj->is_marked) {
       obj->is_marked = false;
       continue;
     }
@@ -102,14 +103,15 @@ vm_t *vm_new(void) {
   vm->frames = stack_new(8);
   vm->objects = stack_new(8);
   if (vm->frames == NULL || vm->objects == NULL) {
-    if (vm->frames != NULL) stack_free(vm->frames);
-    if (vm->objects != NULL) stack_free(vm->objects);
+    if (vm->frames != NULL)
+      stack_free(vm->frames);
+    if (vm->objects != NULL)
+      stack_free(vm->objects);
     free(vm);
     return NULL;
   }
   return vm;
 }
-
 
 void vm_free(vm_t *vm) {
   // Free the stack frames, and then their container
@@ -127,9 +129,13 @@ void vm_free(vm_t *vm) {
   free(vm);
 }
 
-void vm_frame_push(vm_t *vm, frame_t *frame) { stack_push(vm->frames, frame); }
+void vm_frame_push(vm_t *vm, frame_t *frame) {
+  stack_push(vm->frames, frame);
+}
 
-frame_t *vm_frame_pop(vm_t *vm) { return stack_pop(vm->frames); }
+frame_t *vm_frame_pop(vm_t *vm) {
+  return stack_pop(vm->frames);
+}
 
 frame_t *vm_new_frame(vm_t *vm) {
   frame_t *frame = malloc(sizeof(frame_t));
