@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define MUNIT_ENABLE_ASSERT_ALIASES
 #include "munit.h"
@@ -35,6 +36,14 @@
 #define assert_int_3(a, op, b) munit_assert_int(a, op, b)
 #define assert_int_4(a, op, b, msg) munit_assert_int(a, op, b)
 #define assert_int(...) GET_ASSERT_INT_MACRO(__VA_ARGS__, assert_int_4, assert_int_3)(__VA_ARGS__)
+
+#ifdef assert_int_equal
+#undef assert_int_equal
+#endif
+#define GET_ASSERT_INT_EQ_MACRO(_1, _2, _3, NAME, ...) NAME
+#define assert_int_eq_2(a, b) munit_assert_int(a, ==, b)
+#define assert_int_eq_3(a, b, msg) munit_assert_int(a, ==, b)
+#define assert_int_equal(...) GET_ASSERT_INT_EQ_MACRO(__VA_ARGS__, assert_int_eq_3, assert_int_eq_2)(__VA_ARGS__)
 
 #ifdef assert_size
 #undef assert_size
@@ -109,6 +118,8 @@ void *boot_calloc(size_t count, size_t size, const char *file, int line);
 bool boot_is_freed(void *ptr);
 bool boot_all_freed(void);
 size_t boot_alloc_size(void);
+size_t boot_last_realloc_size(void);
+size_t boot_realloc_count(void);
 void boot_reset_tracking(void);
 
 #ifndef BOOTLIB_NO_OVERRIDE

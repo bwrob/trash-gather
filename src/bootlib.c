@@ -79,7 +79,12 @@ void boot_free(void *ptr) {
   free(ptr);
 }
 
+static size_t g_last_realloc_size = 0;
+static size_t g_realloc_count = 0;
+
 void *boot_realloc(void *ptr, size_t size, const char *file, int line) {
+  g_last_realloc_size = size;
+  g_realloc_count++;
   if (ptr != NULL) {
     track_free(ptr);
   }
@@ -142,6 +147,16 @@ size_t boot_alloc_size(void) {
   return total;
 }
 
+size_t boot_last_realloc_size(void) {
+  return g_last_realloc_size;
+}
+
+size_t boot_realloc_count(void) {
+  return g_realloc_count;
+}
+
 void boot_reset_tracking(void) {
   g_alloc_count = 0;
+  g_last_realloc_size = 0;
+  g_realloc_count = 0;
 }
