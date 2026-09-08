@@ -61,26 +61,104 @@ munit_case(SUBMIT, test_used_calloc, {
   assert(boot_all_freed());
 });
 
-munit_case(RUN, test_array_set_valid, {
+munit_case(RUN, test_array_set, {
   vm_t *vm = vm_new();
-  snek_object_t *arr = new_snek_array(vm, 2);
-  snek_object_t *val = new_snek_integer(vm, 100);
+  snek_object_t *obj = new_snek_array(vm, 2);
+  snek_object_t *first = new_snek_string(vm, "First");
+  snek_object_t *second = new_snek_integer(vm, 3);
 
-  bool ok = snek_array_set(arr, 0, val);
-  assert_true(ok);
-  assert_ptr_equal(snek_array_get(arr, 0), val);
+  assert(snek_array_set(obj, 0, first));
+  assert(snek_array_set(obj, 1, second));
+
+  assert_ptr(obj->data.v_array.elements[0], ==, first,
+             "Should set the first element");
+  assert_ptr(obj->data.v_array.elements[1], ==, second,
+             "Should set the second element");
 
   vm_free(vm);
   assert(boot_all_freed());
 });
 
-munit_case(RUN, test_array_set_out_of_bounds, {
+munit_case(RUN, test_array_set_outside_bounds, {
   vm_t *vm = vm_new();
-  snek_object_t *arr = new_snek_array(vm, 2);
-  snek_object_t *val = new_snek_integer(vm, 100);
+  snek_object_t *obj = new_snek_array(vm, 2);
+  snek_object_t *outside = new_snek_string(vm, "First");
 
-  bool ok = snek_array_set(arr, 2, val);
-  assert_false(ok);
+  assert(snek_array_set(obj, 1, outside));
+  assert_false(snek_array_set(obj, 2, outside));
+  assert_false(snek_array_set(obj, 100, outside));
+  assert_ptr(obj->data.v_array.elements[1], ==, outside,
+             "Should preserve existing elements");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(SUBMIT, test_array_set_rejects_invalid_inputs, {
+  vm_t *vm = vm_new();
+  snek_object_t *array = new_snek_array(vm, 1);
+  snek_object_t *value = new_snek_integer(vm, 3);
+  snek_object_t *not_array = new_snek_integer(vm, 5);
+
+  assert_false(snek_array_set(NULL, 0, value));
+  assert_false(snek_array_set(array, 0, NULL));
+  assert_false(snek_array_set(not_array, 0, value));
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_array_get, {
+  vm_t *vm = vm_new();
+  snek_object_t *obj = new_snek_array(vm, 2);
+  snek_object_t *first = new_snek_string(vm, "First");
+  snek_object_t *second = new_snek_integer(vm, 3);
+
+  assert(snek_array_set(obj, 0, first));
+  assert(snek_array_set(obj, 1, second));
+
+  snek_object_t *retrieved_first = snek_array_get(obj, 0);
+  assert_not_null(retrieved_first, "Should find the first object");
+  assert_int(retrieved_first->kind, ==, STRING, "Should be a string");
+  assert_ptr(first, ==, retrieved_first, "Should be the same object");
+
+  snek_object_t *retrieved_second = snek_array_get(obj, 1);
+  assert_not_null(retrieved_second, "Should find the second object");
+  assert_int(retrieved_second->kind, ==, INTEGER, "Should be an integer");
+  assert_ptr(second, ==, retrieved_second, "Should be the same object");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(RUN, test_array_get_empty_slot, {
+  vm_t *vm = vm_new();
+  snek_object_t *obj = new_snek_array(vm, 2);
+
+  assert_null(snek_array_get(obj, 1), "Empty array slots should be NULL");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(SUBMIT, test_array_get_outside_bounds, {
+  vm_t *vm = vm_new();
+  snek_object_t *obj = new_snek_array(vm, 1);
+  snek_object_t *first = new_snek_string(vm, "First");
+  assert(snek_array_set(obj, 0, first));
+
+  assert_null(snek_array_get(obj, 1), "Should not access outside the array");
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
+munit_case(SUBMIT, test_array_get_rejects_invalid_inputs, {
+  vm_t *vm = vm_new();
+  snek_object_t *not_array = new_snek_integer(vm, 5);
+
+  assert_null(snek_array_get(NULL, 0), "Should reject NULL input");
+  assert_null(snek_array_get(not_array, 0), "Should reject non-array input");
 
   vm_free(vm);
   assert(boot_all_freed());
@@ -93,7 +171,12 @@ MunitTest snekobject_tests[] = {
     munit_test("/integer_obj", test_integer_obj),
     munit_test("/create_empty_array", test_create_empty_array),
     munit_test("/used_calloc", test_used_calloc),
-    munit_test("/array_set_valid", test_array_set_valid),
-    munit_test("/array_set_out_of_bounds", test_array_set_out_of_bounds),
+    munit_test("/array_set", test_array_set),
+    munit_test("/array_set_outside", test_array_set_outside_bounds),
+    munit_test("/array_set_invalid", test_array_set_rejects_invalid_inputs),
+    munit_test("/array_get", test_array_get),
+    munit_test("/array_get_empty", test_array_get_empty_slot),
+    munit_test("/array_get_outside", test_array_get_outside_bounds),
+    munit_test("/array_get_invalid", test_array_get_rejects_invalid_inputs),
     munit_null_test,
 };
