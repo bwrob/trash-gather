@@ -37,9 +37,21 @@ munit_case(SUBMIT, test_negative_integer, {
   assert(boot_all_freed());
 });
 
+munit_case(RUN, test_float_object, {
+  vm_t *vm = vm_new();
+  snek_object_t *float_object = new_snek_float(vm, 3.14f);
+
+  assert_int(float_object->kind, ==, FLOAT, "must be FLOAT type");
+  assert_double_equal((double)float_object->data.v_float, 3.14, 2);
+
+  vm_free(vm);
+  assert(boot_all_freed());
+});
+
 MunitTest sneknew_tests[] = {
     munit_test("/integer_positive", test_positive_integer),
     munit_test("/integer_zero", test_zero_integer),
     munit_test("/integer_negative", test_negative_integer),
+    munit_test("/float_object", test_float_object),
     munit_null_test,
 };
