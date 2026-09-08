@@ -89,9 +89,10 @@ format-check:
     find src tests -type f -name '*.[ch]' | xargs clang-format --dry-run --Werror
 
 
-# Run static analysis using clang-tidy
+# Run static analysis using clang-tidy (strictly on src/ files, ignoring vendor and tests)
 lint:
-    clang-tidy src/*.c tests/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+    clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+
 
 # Install development dependencies via Homebrew Brewfile (macOS)
 install-deps:

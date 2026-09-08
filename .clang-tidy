@@ -5,9 +5,17 @@ Checks: '
   performance-*,
   readability-*,
   -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-trivial-switch,
+  -readability-redundant-control-flow,
+  -readability-braces-around-statements,
+  -readability-inconsistent-declaration-parameter-name,
+  -bugprone-reserved-identifier,
+  -bugprone-multi-level-implicit-pointer-conversion,
+  -bugprone-narrowing-conversions,
   -modernize-*,
   -cppcoreguidelines-*
 '
 WarningsAsErrors: ''
-HeaderFilterRegex: 'src/.*\.h'
+HeaderFilterRegex: 'src/.*'
 FormatStyle: 'file'

@@ -19,19 +19,28 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+/**
+ * Maximum capacity for tracking memory allocations in tests.
+ */
 #define MAX_BOOT_ALLOCATIONS 10240
 
+/**
+ * Internal tracking structure for a single memory allocation.
+ */
 typedef struct {
-  void *ptr;
-  size_t size;
-  bool freed;
-  const char *file;
-  int line;
+  void *ptr;         /**< Pointer returned by allocator */
+  size_t size;       /**< Allocation size in bytes */
+  bool freed;        /**< Deallocation status flag */
+  const char *file;  /**< Source file where allocation occurred */
+  int line;          /**< Line number where allocation occurred */
 } boot_alloc_t;
 
 static boot_alloc_t g_allocs[MAX_BOOT_ALLOCATIONS];
 static size_t g_alloc_count = 0;
 
+/**
+ * Register or update an active allocation in the global tracking array.
+ */
 static void track_add(void *ptr, size_t size, const char *file, int line) {
   if (ptr == NULL) return;
 
@@ -57,6 +66,9 @@ static void track_add(void *ptr, size_t size, const char *file, int line) {
   }
 }
 
+/**
+ * Mark a pointer as freed in the tracking table.
+ */
 static void track_free(void *ptr) {
   if (ptr == NULL) return;
   for (size_t i = 0; i < g_alloc_count; i++) {
@@ -75,6 +87,9 @@ void boot_set_fail_alloc_after(int count) {
   g_fail_alloc_after = count;
 }
 
+/**
+ * Helper to check if allocation failure simulation should trigger.
+ */
 static bool check_should_fail(void) {
   if (g_fail_alloc_after == 0) {
     g_fail_alloc_after = -1;
