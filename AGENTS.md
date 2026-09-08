@@ -15,24 +15,6 @@ The tooling infrastructure exists to **optimize the learning experience**, not t
 - **Safety nets, not bureaucracy**: ASan, UBSan, `bootlib` leak tracking, and adversarial unit tests exist to catch the subtle memory bugs that are the *point* of this project. When the allocator double-frees or the GC misses a root, the tooling should scream — that's a learning moment.
 - **No convenience shortcuts in `src/`**: AI agents write tests, benchmarks, and infrastructure. The human writes the runtime. Struggling with pointer arithmetic, reference graphs, and mark-and-sweep logic is the entire value proposition.
 
-### Tooling Stack Overview
-
-| Layer | Tool | Purpose |
-|---|---|---|
-| **Build & Tasks** | `just` (justfile) | Single command runner for build, test, lint, format, bench, coverage |
-| **C Compiler** | `gcc` with `-fsanitize=address,undefined` | Compile with AddressSanitizer + UndefinedBehaviorSanitizer always on |
-| **C Formatting** | `clang-format` | Consistent code style across `src/`, `tests/`, `bench/` |
-| **C Static Analysis** | `clang-tidy` | Deep bug detection (bugprone, performance, readability checks) |
-| **C Docstrings** | `scripts/lint_docstrings.py` + Clang `-Wdocumentation` | Enforce Doxygen `@brief`, `@param`, `@return` on every function |
-| **C Testing** | µnit + `bootlib` | Unit tests with allocation tracking and leak verification |
-| **C Benchmarks** | Google Benchmark | Micro-benchmarks for GC throughput, pause times, traversal |
-| **Python Env** | `uv` | Fast, modern Python package/environment manager |
-| **Python Linting** | `ruff` (check + format) | Lint and format `scripts/` with a broad ruleset (I, B, SIM, N, UP) |
-| **Python Types** | `pyrefly` (strict mode) | Static type checking — all function signatures must be annotated |
-| **Git Hooks** | `pre-commit` framework | Runs all checks automatically on every commit |
-| **CI** | GitHub Actions | pre-commit + clang-tidy + build + coverage on every push |
-| **macOS Deps** | Brewfile | `brew bundle` installs the full toolchain in one command |
-
 ---
 
 ## 🚫 1. Strict Boundary: NEVER TOUCH `src/`
@@ -75,3 +57,16 @@ AI agents are fully authorized to create, edit, maintain, and expand performance
 - **Google Benchmark Suite**: Write and update benchmarks in `bench/` (e.g. `bench/bench_gc.cpp`) to measure allocation throughput, memory fragmentation, pointer traversal overhead, and GC pause durations.
 - **Stress Workloads**: Construct benchmarks representing real-world allocation patterns (e.g. high-churn short-lived objects, deep object trees, large array graphs, and 100% root retention vs 0% retention).
 - **Performance Insights**: Help the developer evaluate trade-offs between different Garbage Collection algorithms and data structure designs using benchmark data.
+
+---
+
+## 🔧 5. Tooling & Infrastructure Purpose
+
+The tooling setup aims to provide a **professional-grade development environment from day one**, so that good habits are learned alongside the C runtime code — not retrofitted later. Specifically:
+
+- **`just`** is the single entry point for every workflow (`just test`, `just lint`, `just bench`, `just check`).
+- **`pre-commit`** hooks gate every commit with formatting, linting, docstring, and test checks — ensuring the codebase never regresses silently.
+- **`ruff` + `pyrefly` (strict)** keep the Python helper scripts (`scripts/`) clean, typed, and idiomatically formatted.
+- **`uv`** manages the Python environment reproducibly via `pyproject.toml` + `uv.lock`.
+- **GitHub Actions CI** mirrors the local pre-commit checks and adds `clang-tidy` + coverage, so nothing passes locally that would fail in CI.
+- **`Brewfile`** makes onboarding a single `brew bundle` command.
