@@ -35,14 +35,12 @@ This is a **solo learning project** — not a production codebase or team effort
 - **Enforce Verification**: Every test must strictly check assertions and guarantee zero memory leaks via `boot_all_freed()`.
 
 ### 2.3 Role 3: Performance Benchmarking (`bench/`)
-- **Google Benchmark Suite**: Create and maintain benchmarks in `bench/` (e.g. `bench/bench_gc.cpp`) measuring allocation throughput, memory fragmentation, pointer traversal overhead, and GC pause times.
-- **Stress Workloads**: Benchmark real-world patterns (high-churn short-lived objects, deep object trees, cycle clusters, root retention ratios).
-- **Insights**: Help evaluate trade-offs between different GC algorithms and data structures using empirical benchmark data.
+- **Empirical Optimization**: Create and maintain benchmarks in `bench/` (e.g. `bench/bench_gc.cpp`) measuring allocation throughput, memory fragmentation, pointer traversal overhead, and GC pause times.
+- **Follow the Skill**: All benchmark harness architectures, workload profiles (transient churn, deep trees, cyclic clusters, retention ratios), and analysis runbooks are defined in the **`performance-benchmarking`** skill: [.agents/skills/performance-benchmarking/SKILL.md](file:///Users/bwrob/dev/trash-gather/.agents/skills/performance-benchmarking/SKILL.md).
 
 ### 2.4 Role 4: Educational Knowledge Retention (`lessons/`)
-- **One Lesson per Milestone / MR**: Every Merge Request (MR), pull request, or milestone must correspond to one educational lesson file inside `lessons/` (e.g. `lessons/01_mark_and_sweep_basics.md`, `lessons/02_hybrid_gc_and_desneking.md`).
-- **Content Requirements**: Capture underlying system concepts, trade-offs, bugs encountered (e.g. ASan use-after-free, namespace collisions), mental models, and tooling insights.
-- **AI Agent Directive**: Actively assist in documenting, synthesizing, and maintaining the `lessons/` directory so the human developer has a durable, structured record of everything learned.
+- **Durable Learning Record**: Every Merge Request (MR) or milestone must produce a corresponding educational lesson file inside `lessons/` (e.g. `lessons/01_mark_and_sweep_basics.md`, `lessons/02_hybrid_gc_and_desneking.md`).
+- **Follow the Skill**: All lesson templates, extraction triggers, quality rubrics, and indexing workflows are defined in the **`lesson-extraction`** skill: [.agents/skills/lesson-extraction/SKILL.md](file:///Users/bwrob/dev/trash-gather/.agents/skills/lesson-extraction/SKILL.md).
 
 ---
 

@@ -1,102 +1,133 @@
-# Lesson 02: Hybrid RC + Mark-and-Sweep & De-Sneking
+# Lesson 02: Hybrid Memory Management (Reference Counting + Tracing Cycle Collector)
 
-**Branch:** `hybrid-gc`
-**Focus:** Refactoring to a Clean Runtime API and Implementing Hybrid Reference Counting + Mark-and-Sweep Cycle Detection (CPython Model)
-
----
-
-## 1. System Engineering: C Namespace & Header Collisions
-
-### The macOS Darwin `stack_t` Collision
-- **Problem:** When de-sneking types (`snek_stack_t` -> `stack_t`), builds on macOS immediately broke with obscure compiler errors claiming `stack_t` was already declared.
-- **Root Cause:** In POSIX / Darwin systems, `<signal.h>` (often included indirectly via standard library headers) defines `typedef struct sigaltstack stack_t;` for managing alternate signal stacks.
-- **Lesson:** C does not have namespaces. Generic names like `stack_t`, `list_t`, or `node_t` are prone to collisions with OS headers and standard libraries. Always prefix runtime types with a subsystem identifier (e.g. `vm_stack_t`).
+**Branch:** `hybrid-gc` (Merged in PR #2)
+**Focus:** Architectural foundations of hybrid memory management, reference graph invariants, solving the Single-Pass Deallocation Trap, and platform-level C systems pitfalls.
 
 ---
 
-## 2. Global VM Singleton Architecture
+## 1. System Engineering: C Namespaces & OS Header Collisions
 
-- **Evolution:** The original API passed `vm_t *vm` explicitly to almost every constructor and operation (`new_snek_integer(vm, 42)`).
-- **Refactoring:** Introduced a thread-local / static `CURRENT_VM` singleton managed by `vm_new()` and `vm_free()`.
-- **Outcome:** Clean, ergonomic zero-argument constructors (`new_integer(42)`, `new_array(5)`) mirroring real-world runtime APIs (like Lua or CPython), reducing boilerplate across tests.
-
----
-
-## 3. The Hybrid Model: Reference Counting + Tracing GC
-
-### Why Pure Reference Counting is Not Enough
-- Reference Counting provides immediate, deterministic reclamation as soon as an object's `refcount` hits 0.
-- **Limitation:** Cyclic references (e.g., `A -> B -> A`) cannot be collected by RC alone. Even if detached from all roots, their reference counts remain $\ge 1$, causing permanent memory leaks.
-
-### The Role of Mark-and-Sweep in a Hybrid Model
-- RC handles short-lived, acyclic objects immediately with zero pause time.
-- Tracing GC runs periodically as a **cycle collector**, finding unreachable reference islands that RC missed.
+### The POSIX Darwin `stack_t` Collision
+- **The Pitfall:** Renaming types to concise generic names (e.g., `stack_t`, `list_t`, `node_t`) frequently breaks on Unix-like operating systems.
+- **The Mechanism:** On POSIX / macOS Darwin systems, `<signal.h>` (often pulled in transitively by `<stdlib.h>` or test frameworks) defines:
+  ```c
+  typedef struct sigaltstack stack_t;
+  ```
+- **Transferable Principle:** C has a single global namespace for type identifiers. Library and runtime data structures must **always** carry a subsystem prefix (e.g., `vm_stack_t`, `gc_node_t`, `py_tuple_t`). Never assume short, common words are available in C headers.
 
 ---
 
-## 4. The Single-Pass Deallocation Trap (AddressSanitizer)
+## 2. Hybrid Memory Architecture: Throughput vs. Completeness
 
-### The Dual Nature of `object_free()`
-In pure Mark-and-Sweep, `object_free()` only frees the object's own internal payload (e.g., `free(array->elements)`). It never touches children.
+Automatic memory management generally falls into two paradigms, each with fundamental trade-offs:
 
-In Reference Counting, `object_free()` must cascade ownership release to children:
-```c
-case ARRAY: {
-  for (size_t i = 0; i < arr.size; i++) {
-    refcount_dec(arr.elements[i]); // Drops child refcount
+| Characteristic | Immediate Reference Counting | Tracing Garbage Collection (Mark-and-Sweep) |
+| :--- | :--- | :--- |
+| **Reclamation Timing** | Deterministic (exact instant refcount hits 0) | Deferred (during periodic GC pause phases) |
+| **Pause Times** | Smooth, distributed across execution | Stop-the-world pauses proportional to heap graph |
+| **Locality** | Excellent cache locality for short-lived data | Can cause page-thrashing during mark/sweep walks |
+| **Fatal Flaw** | Cannot collect reference cycles ($A \leftrightarrow B$) | Traversal overhead even for simple temporary variables |
+
+### The Hybrid Synthesis (The CPython Model)
+1. **Immediate Reference Counting** acts as the primary allocator:
+   - Over 90% of objects in typical runtimes are short-lived, acyclic values (strings, integers, intermediate expressions). Immediate refcounting destroys them instantly with zero tracing overhead and prompt destructor execution.
+2. **Periodic Tracing Cycle Collector** acts as the safety net:
+   - Runs occasionally to detect unreachable islands of circular references that refcounting cannot collect alone.
+3. **The Primitive Filtering Optimization**:
+   - Primitives (integers, floats, strings) have no outgoing reference pointers and **can never participate in cycles**.
+   - A high-performance cyclic collector should only register and track **container types** (arrays, tuples, dicts, instances). Untracking primitives keeps GC pause times minimal by dramatically shrinking the active graph.
+
+---
+
+## 3. The Single-Pass Deallocation Trap
+
+### The Conflation of Resource Deallocation and Graph Management
+In a pure tracing collector, an object's `free()` function only needs to return the object's own heap memory (payload buffers and header).
+
+In a reference-counted runtime, deallocation has two conflicting jobs:
+1. **Resource Reclamation:** Freeing private heap allocations (e.g., string buffers, dynamic arrays).
+2. **Graph Ownership Relinquishment:** Cascading decrements to children (`refcount_dec(child)`).
+
+### The Inherent Failure of Linear Traversal
+When a runtime iterates over a collection of objects (during full VM shutdown or cycle sweeping):
+- In any realistic program, object creation order is arbitrary. A child may be allocated *before* its container (`v = new_vector(x, y)`), or *after* its container (`arr = new_array(2); arr[0] = new_string(...)`).
+- **Backward iteration:** Frees children created before their parents first. When the loop visits the parent, the parent cascades a decref to an already-freed child pointer $\rightarrow$ **ASan `heap-use-after-free`**.
+- **Forward iteration:** Frees children created after their parents first. When the loop visits the parent, the parent cascades a decref to an already-freed child pointer $\rightarrow$ **ASan `heap-use-after-free`**.
+
+> [!IMPORTANT]
+> **Fundamental Theorem of Graph Teardown**:
+> No single linear pass over an arbitrary graph can safely interleave object destruction with cascading reference decrements.
+
+---
+
+## 4. Architectural Solutions & Invariants
+
+### Pattern A: Decoupling Payload Destruction from Graph Release
+Object destruction must be split into two separate concerns:
+1. `object_free_payload(obj)` (CPython's `tp_free` / buffer deallocation):
+   - Only frees private heap memory owned by this struct.
+   - Never inspects or decrements child references.
+2. `object_decref_children(obj, live_only)` (CPython's `tp_clear` / edge breaking):
+   - Only manages graph ownership by decrementing references to children.
+
+### Pattern B: Two-Phase Bulk VM Teardown
+During total runtime shutdown, all remaining objects are unconditionally doomed. Simulating graph edge decrements is both a performance penalty and an algorithmic liability.
+- **Pass 1 (Resource Release):** Iterate all objects linearly; call `object_free_payload(obj)` to release all owned buffers.
+- **Pass 2 (Header Release):** Iterate all objects linearly; call `free(obj)`.
+- **Complexity:** Strict $O(N)$ linear memory access, zero pointer chasing, zero risk of use-after-free.
+
+### Pattern C: Selective Cycle Sweeping (The Live-Child Invariant)
+When the cycle collector sweeps unreachable (unmarked) objects:
+- **If a child is unmarked (dead):** The child is part of the dead cycle being collected in this same sweep. Cascading a decref to it is redundant and triggers use-after-free if the child was already visited.
+- **If a child is marked (live):** The child is rooted in an active call stack. Because the dead container is being destroyed, the container **must** release its reference to the surviving child (`refcount_dec(live_child)`).
+- **The Invariant:**
+  ```c
+  if (obj == NULL) return;
+  if (!live_only || obj->is_marked) {
+    refcount_dec(obj);
   }
-  free(arr.elements);
-  break;
-}
-```
+  ```
 
-### The Conflict During Global Iteration
-When a linear loop iterates over `CURRENT_VM->objects` and calls `object_free()` directly on each object:
-
-1. **If iterating backwards (`vm_free()`):**
-   - Assumes parents were allocated *after* children.
-   - If an array is allocated *before* its elements (`arr = new_array(2); elem = new_string(...);`), the backward loop frees `elem` first.
-   - When the loop reaches `arr`, `object_free(arr)` calls `refcount_dec(elem)` on the already-freed pointer.
-   - **Result:** `AddressSanitizer: heap-use-after-free` in `refcount_dec`.
-
-2. **If iterating forwards (`sweep()`):**
-   - Assumes parents were allocated *before* children.
-   - If elements are allocated *before* a vector (`i1 = new_integer(...); v = new_vector3(i1, ...);`), the forward loop frees `i1` first.
-   - When the loop reaches `v`, `object_free(v)` calls `refcount_dec(i1)` on the already-freed pointer.
-   - **Result:** `AddressSanitizer: heap-use-after-free` in `refcount_dec`.
-
-### The Fundamental Rule
-**No single linear pass can safely reclaim an arbitrary object graph if `object_free()` simultaneously destroys the object and cascades decrements to its children.**
+### Pattern D: Mark Bit Phase Integrity
+- Mark bits cannot be cleared on surviving objects while dead containers are still inspecting child mark bits.
+- Cycle sweeping must be strictly phased:
+  1. **Phase 1:** Sever references from dead containers to live children (`live_only == true`), and free dead payloads.
+  2. **Phase 2:** Deallocate dead headers, and unmark surviving objects (`obj->is_marked = false`) for the next GC generation.
+  3. **Phase 3:** Compact the surviving object registry and re-index tracker IDs.
 
 ---
 
-## 5. Architectural Solutions
+## 5. Performance Engineering: Hot vs. Cold Path Optimization
 
-### A. Two-Phase VM Teardown (`vm_free()`)
-At VM shutdown, all remaining objects in `CURRENT_VM->objects` are known to be dead. Cascading `refcount_dec` is neither necessary nor safe:
-- **Phase 1 (Break References / Free Buffers):** Walk all objects; free payload buffers (`v_string`, `v_array.elements`) without calling `refcount_dec()`.
-- **Phase 2 (Deallocate Headers):** Walk all objects; call `free(obj)`.
-
-### B. Two-Phase Cycle Sweep (`sweep()`)
-When sweeping unreachable objects:
-- **Phase 1 (Selective Decref & Buffer Release):** For each unmarked object:
-  - If a child is **marked (live)**: call `refcount_dec(child)` because the dead container is releasing its reference to an active object.
-  - If a child is **unmarked (dead)**: do *not* decref it; it is part of the dead cycle and will be freed in Phase 2.
-  - Free the container's payload buffer.
-- **Phase 2 (Deallocate Dead Headers):** For each unmarked object: `free(obj)`.
-
-### C. The CPython GC Rule: Don't Track Primitives
-- Integers, floats, and strings cannot hold references to other objects; they can never participate in reference cycles.
-- Only container types (`ARRAY`, `VECTOR3`) should ever be registered in `CURRENT_VM->objects`.
-- Primitives should be managed exclusively by immediate reference counting.
-
-### D. Array Compaction Invariant
-- When calling `stack_remove_nulls(CURRENT_VM->objects)` after a sweep, all surviving objects shift to lower indices.
-- Any cached tracker index (`obj->tracker_id`) must be re-synchronized to its new index in the stack.
+### Where Inlining Belongs in Reference Counting
+- **The Hot Path (Inline aggressively):**
+  - `refcount_inc()` and the non-zero branch of `refcount_dec()`:
+    ```c
+    obj->refcount--;
+    if (obj->refcount > 0) return;
+    ```
+  - In a production VM, this executes billions of times. Inlining it (as a macro or `static inline` header function) eliminates function call overhead and branch prediction penalties.
+- **The Cold Path (Keep out-of-line):**
+  - The zero branch (`object_free(obj)`):
+  - Object deallocation happens only once per object lifecycle. It performs system allocator calls (`free()`) and graph traversal. The function call overhead is completely unmeasurable against `free()`, while keeping it out-of-line keeps the instruction cache (I-cache) compact for hot application code.
 
 ---
 
-## 6. Development Workflow & Tooling
+## 6. Systems Programming & Tooling Insights
 
-- **Sanitizers as Learning Accelerators:** ASan did not just say "segmentation fault"—it provided the exact callstack of where the memory was allocated, where it was freed, and where the illegal read occurred.
-- **Targeted Test Execution:** Using `just test-filter <name>` allows immediate, focused feedback on individual failing tests without waiting for the full 72-test suite.
+### 1. Unsigned Integer Loop Underflow
+- **The Trap:** Writing `for (size_t i = 0; i < count; i--)` instead of `i++`.
+- **The Result:** Because `size_t` is unsigned, `0 - 1` wraps to `SIZE_MAX` (18,446,744,073,709,551,615). The condition `SIZE_MAX < count` evaluates to `false` immediately, aborting the loop after a single iteration without emitting compiler warnings, resulting in silent memory leaks.
+
+### 2. AddressSanitizer (ASan) Shadow Memory
+- ASan does not just alert on illegal memory access; its shadow memory maps track exactly:
+  - Where the memory block was allocated (`calloc`/`malloc` callstack).
+  - Where the memory block was freed (`free` callstack).
+  - Where the illegal dereference occurred (`heap-use-after-free`).
+- When diagnosing graph deallocation issues, comparing the `freed by thread` callstack directly with the `READ of size 8` callstack immediately reveals inverted parent-child traversal dependencies.
+
+### 3. Adversarial Testing Across GC Boundaries
+- A hybrid memory manager must be tested at the seam between reference counting and tracing:
+  1. Verify that cycles trapped with `refcount >= 1` are correctly identified and collected by tracing.
+  2. Verify that self-referencing containers ($A \rightarrow A$) traverse cleanly without infinite recursion.
+  3. Verify that dead cycles pointing to live rooted values accurately decrement the survivor's reference count without prematurely freeing it.
