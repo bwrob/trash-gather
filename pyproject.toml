@@ -14,9 +14,6 @@ line-length = 100
 # Enable: pycodestyle (E/W), pyflakes (F), isort (I), bugbear (B),
 #         simplify (SIM), naming (N), pyupgrade (UP)
 select = ["E", "W", "F", "I", "B", "SIM", "N", "UP"]
-ignore = [
-    "E501",  # line too long — diagnostic message strings are intentionally verbose
-]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -29,7 +26,11 @@ preset = "strict"
 
 [dependency-groups]
 dev = [
+    "mdformat>=1.0.0",
+    "mdformat-frontmatter>=2.1.2",
+    "mdformat-gfm>=1.0.0",
     "pre-commit>=4.6.2",
     "pyrefly>=1.2.0",
     "ruff>=0.16.6",
+    "taplo>=0.9.3",
 ]

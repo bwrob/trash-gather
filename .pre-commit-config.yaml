@@ -30,10 +30,24 @@ repos:
 
       - id: clang-format
         name: clang-format
-        entry: just format-check
+        entry: just format-c-check
         language: system
         pass_filenames: false
         files: \.(c|h|cpp)$
+
+      - id: mdformat
+        name: mdformat
+        entry: uv run mdformat --check README.md AGENTS.md lessons .agents
+        language: system
+        pass_filenames: false
+        files: \.md$
+
+      - id: taplo
+        name: taplo format
+        entry: uv run taplo format --check
+        language: system
+        pass_filenames: false
+        files: \.toml$
 
       - id: lint-docs
         name: lint docstrings

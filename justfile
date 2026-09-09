@@ -140,13 +140,35 @@ clean:
 compiledb:
     uv run python scripts/gen_compile_commands.py
 
+# Format all C/C++ source files, Markdown documentation, and TOML configurations
+format: format-c format-md format-toml
+
 # Format all C/C++ source and header files using clang-format
-format:
+format-c:
     find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format -i
 
-# Check formatting without modifying files
-format-check:
+# Check C/C++ formatting without modifying files
+format-c-check:
     find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format --dry-run --Werror
+
+# Format Markdown documentation and skills with mdformat
+format-md:
+    uv run mdformat README.md AGENTS.md lessons .agents
+
+# Check Markdown formatting without modifying files
+format-md-check:
+    uv run mdformat --check README.md AGENTS.md lessons .agents
+
+# Format TOML configuration files using taplo
+format-toml:
+    uv run taplo format
+
+# Check TOML formatting without modifying files
+format-toml-check:
+    uv run taplo format --check
+
+# Check all formatting without modifying files
+format-check: format-c-check format-md-check format-toml-check
 
 # Check Python code formatting, linting, and types (ruff & pyrefly)
 lint-py:

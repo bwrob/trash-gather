@@ -1,0 +1,8 @@
+# Taplo configuration for TOML formatting
+[formatting]
+align_entries = false
+array_trailing_comma = true
+column_width = 100
+indent_string = "    "
+reorder_keys = false
+trailing_newline = true

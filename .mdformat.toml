@@ -1,0 +1,4 @@
+# mdformat configuration
+wrap = "keep"
+end_of_line = "lf"
+number = false

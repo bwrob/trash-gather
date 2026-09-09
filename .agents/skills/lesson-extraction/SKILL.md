@@ -12,26 +12,28 @@ This skill defines the process, structure, and quality standards for extracting 
 
 In this project, capturing deep systems understanding is just as important as writing the code. Every milestone branch, Merge Request (MR), or significant debugging breakthrough must leave behind a durable, structured record of **transferable engineering principles**.
 
----
+______________________________________________________________________
 
 ## 🎯 Extraction Triggers
 
 Activate this skill and create/update a lesson when:
-1. **Milestone / MR Finalization**: Preparing to open, merge, or conclude a pull request or milestone branch.
-2. **Subtle Bug Diagnosis**: Resolving tricky runtime failures (e.g., ASan `heap-use-after-free`, double frees, uncollected cyclic leaks).
-3. **Architectural Pivots**: Transitioning runtime paradigms (e.g., pure Mark-and-Sweep $\rightarrow$ Hybrid Reference Counting, explicit VM arguments $\rightarrow$ global singleton).
-4. **Systems & OS Discoveries**: Uncovering C compiler quirks, POSIX collisions, or tooling breakthroughs.
 
----
+1. **Milestone / MR Finalization**: Preparing to open, merge, or conclude a pull request or milestone branch.
+1. **Subtle Bug Diagnosis**: Resolving tricky runtime failures (e.g., ASan `heap-use-after-free`, double frees, uncollected cyclic leaks).
+1. **Architectural Pivots**: Transitioning runtime paradigms (e.g., pure Mark-and-Sweep $\\rightarrow$ Hybrid Reference Counting, explicit VM arguments $\\rightarrow$ global singleton).
+1. **Systems & OS Discoveries**: Uncovering C compiler quirks, POSIX collisions, or tooling breakthroughs.
+
+______________________________________________________________________
 
 ## 🧭 Guiding Philosophy: Transferable Wisdom Over Codebase Trivia
 
 A lesson must **not** read like an ephemeral commit message or a blow-by-blow narrative of line edits. Instead:
+
 - **Focus on Universal Principles**: Frame every problem around transferable computer science concepts, systems programming patterns, memory management trade-offs, and compiler/OS invariants.
 - **Audience**: Write the lesson so that a systems engineer building an allocator, VM, or garbage collector in C, Rust, or Zig would find immediate, durable value in reading it.
 - **Mental Models**: Clearly state the broken invariant and the architectural mental model that resolved it. Anchor principles with concrete examples without getting lost in trivialities.
 
----
+______________________________________________________________________
 
 ## 📁 File Naming & Indexing
 
@@ -44,7 +46,7 @@ A lesson must **not** read like an ephemeral commit message or a blow-by-blow na
     - Markdown link to the file
     - Key concepts explored
 
----
+______________________________________________________________________
 
 ## 📝 Lesson Structure & Template
 
@@ -90,11 +92,12 @@ Every lesson must follow this standard structure:
 - What testing heuristics or assertions caught the issue?
 ```
 
----
+______________________________________________________________________
 
 ## ✅ Quality Rubric
 
 Before finalizing a lesson, verify that it meets these standards:
+
 - [ ] **Transferable, Not Localized**: Focuses on durable systems engineering principles (e.g., decoupling payload release from reference clearing, POSIX Darwin namespace collisions, unsigned loop underflow) rather than superficial code changes.
 - [ ] **Defines the Invariants**: Clearly identifies what invariants broke and what invariants restored correctness.
 - [ ] **Diagnostic Fidelity**: Quotes real sanitizer errors or test failures that guided the investigation.
