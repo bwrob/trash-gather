@@ -180,8 +180,7 @@ munit_case(RUN, test_array_object, {
 
   assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
   assert_size(arr->data.v_array.size, ==, 5, "size must be 5");
-  assert_ptr_not_null(arr->data.v_array.elements,
-                      "elements array must be allocated");
+  assert_ptr_not_null(arr->data.v_array.elements, "elements array must be allocated");
   assert_ptr_null(arr->data.v_array.elements[0],
                   "elements must be initialized to NULL");
 

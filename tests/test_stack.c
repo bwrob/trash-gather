@@ -75,8 +75,7 @@ munit_case(SUBMIT, create_stack_allocation_size, {
   assert_int(s->capacity, ==, capacity, "Sets capacity to 5");
   assert_int(s->count, ==, 0, "No elements in the stack yet");
   assert_ptr_not_null(s->data, "Allocates the stack data");
-  assert_size(boot_alloc_size(), ==,
-              sizeof(vm_stack_t) + capacity * sizeof(void *),
+  assert_size(boot_alloc_size(), ==, sizeof(vm_stack_t) + capacity * sizeof(void *),
               "Allocates memory for one stack and the stack data");
 
   stack_free(s);

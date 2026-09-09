@@ -98,8 +98,7 @@ munit_case(RUN, test_array_set, {
   assert(array_set(obj, 0, first));
   assert(array_set(obj, 1, second));
 
-  assert_ptr(obj->data.v_array.elements[0], ==, first,
-             "Should set the first element");
+  assert_ptr(obj->data.v_array.elements[0], ==, first, "Should set the first element");
   assert_ptr(obj->data.v_array.elements[1], ==, second,
              "Should set the second element");
 

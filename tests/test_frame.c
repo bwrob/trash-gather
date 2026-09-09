@@ -20,12 +20,9 @@
 munit_case(RUN, test_vm_new_frame, {
   vm_new();
   frame_t *frame = vm_new_frame();
-  assert_ptr(frame->references, !=, NULL,
-             "frame->references must be allocated");
-  assert_int(frame->references->count, ==, 0,
-             "references stack should start empty");
-  assert(frame->references->capacity >
-         0); // references stack must have capacity > 0
+  assert_ptr(frame->references, !=, NULL, "frame->references must be allocated");
+  assert_int(frame->references->count, ==, 0, "references stack should start empty");
+  assert(frame->references->capacity > 0); // references stack must have capacity > 0
   assert_ptr(frame->references->data, !=, NULL,
              "references stack backing array must be allocated");
   vm_free();

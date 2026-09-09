@@ -26,32 +26,59 @@ void refcount_dec(object_t *obj) {
   return;
 }
 
-void object_free(object_t *obj) {
-  // If this object was tracked in the VM object list, clear its entry
-
+void object_free_payload(object_t *obj) {
   switch (obj->kind) {
   case INTEGER:
   case FLOAT:
+  case VECTOR3:
     break;
-  case STRING:
+  case STRING: {
     free(obj->data.v_string);
+    break;
+  }
+  case ARRAY: {
+    free(obj->data.v_array.elements);
+    break;
+  }
+  }
+}
+
+void _refcount_dec(object_t *obj, bool live_only) {
+  if (obj == NULL) {
+    return;
+  }
+  if (!live_only || obj->is_marked) {
+    refcount_dec(obj);
+  }
+}
+
+void object_decref_children(object_t *obj, bool live_only) {
+  switch (obj->kind) {
+  case INTEGER:
+  case FLOAT:
+  case STRING:
     break;
   case VECTOR3: {
     vector_t vec = obj->data.v_vector3;
-    refcount_dec(vec.x);
-    refcount_dec(vec.y);
-    refcount_dec(vec.z);
+    _refcount_dec(vec.x, live_only);
+    _refcount_dec(vec.y, live_only);
+    _refcount_dec(vec.z, live_only);
     break;
   }
   case ARRAY: {
     array_t arr = obj->data.v_array;
     for (size_t i = 0; i < arr.size; i++) {
-      refcount_dec(arr.elements[i]);
+      _refcount_dec(arr.elements[i], live_only);
     }
-    free(arr.elements);
     break;
   }
   }
+}
+
+void object_free(object_t *obj) {
+  bool live_only = false;
+  object_decref_children(obj, live_only);
+  object_free_payload(obj);
   vm_untrack_object(obj);
   free(obj);
 }

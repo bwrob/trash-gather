@@ -16,21 +16,43 @@ vm_t *vm_get_current(void) {
 }
 
 void sweep() {
+  /* Pass 1:
+  Decref live children and free payloads for unmarked objects
+  Notice that we cannot unmark live objects (obj->is_marked = false) until
+  Pass 2. If Pass 1 unmarks objects on the fly, a later unmarked container
+  visiting a live child might see is_marked == false and fail to decref it!
+  */
   for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
-    void *obj_ = CURRENT_VM->objects->data[i];
-    if (obj_ == NULL) {
+    object_t *obj = CURRENT_VM->objects->data[i];
+    if (obj == NULL || obj->is_marked) {
       continue;
     }
-    object_t *obj = obj_;
+    object_decref_children(obj, true);
+    object_free_payload(obj);
+  }
+
+  /*Pass 2:
+  Free dead headers and unmark surviving objects
+  */
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    object_t *obj = CURRENT_VM->objects->data[i];
+    if (obj == NULL) {
+      continue;
+    }
     if (obj->is_marked) {
       obj->is_marked = false;
       continue;
     }
-
-    object_free(obj);
+    free(obj);
     CURRENT_VM->objects->data[i] = NULL;
   }
+
+  // --- Compaction & Re-indexing ---
   stack_remove_nulls(CURRENT_VM->objects);
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    object_t *obj = CURRENT_VM->objects->data[i];
+    obj->tracker_id = i;
+  }
 }
 
 void mark() {
@@ -132,24 +154,26 @@ void vm_new(void) {
 }
 
 void vm_free() {
-  // Free the stack frames, and then their container
+  // Free the stack frames, an!d then their stack container
   for (size_t i = 0; i < CURRENT_VM->frames->count; i++) {
     frame_free(CURRENT_VM->frames->data[i]);
   }
   stack_free(CURRENT_VM->frames);
 
-  // Free the objects, and then their container
-  // Looping from the top to free parents before children
-  for (size_t i = CURRENT_VM->objects->count; i > 0; i--) {
-    void *obj_ = CURRENT_VM->objects->data[i - 1];
-    if (obj_ == NULL) {
-      continue;
+  // Free buffers
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    if (CURRENT_VM->objects->data[i] != NULL) {
+      object_free_payload(CURRENT_VM->objects->data[i]);
     }
-    object_t *obj = obj_;
-    object_free(obj);
   }
-  stack_free(CURRENT_VM->objects);
+  // Free headers
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    if (CURRENT_VM->objects->data[i] != NULL) {
+      free(CURRENT_VM->objects->data[i]);
+    }
+  }
 
+  stack_free(CURRENT_VM->objects);
   free(CURRENT_VM);
 }
 

@@ -18,17 +18,22 @@ This project is a direct continuation and expansion of the **Memory Management &
 While the initial codebase established a baseline Mark-and-Sweep garbage collection runtime for lang, this repository is actively expanding into advanced runtime mechanics:
 
 - [x] **Core Mark-and-Sweep GC & VM Baseline**
+- [x] **Hybrid Garbage Collection**: Immediate Reference Counting + Mark-and-Sweep Cycle Collector (CPython-style hybrid model)
 - [x] **Tooling, CI & Safety Infrastructure** (ASan/UBSan, `bootlib`, `clang-format`, `clang-tidy`, Google Benchmark)
 - [x] **Python Toolchain** (`uv`, `ruff`, `pyrefly`, `pre-commit` hooks)
+- [ ] **Arbitrary-Arity Tuples (Python-style)**: Immutable, heterogeneous $n$-element sequence containers (`tuple_t`) with GC tracking and traversal support.
+- [ ] **Hash Maps / Dictionaries (`dict_t`)**: Key-value associative mappings with open addressing and bidirectional GC traversal across keys and values.
+- [ ] **Doubly Linked Lists (`linked_list_t`)**: Node-based bidirectional lists with intentional cyclic node references (`next`/`prev`) to stress-test cyclic GC reclamation.
+- [ ] **Dynamic Slices & Byte Buffers (`slice_t`)**: Non-owning sub-views and resizable contiguous byte storage.
+- [ ] **Function Objects & Closures (`closure_t`)**: First-class callable objects capturing lexical environments and variable bindings.
 - [ ] **Interactive Memory & GC REPL**: Live terminal CLI (`just run`) to allocate objects, push/pop stack frames, reference handles, and trigger GC passes interactively.
 - [ ] **ASCII Heap Visualizer & Object Inspector**: Real-time visual tree inspection of stack frame roots, object reference graphs, and reachable vs unreachable heap states.
-- [ ] **New Data Structures & Containers**: Custom hash maps, doubly linked lists, and dynamic buffer slices.
-- [ ] **Expanded Object System**: Tuples, dictionaries, function objects, and environment closures.
 - [ ] **Advanced Garbage Collection Algorithms**:
   - [ ] Tri-color Mark-and-Sweep
   - [ ] Generational Garbage Collection
   - [ ] Mark-Compact & Copying collectors
-  - [ ] Reference Counting with cycle detection
+  - [x] ~~Reference Counting with cycle detection~~ (Completed via Hybrid GC)
+
 
 ---
 

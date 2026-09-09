@@ -147,8 +147,7 @@ munit_case(SUBMIT, test_trace_mark_object_already_marked, {
   obj->is_marked = true;
   trace_mark_object(gray_objects, obj);
 
-  assert_size(gray_objects->count, ==, 0,
-              "already-marked objects must not be pushed");
+  assert_size(gray_objects->count, ==, 0, "already-marked objects must not be pushed");
 
   stack_free(gray_objects);
   vm_free();

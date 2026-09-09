@@ -45,7 +45,11 @@ struct Object {
 
 void refcount_inc(object_t *obj);
 void refcount_dec(object_t *obj);
+void object_decref_children(object_t *obj, bool live_only);
+
+void object_free_payload(object_t *obj);
 void object_free(object_t *obj);
+void _refcount_dec(object_t *obj, bool live_only);
 
 bool array_set(object_t *array, size_t index, object_t *value);
 object_t *array_get(object_t *array, size_t index);

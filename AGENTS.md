@@ -84,3 +84,13 @@ Because this is an educational solo learning project, retaining and structuring 
   3. Mental models and solutions developed.
   4. Tooling insights and debugging strategies.
 - **AI Agent Directive**: AI agents must actively assist in documenting, synthesizing, and maintaining the `lessons/` directory so the human developer has a durable, structured record of everything learned throughout the journey.
+
+---
+
+## 🔗 7. Codebase Linking Convention
+
+When referencing files and specific line numbers in agent responses:
+- **Format**: Use markdown links with absolute `file://` URIs and numeric line hashes without the `L` prefix:
+  `[<relative-path>:<line>](file:///<absolute-path>#<line>)`
+  *Example*: `[src/vm.c:134](file:///Users/bwrob/dev/trash-gather/src/vm.c#134)`
+- **Rationale**: In the user's editor environment, `#L<line>` anchors open the file at line 1, whereas numeric `#<line>` anchors successfully jump directly to the target line.
