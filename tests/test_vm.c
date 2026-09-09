@@ -171,6 +171,165 @@ munit_case(RUN, test_vm_alloc_failures, {
   assert(boot_all_freed());
 });
 
+/**
+ * @brief Adversarial test: GC reclaims isolated circular reference cycle.
+ */
+munit_case(RUN, test_gc_reclaims_unreachable_cycle, {
+  vm_new();
+  vm_t *vm = vm_get_current();
+  frame_t *f = vm_new_frame();
+
+  object_t *arr_a = new_array(1);
+  object_t *arr_b = new_array(1);
+  frame_reference_object(f, arr_a);
+  frame_reference_object(f, arr_b);
+
+  // Form cycle: A -> B and B -> A
+  array_set(arr_a, 0, arr_b);
+  array_set(arr_b, 0, arr_a);
+
+  // Pop and free the only frame referencing the cycle
+  frame_free(vm_frame_pop());
+
+  // Both objects have refcount == 1 due to the mutual cycle,
+  // but are completely unreachable from any frame.
+  assert_false(boot_is_freed(arr_a));
+  assert_false(boot_is_freed(arr_b));
+
+  vm_collect_garbage();
+
+  // Cycle must be reclaimed by the hybrid collector
+  assert_true(boot_is_freed(arr_a));
+  assert_true(boot_is_freed(arr_b));
+  assert_size(vm->objects->count, ==, 0);
+
+  vm_free();
+  assert(boot_all_freed());
+});
+
+/**
+ * @brief Adversarial test: GC reclaims self-referencing object cycle.
+ */
+munit_case(RUN, test_gc_reclaims_self_referencing_cycle, {
+  vm_new();
+  vm_t *vm = vm_get_current();
+  frame_t *f = vm_new_frame();
+
+  object_t *self_arr = new_array(1);
+  frame_reference_object(f, self_arr);
+  array_set(self_arr, 0, self_arr);
+
+  frame_free(vm_frame_pop());
+  assert_false(boot_is_freed(self_arr));
+
+  vm_collect_garbage();
+
+  assert_true(boot_is_freed(self_arr));
+  assert_size(vm->objects->count, ==, 0);
+
+  vm_free();
+  assert(boot_all_freed());
+});
+
+/**
+ * @brief Adversarial test: dead cycle referencing a live rooted object.
+ * Verifies that the dead cycle is collected while the live object survives with
+ * properly decremented reference count.
+ */
+munit_case(RUN, test_gc_dead_cycle_pointing_to_live_object, {
+  vm_new();
+  frame_t *live_frame = vm_new_frame();
+  object_t *live_str = new_string("survivor");
+  frame_reference_object(live_frame, live_str);
+
+  frame_t *dead_frame = vm_new_frame();
+  object_t *a = new_array(2);
+  object_t *b = new_array(1);
+  frame_reference_object(dead_frame, a);
+  frame_reference_object(dead_frame, b);
+
+  array_set(a, 0, b);
+  array_set(b, 0, a);
+  array_set(a, 1, live_str); // dead container holds reference to live object
+
+  // Pop and destroy the dead frame
+  frame_free(vm_frame_pop());
+
+  vm_collect_garbage();
+
+  assert_true(boot_is_freed(a));
+  assert_true(boot_is_freed(b));
+  assert_false(boot_is_freed(live_str));
+  // Live string lost the dead container's reference, so refcount is back to 2
+  assert_size(live_str->refcount, ==, 2);
+
+  frame_free(vm_frame_pop());
+  vm_free();
+  assert(boot_all_freed());
+});
+
+/**
+ * @brief Adversarial test: unreachable array containing NULL slots collected safely.
+ */
+munit_case(RUN, test_gc_array_with_null_slots, {
+  vm_new();
+  frame_t *f = vm_new_frame();
+  object_t *arr = new_array(5);
+  frame_reference_object(f, arr);
+
+  // Set only slots 0 and 3; slots 1, 2, 4 remain NULL
+  object_t *val0 = new_integer(100);
+  object_t *val3 = new_integer(300);
+  array_set(arr, 0, val0);
+  array_set(arr, 3, val3);
+
+  frame_free(vm_frame_pop());
+  vm_collect_garbage();
+
+  assert_true(boot_is_freed(arr));
+  assert_true(boot_is_freed(val0));
+  assert_true(boot_is_freed(val3));
+
+  vm_free();
+  assert(boot_all_freed());
+});
+
+/**
+ * @brief Adversarial test: multi-node cycle mesh (triangle cycle plus tail).
+ */
+munit_case(RUN, test_gc_cycle_mesh_with_tail, {
+  vm_new();
+  frame_t *f = vm_new_frame();
+
+  object_t *n1 = new_array(1);
+  object_t *n2 = new_array(1);
+  object_t *n3 = new_array(2);
+  object_t *tail = new_integer(999);
+
+  frame_reference_object(f, n1);
+  frame_reference_object(f, n2);
+  frame_reference_object(f, n3);
+  frame_reference_object(f, tail);
+
+  // n1 -> n2 -> n3 -> n1 (triangle cycle)
+  array_set(n1, 0, n2);
+  array_set(n2, 0, n3);
+  array_set(n3, 0, n1);
+  // n3 also references tail
+  array_set(n3, 1, tail);
+
+  frame_free(vm_frame_pop());
+  vm_collect_garbage();
+
+  assert_true(boot_is_freed(n1));
+  assert_true(boot_is_freed(n2));
+  assert_true(boot_is_freed(n3));
+  assert_true(boot_is_freed(tail));
+
+  vm_free();
+  assert(boot_all_freed());
+});
+
 MunitTest vm_tests[] = {
     munit_test("/simple", test_simple),
     munit_test("/full", test_full),
@@ -180,5 +339,12 @@ MunitTest vm_tests[] = {
     munit_test("/vm_new", test_vm_new),
     munit_test("/new_object", test_new_object),
     munit_test("/vm_alloc_failures", test_vm_alloc_failures),
+    munit_test("/gc_reclaims_unreachable_cycle", test_gc_reclaims_unreachable_cycle),
+    munit_test("/gc_reclaims_self_referencing_cycle",
+               test_gc_reclaims_self_referencing_cycle),
+    munit_test("/gc_dead_cycle_pointing_to_live_object",
+               test_gc_dead_cycle_pointing_to_live_object),
+    munit_test("/gc_array_with_null_slots", test_gc_array_with_null_slots),
+    munit_test("/gc_cycle_mesh_with_tail", test_gc_cycle_mesh_with_tail),
     munit_null_test,
 };
