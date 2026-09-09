@@ -90,12 +90,12 @@ munit_case(RUN, test_vector3_object, {
   object_t *x = new_integer(1);
   object_t *y = new_integer(2);
   object_t *z = new_integer(3);
-  object_t *vec = new_vector3(x, y, z);
+  object_t *tuple = new_vector3(x, y, z);
 
-  assert_int(vec->kind, ==, VECTOR3, "must be VECTOR3 type");
-  assert_ptr_equal(vec->data.v_vector3.x, x);
-  assert_ptr_equal(vec->data.v_vector3.y, y);
-  assert_ptr_equal(vec->data.v_vector3.z, z);
+  assert_int(tuple->kind, ==, TUPLE, "must be TUPLE type");
+  assert_ptr_equal(tuple->data.v_tuple.x, x);
+  assert_ptr_equal(tuple->data.v_tuple.y, y);
+  assert_ptr_equal(tuple->data.v_tuple.z, z);
 
   vm_free();
   assert(boot_all_freed());
@@ -106,9 +106,9 @@ munit_case(RUN, test_vector3_object, {
  */
 munit_case(RUN, test_vec_returns_null, {
   vm_new();
-  object_t *vec = new_vector3(NULL, NULL, NULL);
+  object_t *tuple = new_vector3(NULL, NULL, NULL);
 
-  assert_null(vec, "Should return null when input is null");
+  assert_null(tuple, "Should return null when input is null");
 
   vm_free();
   assert(boot_all_freed());
@@ -122,19 +122,19 @@ munit_case(RUN, test_vec_multiple_objects, {
   object_t *x = new_integer(1);
   object_t *y = new_integer(2);
   object_t *z = new_integer(3);
-  object_t *vec = new_vector3(x, y, z);
+  object_t *tuple = new_vector3(x, y, z);
 
-  assert_ptr_not_null(vec, "should allocate a new object");
+  assert_ptr_not_null(tuple, "should allocate a new object");
 
   // Vectors should not copy objects, they get the reference to the objects.
-  assert_ptr(x, ==, vec->data.v_vector3.x, "should reference x");
-  assert_ptr(y, ==, vec->data.v_vector3.y, "should reference y");
-  assert_ptr(z, ==, vec->data.v_vector3.z, "should reference z");
+  assert_ptr(x, ==, tuple->data.v_tuple.x, "should reference x");
+  assert_ptr(y, ==, tuple->data.v_tuple.y, "should reference y");
+  assert_ptr(z, ==, tuple->data.v_tuple.z, "should reference z");
 
   // Assert we have integer values correct
-  assert_int(vec->data.v_vector3.x->data.v_int, ==, 1, "should have correct x");
-  assert_int(vec->data.v_vector3.y->data.v_int, ==, 2, "should have correct y");
-  assert_int(vec->data.v_vector3.z->data.v_int, ==, 3, "should have correct z");
+  assert_int(tuple->data.v_tuple.x->data.v_int, ==, 1, "should have correct x");
+  assert_int(tuple->data.v_tuple.y->data.v_int, ==, 2, "should have correct y");
+  assert_int(tuple->data.v_tuple.z->data.v_int, ==, 3, "should have correct z");
 
   vm_free();
   assert(boot_all_freed());
@@ -146,26 +146,26 @@ munit_case(RUN, test_vec_multiple_objects, {
 munit_case(SUBMIT, test_vec_same_object, {
   vm_new();
   object_t *i = new_integer(1);
-  object_t *vec = new_vector3(i, i, i);
+  object_t *tuple = new_vector3(i, i, i);
 
-  assert_ptr_not_null(vec, "should allocate a new object");
+  assert_ptr_not_null(tuple, "should allocate a new object");
 
   // Vectors should not copy objects, they get the reference to the objects.
-  assert_ptr(i, ==, vec->data.v_vector3.x, "should reference x");
-  assert_ptr(i, ==, vec->data.v_vector3.y, "should reference y");
-  assert_ptr(i, ==, vec->data.v_vector3.z, "should reference z");
+  assert_ptr(i, ==, tuple->data.v_tuple.x, "should reference x");
+  assert_ptr(i, ==, tuple->data.v_tuple.y, "should reference y");
+  assert_ptr(i, ==, tuple->data.v_tuple.z, "should reference z");
 
   // Assert we have integer values correct
-  assert_int(vec->data.v_vector3.x->data.v_int, ==, 1, "should have correct x");
-  assert_int(vec->data.v_vector3.y->data.v_int, ==, 1, "should have correct y");
-  assert_int(vec->data.v_vector3.z->data.v_int, ==, 1, "should have correct z");
+  assert_int(tuple->data.v_tuple.x->data.v_int, ==, 1, "should have correct x");
+  assert_int(tuple->data.v_tuple.y->data.v_int, ==, 1, "should have correct y");
+  assert_int(tuple->data.v_tuple.z->data.v_int, ==, 1, "should have correct z");
 
   i->data.v_int = 2;
 
   // Assert we have integer values correct, after update
-  assert_int(vec->data.v_vector3.x->data.v_int, ==, 2, "should have correct x");
-  assert_int(vec->data.v_vector3.y->data.v_int, ==, 2, "should have correct y");
-  assert_int(vec->data.v_vector3.z->data.v_int, ==, 2, "should have correct z");
+  assert_int(tuple->data.v_tuple.x->data.v_int, ==, 2, "should have correct x");
+  assert_int(tuple->data.v_tuple.y->data.v_int, ==, 2, "should have correct y");
+  assert_int(tuple->data.v_tuple.z->data.v_int, ==, 2, "should have correct z");
 
   vm_free();
   assert(boot_all_freed());

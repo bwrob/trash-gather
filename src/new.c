@@ -47,8 +47,8 @@ object_t *new_vector3(object_t *x, object_t *y, object_t *z) {
     return NULL;
   }
 
-  obj->kind = VECTOR3;
-  obj->data.v_vector3 = (vector_t){.x = x, .y = y, .z = z};
+  obj->kind = TUPLE;
+  obj->data.v_tuple = (tuple_t){.x = x, .y = y, .z = z};
   refcount_inc(x);
   refcount_inc(y);
   refcount_inc(z);

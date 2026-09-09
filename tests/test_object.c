@@ -301,10 +301,10 @@ munit_case(RUN, test_add_vectors, {
   object_t *res = add(v1, v2);
 
   assert_not_null(res);
-  assert_int(res->kind, ==, VECTOR3);
-  assert_int(res->data.v_vector3.x->data.v_int, ==, 5);
-  assert_int(res->data.v_vector3.y->data.v_int, ==, 7);
-  assert_int(res->data.v_vector3.z->data.v_int, ==, 9);
+  assert_int(res->kind, ==, TUPLE);
+  assert_int(res->data.v_tuple.x->data.v_int, ==, 5);
+  assert_int(res->data.v_tuple.y->data.v_int, ==, 7);
+  assert_int(res->data.v_tuple.z->data.v_int, ==, 9);
 
   vm_free();
   assert(boot_all_freed());

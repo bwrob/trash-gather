@@ -16,13 +16,13 @@ typedef struct {
   object_t *x;
   object_t *y;
   object_t *z;
-} vector_t;
+} tuple_t;
 
 typedef enum ObjectKind {
   INTEGER,
   FLOAT,
   STRING,
-  VECTOR3,
+  TUPLE,
   ARRAY,
 } object_kind_t;
 
@@ -30,7 +30,7 @@ typedef union ObjectData {
   int v_int;
   float v_float;
   char *v_string;
-  vector_t v_vector3;
+  tuple_t v_tuple;
   array_t v_array;
 } object_data_t;
 

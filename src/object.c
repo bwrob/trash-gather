@@ -30,7 +30,7 @@ void object_free_payload(object_t *obj) {
   switch (obj->kind) {
   case INTEGER:
   case FLOAT:
-  case VECTOR3:
+  case TUPLE:
     break;
   case STRING: {
     free(obj->data.v_string);
@@ -58,11 +58,11 @@ void object_decref_children(object_t *obj, bool live_only) {
   case FLOAT:
   case STRING:
     break;
-  case VECTOR3: {
-    vector_t vec = obj->data.v_vector3;
-    _refcount_dec(vec.x, live_only);
-    _refcount_dec(vec.y, live_only);
-    _refcount_dec(vec.z, live_only);
+  case TUPLE: {
+    tuple_t tuple = obj->data.v_tuple;
+    _refcount_dec(tuple.x, live_only);
+    _refcount_dec(tuple.y, live_only);
+    _refcount_dec(tuple.z, live_only);
     break;
   }
   case ARRAY: {
@@ -164,12 +164,12 @@ object_t *add(object_t *a, object_t *b) {
     default:
       return NULL;
     }
-  case VECTOR3:
+  case TUPLE:
     switch (b->kind) {
-    case VECTOR3:
-      return new_vector3(add(a->data.v_vector3.x, b->data.v_vector3.x),
-                         add(a->data.v_vector3.y, b->data.v_vector3.y),
-                         add(a->data.v_vector3.z, b->data.v_vector3.z));
+    case TUPLE:
+      return new_vector3(add(a->data.v_tuple.x, b->data.v_tuple.x),
+                         add(a->data.v_tuple.y, b->data.v_tuple.y),
+                         add(a->data.v_tuple.z, b->data.v_tuple.z));
     default:
       return NULL;
     }
