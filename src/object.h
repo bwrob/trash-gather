@@ -10,7 +10,7 @@ typedef struct Object object_t;
 typedef struct {
   size_t size;
   object_t **elements;
-} array_t;
+} list_t;
 
 typedef struct {
   object_t *x;
@@ -23,7 +23,7 @@ typedef enum ObjectKind {
   FLOAT,
   STRING,
   TUPLE,
-  ARRAY,
+  LIST,
 } object_kind_t;
 
 typedef union ObjectData {
@@ -31,7 +31,7 @@ typedef union ObjectData {
   float v_float;
   char *v_string;
   tuple_t v_tuple;
-  array_t v_array;
+  list_t v_list;
 } object_data_t;
 
 struct Object {
@@ -51,6 +51,6 @@ void object_free_payload(object_t *obj);
 void object_free(object_t *obj);
 void _refcount_dec(object_t *obj, bool live_only);
 
-bool array_set(object_t *array, size_t index, object_t *value);
-object_t *array_get(object_t *array, size_t index);
+bool list_set(object_t *list, size_t index, object_t *value);
+object_t *list_get(object_t *list, size_t index);
 object_t *add(object_t *a, object_t *b);

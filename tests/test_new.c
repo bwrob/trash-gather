@@ -1,7 +1,7 @@
 /**
  * @file test_new.c
  * @brief Unit tests for object allocation constructors (integers, floats,
- * strings, vectors, arrays) and failure injection.
+ * strings, vectors, lists) and failure injection.
  */
 
 #include "bootlib.h"
@@ -172,31 +172,30 @@ munit_case(SUBMIT, test_vec_same_object, {
 });
 
 /**
- * @brief Test allocating non-empty array objects.
+ * @brief Test allocating non-empty list objects.
  */
-munit_case(RUN, test_array_object, {
+munit_case(RUN, test_list_object, {
   vm_new();
-  object_t *arr = new_array(5);
+  object_t *arr = new_list(5);
 
-  assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
-  assert_size(arr->data.v_array.size, ==, 5, "size must be 5");
-  assert_ptr_not_null(arr->data.v_array.elements, "elements array must be allocated");
-  assert_ptr_null(arr->data.v_array.elements[0],
-                  "elements must be initialized to NULL");
+  assert_int(arr->kind, ==, LIST, "must be LIST type");
+  assert_size(arr->data.v_list.size, ==, 5, "size must be 5");
+  assert_ptr_not_null(arr->data.v_list.elements, "elements list must be allocated");
+  assert_ptr_null(arr->data.v_list.elements[0], "elements must be initialized to NULL");
 
   vm_free();
   assert(boot_all_freed());
 });
 
 /**
- * @brief Test allocating zero-sized empty array objects.
+ * @brief Test allocating zero-sized empty list objects.
  */
-munit_case(RUN, test_array_empty, {
+munit_case(RUN, test_list_empty, {
   vm_new();
-  object_t *arr = new_array(0);
+  object_t *arr = new_list(0);
 
-  assert_int(arr->kind, ==, ARRAY, "must be ARRAY type");
-  assert_size(arr->data.v_array.size, ==, 0, "size must be 0");
+  assert_int(arr->kind, ==, LIST, "must be LIST type");
+  assert_size(arr->data.v_list.size, ==, 0, "size must be 0");
 
   vm_free();
   assert(boot_all_freed());
@@ -221,10 +220,10 @@ munit_case(RUN, test_alloc_failures, {
   assert_null(new_string("test"));
 
   boot_set_fail_alloc_after(0);
-  assert_null(new_array(5));
+  assert_null(new_list(5));
 
   boot_set_fail_alloc_after(1);
-  assert_null(new_array(5));
+  assert_null(new_list(5));
 
   object_t *x = new_integer(1);
   object_t *y = new_integer(2);
@@ -246,8 +245,8 @@ MunitTest new_tests[] = {
     munit_test("/vector3_returns_null", test_vec_returns_null),
     munit_test("/vector3_multiple_objects", test_vec_multiple_objects),
     munit_test("/vector3_same_object", test_vec_same_object),
-    munit_test("/array_object", test_array_object),
-    munit_test("/array_empty", test_array_empty),
+    munit_test("/list_object", test_list_object),
+    munit_test("/list_empty", test_list_empty),
     munit_test("/alloc_failures", test_alloc_failures),
     munit_null_test,
 };

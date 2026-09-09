@@ -19,7 +19,7 @@ object_t *_new_object() {
   return obj;
 }
 
-object_t *new_array(size_t size) {
+object_t *new_list(size_t size) {
   object_t **elements = calloc(size, sizeof(object_t *));
   if (elements == NULL) {
     return NULL;
@@ -31,8 +31,8 @@ object_t *new_array(size_t size) {
     return NULL;
   }
 
-  obj->kind = ARRAY;
-  obj->data.v_array = (array_t){.size = size, .elements = elements};
+  obj->kind = LIST;
+  obj->data.v_list = (list_t){.size = size, .elements = elements};
 
   return obj;
 }

@@ -36,8 +36,8 @@ void object_free_payload(object_t *obj) {
     free(obj->data.v_string);
     break;
   }
-  case ARRAY: {
-    free(obj->data.v_array.elements);
+  case LIST: {
+    free(obj->data.v_list.elements);
     break;
   }
   }
@@ -65,8 +65,8 @@ void object_decref_children(object_t *obj, bool live_only) {
     _refcount_dec(tuple.z, live_only);
     break;
   }
-  case ARRAY: {
-    array_t arr = obj->data.v_array;
+  case LIST: {
+    list_t arr = obj->data.v_list;
     for (size_t i = 0; i < arr.size; i++) {
       _refcount_dec(arr.elements[i], live_only);
     }
@@ -83,43 +83,43 @@ void object_free(object_t *obj) {
   free(obj);
 }
 
-bool array_set(object_t *array, size_t index, object_t *value) {
-  if (array == NULL || value == NULL) {
+bool list_set(object_t *list, size_t index, object_t *value) {
+  if (list == NULL || value == NULL) {
     return false;
   }
 
-  if (array->kind != ARRAY) {
+  if (list->kind != LIST) {
     return false;
   }
 
-  if (index >= array->data.v_array.size) {
+  if (index >= list->data.v_list.size) {
     return false;
   }
 
-  if (array->data.v_array.elements[index] != NULL) {
-    refcount_dec(array->data.v_array.elements[index]);
+  if (list->data.v_list.elements[index] != NULL) {
+    refcount_dec(list->data.v_list.elements[index]);
   }
 
-  array->data.v_array.elements[index] = value;
+  list->data.v_list.elements[index] = value;
   refcount_inc(value);
   return true;
 }
 
-object_t *array_get(object_t *array, size_t index) {
-  if (array == NULL) {
+object_t *list_get(object_t *list, size_t index) {
+  if (list == NULL) {
     return NULL;
   }
 
-  if (array->kind != ARRAY) {
+  if (list->kind != LIST) {
     return NULL;
   }
 
-  if (index >= array->data.v_array.size) {
+  if (index >= list->data.v_list.size) {
     return NULL;
   }
 
   // Get the value directly now (already checked size constraint)
-  return array->data.v_array.elements[index];
+  return list->data.v_list.elements[index];
 }
 
 object_t *add(object_t *a, object_t *b) {
@@ -173,24 +173,24 @@ object_t *add(object_t *a, object_t *b) {
     default:
       return NULL;
     }
-  case ARRAY:
+  case LIST:
     switch (b->kind) {
-    case ARRAY: {
-      size_t a_len = a->data.v_array.size;
-      size_t b_len = b->data.v_array.size;
+    case LIST: {
+      size_t a_len = a->data.v_list.size;
+      size_t b_len = b->data.v_list.size;
       size_t length = a_len + b_len;
 
-      object_t *array = new_array(length);
+      object_t *list = new_list(length);
 
       for (size_t i = 0; i < a_len; i++) {
-        array_set(array, i, array_get(a, i));
+        list_set(list, i, list_get(a, i));
       }
 
       for (size_t i = 0; i < b_len; i++) {
-        array_set(array, i + a_len, array_get(b, i));
+        list_set(list, i + a_len, list_get(b, i));
       }
 
-      return array;
+      return list;
     }
     default:
       return NULL;

@@ -7,4 +7,4 @@ object_t *new_integer(int value);
 object_t *new_float(float value);
 object_t *new_string(char *value);
 object_t *new_vector3(object_t *x, object_t *y, object_t *z);
-object_t *new_array(size_t size);
+object_t *new_list(size_t size);

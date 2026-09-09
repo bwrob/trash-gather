@@ -1,6 +1,6 @@
 /**
  * @file test_refcount.c
- * @brief Unit tests for reference counting increments, decrements, array/vector
+ * @brief Unit tests for reference counting increments, decrements, list/vector
  * ownership, and lifecycle management.
  */
 
@@ -120,52 +120,52 @@ munit_case(RUN, test_allocated_string_is_freed, {
 });
 
 /**
- * @brief Test that assigning to an array increments the new element refcount.
+ * @brief Test that assigning to an list increments the new element refcount.
  */
-munit_case(RUN, test_array_set, {
+munit_case(RUN, test_list_set, {
   vm_new();
   object_t *foo = new_integer(1);
-  object_t *array = new_array(1);
+  object_t *list = new_list(1);
 
-  array_set(array, 0, foo);
-  assert_int(foo->refcount, ==, 2, "foo is now referenced by array");
+  list_set(list, 0, foo);
+  assert_int(foo->refcount, ==, 2, "foo is now referenced by list");
   assert(!boot_is_freed(foo));
 
   refcount_dec(foo);
-  refcount_dec(array);
+  refcount_dec(list);
 
   vm_cleanup_after_refcount();
   assert(boot_all_freed());
 });
 
 /**
- * @brief Test that overwriting an array element decrements the old element's
+ * @brief Test that overwriting an list element decrements the old element's
  * refcount.
  */
-munit_case(SUBMIT, test_array_free, {
+munit_case(SUBMIT, test_list_free, {
   vm_new();
   object_t *foo = new_integer(1);
   object_t *bar = new_integer(2);
   object_t *baz = new_integer(3);
 
-  object_t *array = new_array(2);
-  array_set(array, 0, foo);
-  array_set(array, 1, bar);
-  assert_int(foo->refcount, ==, 2, "foo is now referenced by array");
-  assert_int(bar->refcount, ==, 2, "bar is now referenced by array");
-  assert_int(baz->refcount, ==, 1, "baz is not yet referenced by array");
+  object_t *list = new_list(2);
+  list_set(list, 0, foo);
+  list_set(list, 1, bar);
+  assert_int(foo->refcount, ==, 2, "foo is now referenced by list");
+  assert_int(bar->refcount, ==, 2, "bar is now referenced by list");
+  assert_int(baz->refcount, ==, 1, "baz is not yet referenced by list");
 
-  // foo is still referenced in the array, so it should not be freed.
+  // foo is still referenced in the list, so it should not be freed.
   refcount_dec(foo);
   assert(!boot_is_freed(foo));
 
   // Overwrite index 0 (foo) with baz. foo refcount hits 0 and is freed.
-  array_set(array, 0, baz);
+  list_set(list, 0, baz);
   assert(boot_is_freed(foo));
 
   refcount_dec(bar);
   refcount_dec(baz);
-  refcount_dec(array);
+  refcount_dec(list);
 
   vm_cleanup_after_refcount();
   assert(boot_all_freed());
@@ -220,12 +220,12 @@ munit_case(RUN, test_refcount_null_safety, {
  */
 munit_case(RUN, test_cycle_refcount_limitation, {
   vm_new();
-  object_t *arr_a = new_array(1);
-  object_t *arr_b = new_array(1);
+  object_t *arr_a = new_list(1);
+  object_t *arr_b = new_list(1);
 
   // arr_a -> arr_b and arr_b -> arr_a
-  array_set(arr_a, 0, arr_b);
-  array_set(arr_b, 0, arr_a);
+  list_set(arr_a, 0, arr_b);
+  list_set(arr_b, 0, arr_a);
 
   assert_int(arr_a->refcount, ==, 2, "arr_a referenced by caller and arr_b");
   assert_int(arr_b->refcount, ==, 2, "arr_b referenced by caller and arr_a");
@@ -241,7 +241,7 @@ munit_case(RUN, test_cycle_refcount_limitation, {
   assert(!boot_is_freed(arr_b));
 
   // Manually break the cycle to clean up memory in this test
-  arr_a->data.v_array.elements[0] = NULL;
+  arr_a->data.v_list.elements[0] = NULL;
   refcount_dec(arr_b); // this cascades and frees arr_a and arr_b
   assert(boot_is_freed(arr_a));
   assert(boot_is_freed(arr_b));
@@ -256,8 +256,8 @@ MunitTest refcount_tests[] = {
     munit_test("/dec_refcount", test_dec_refcount),
     munit_test("/refcount_free", test_refcount_free_is_called),
     munit_test("/string_freed", test_allocated_string_is_freed),
-    munit_test("/array_set", test_array_set),
-    munit_test("/array_free", test_array_free),
+    munit_test("/list_set", test_list_set),
+    munit_test("/list_free", test_list_free),
     munit_test("/vector3_refcounting", test_vector3_refcounting),
     munit_test("/null_safety", test_refcount_null_safety),
     munit_test("/cycle_limitation", test_cycle_refcount_limitation),

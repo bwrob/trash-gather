@@ -12,7 +12,7 @@ ______________________________________________________________________
 Memory management in managed runtimes models the heap as a **directed graph** $G = (V, E)$:
 
 - **Vertices ($V$):** Heap-allocated objects (`object_t`).
-- **Edges ($E$):** Reference pointers held inside containers (`ARRAY` elements, `TUPLE` fields).
+- **Edges ($E$):** Reference pointers held inside containers (`LIST` elements, `TUPLE` fields).
 - **Roots ($R \\subseteq V$):** Pointers directly accessible to the runtime execution engine without traversing the heap (active local variables held within call frames).
 
 An object $v$ is defined as **live** if there exists a directed path from any root $r \\in R$ to $v$. All vertices unreachable from $R$ are dead and eligible for reclamation.
@@ -68,9 +68,9 @@ A naive implementation of graph tracing uses direct recursion:
 void trace_mark_object_recursive(object_t *obj) {
   if (obj == NULL || obj->is_marked) return;
   obj->is_marked = true;
-  if (obj->kind == ARRAY) {
-    for (size_t i = 0; i < obj->data.v_array.size; i++) {
-      trace_mark_object_recursive(obj->data.v_array.elements[i]);
+  if (obj->kind == LIST) {
+    for (size_t i = 0; i < obj->data.v_list.size; i++) {
+      trace_mark_object_recursive(obj->data.v_list.elements[i]);
     }
   }
 }
@@ -121,7 +121,7 @@ Reset to White  Set slot to NULL
    - Every directly referenced object is marked (`obj->is_marked = true`) and pushed onto the gray frontier.
 1. **Trace Phase (`trace()`):**
    - Iteratively pops objects from `gray_objects` (turning them from Gray to Black).
-   - Traverses outgoing reference edges (`TUPLE` components, `ARRAY` elements).
+   - Traverses outgoing reference edges (`TUPLE` components, `LIST` elements).
    - If a referenced child is unvisited (`!child->is_marked`), it is marked and pushed onto the gray stack.
    - Terminates when the gray stack is empty. All reachable objects are now Black; all unreachable objects remain White.
 1. **Sweep Phase (`sweep()`):**
@@ -134,7 +134,7 @@ Reset to White  Set slot to NULL
 
 In pure Mark-and-Sweep, memory management ownership is completely centralized:
 
-- Containers (`ARRAY`, `TUPLE`) **never manage the lifecycles of their children**.
+- Containers (`LIST`, `TUPLE`) **never manage the lifecycles of their children**.
 - The VM's global allocation list (`CURRENT_VM->objects`) acts as the single source of truth for all heap memory.
 - Sweeping frees unreachable objects individually via the system allocator (`free()`). While tracking registry slots are compacted via `stack_remove_nulls()`, the underlying heap space is subject to memory fragmentation over time.
 
