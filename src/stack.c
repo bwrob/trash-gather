@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-void stack_push(stack_t *stack, void *obj) {
+void stack_push(vm_stack_t *stack, void *obj) {
   if (stack->count == stack->capacity) {
     stack->capacity *= 2;
     stack->data = realloc(stack->data, stack->capacity * sizeof(void *));
@@ -19,7 +19,7 @@ void stack_push(stack_t *stack, void *obj) {
   return;
 }
 
-void *stack_pop(stack_t *stack) {
+void *stack_pop(vm_stack_t *stack) {
   if (stack->count == 0) {
     return NULL;
   }
@@ -28,7 +28,7 @@ void *stack_pop(stack_t *stack) {
   return stack->data[stack->count];
 }
 
-void stack_free(stack_t *stack) {
+void stack_free(vm_stack_t *stack) {
   if (stack == NULL) {
     return;
   }
@@ -40,7 +40,7 @@ void stack_free(stack_t *stack) {
   free(stack);
 }
 
-void stack_remove_nulls(stack_t *stack) {
+void stack_remove_nulls(vm_stack_t *stack) {
   size_t new_count = 0;
 
   // Iterate through the stack and compact non-NULL pointers.
@@ -59,8 +59,8 @@ void stack_remove_nulls(stack_t *stack) {
   }
 }
 
-stack_t *stack_new(size_t capacity) {
-  stack_t *stack = malloc(sizeof(stack_t));
+vm_stack_t *stack_new(size_t capacity) {
+  vm_stack_t *stack = malloc(sizeof(vm_stack_t));
   if (stack == NULL) {
     return NULL;
   }

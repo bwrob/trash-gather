@@ -5,7 +5,7 @@ IndentWidth: 2
 
 TabWidth: 2
 UseTab: Never
-ColumnLimit: 80
+ColumnLimit: 88
 BreakBeforeBraces: Attach
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Inline

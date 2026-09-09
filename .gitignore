@@ -68,3 +68,4 @@ __pycache__/
 .ruff_cache/
 .pyrefly/
 .DS_Store
+.temp/

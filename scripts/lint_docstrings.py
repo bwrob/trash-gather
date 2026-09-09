@@ -76,7 +76,8 @@ def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> i
         try:
             res_cpp = subprocess.run(cmd_cpp, capture_output=True, text=True, check=False)
             if res_cpp.returncode != 0 or res_cpp.stderr:
-                # Filter out missing external header errors (e.g. benchmark/benchmark.h if not installed)
+                # Filter out missing external header errors
+                # (e.g. benchmark/benchmark.h if not installed)
                 doc_warnings = [
                     line
                     for line in res_cpp.stderr.splitlines()
@@ -95,7 +96,7 @@ def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> i
 
 
 def lint_file_docstrings(file_path: str) -> int:
-    """Verify presence and tag completeness (@brief, @param, @return) for declarations/definitions."""
+    """Verify presence and tag completeness (@brief, @param, @return)."""
     print(f"\n=== Linting Doxygen Docstrings in {os.path.basename(file_path)} ===")
     errors = 0
 
@@ -164,13 +165,15 @@ def lint_file_docstrings(file_path: str) -> int:
 
             if not comment_block or not ("/**" in comment_block or "/*" in comment_block):
                 print(
-                    f"ERROR: {file_path}:{i + 1}: Function '{func_name}' is missing a Doxygen docstring comment."
+                    f"ERROR: {file_path}:{i + 1}: "
+                    f"Function '{func_name}' is missing a Doxygen docstring comment."
                 )
                 errors += 1
             else:
                 if "@brief" not in comment_block and not re.search(r"\*\s+[A-Z]", comment_block):
                     print(
-                        f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' lacks a @brief tag or description."
+                        f"ERROR: {file_path}:{i + 1}: "
+                        f"Docstring for '{func_name}' lacks a @brief tag or description."
                     )
                     errors += 1
 
@@ -186,7 +189,8 @@ def lint_file_docstrings(file_path: str) -> int:
                             comment_block,
                         ):
                             print(
-                                f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' missing '@param {p_name}'."
+                                f"ERROR: {file_path}:{i + 1}: "
+                                f"Docstring for '{func_name}' missing '@param {p_name}'."
                             )
                             errors += 1
 
@@ -200,16 +204,16 @@ def lint_file_docstrings(file_path: str) -> int:
                     and ("@return" not in comment_block and "@returns" not in comment_block)
                 ):
                     print(
-                        f"ERROR: {file_path}:{i + 1}: Docstring for '{func_name}' missing '@return' tag."
+                        f"ERROR: {file_path}:{i + 1}: "
+                        f"Docstring for '{func_name}' missing '@return' tag."
                     )
                     errors += 1
 
         i += 1
 
     if errors == 0:
-        print(
-            f"  ✓ All declarations/functions in {os.path.basename(file_path)} have complete Doxygen docstrings."
-        )
+        base_name = os.path.basename(file_path)
+        print(f"  ✓ All declarations/functions in {base_name} have complete Doxygen docstrings.")
 
     return errors
 

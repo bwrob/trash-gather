@@ -6,8 +6,8 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -18,17 +18,14 @@
  * allocation.
  */
 munit_case(RUN, test_vm_new_frame, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
-  assert_ptr(frame->references, !=, NULL,
-             "frame->references must be allocated");
-  assert_int(frame->references->count, ==, 0,
-             "references stack should start empty");
-  assert(frame->references->capacity >
-         0); // references stack must have capacity > 0
+  vm_new();
+  frame_t *frame = vm_new_frame();
+  assert_ptr(frame->references, !=, NULL, "frame->references must be allocated");
+  assert_int(frame->references->count, ==, 0, "references stack should start empty");
+  assert(frame->references->capacity > 0); // references stack must have capacity > 0
   assert_ptr(frame->references->data, !=, NULL,
              "references stack backing array must be allocated");
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 
@@ -36,16 +33,16 @@ munit_case(RUN, test_vm_new_frame, {
  * @brief Test referencing a single object within a stack frame.
  */
 munit_case(RUN, test_one_ref, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
+  vm_new();
+  frame_t *frame = vm_new_frame();
 
-  snek_object_t *lanes_wpm = new_snek_integer(vm, 9);
+  object_t *lanes_wpm = new_integer(9);
   frame_reference_object(frame, lanes_wpm);
 
   assert_int(frame->references->count, ==, 1, "Only one reference");
   assert_ptr_equal(lanes_wpm, frame->references->data[0], "Refs lanes_wpm");
 
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 
@@ -53,11 +50,11 @@ munit_case(RUN, test_one_ref, {
  * @brief Test referencing multiple distinct objects within a stack frame.
  */
 munit_case(SUBMIT, test_multi_ref, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
+  vm_new();
+  frame_t *frame = vm_new_frame();
 
-  snek_object_t *lanes_wpm = new_snek_integer(vm, 9);
-  snek_object_t *teej_wpm = new_snek_integer(vm, 160);
+  object_t *lanes_wpm = new_integer(9);
+  object_t *teej_wpm = new_integer(160);
   frame_reference_object(frame, lanes_wpm);
   frame_reference_object(frame, teej_wpm);
 
@@ -65,7 +62,7 @@ munit_case(SUBMIT, test_multi_ref, {
   assert_ptr_equal(lanes_wpm, frame->references->data[0], "Refs lanes_wpm");
   assert_ptr_equal(teej_wpm, frame->references->data[1], "Refs teej_wpm");
 
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 

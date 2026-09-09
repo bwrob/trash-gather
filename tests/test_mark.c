@@ -6,8 +6,8 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "sneknew.h"
-#include "snekobject.h"
+#include "new.h"
+#include "object.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -18,13 +18,13 @@
  * stack frame.
  */
 munit_case(RUN, test_single_frame, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
+  vm_new();
+  frame_t *frame = vm_new_frame();
 
-  snek_object_t *teej_skill = new_snek_integer(vm, 420);
-  snek_object_t *lane_skill = new_snek_string(vm, "issues");
+  object_t *teej_skill = new_integer(420);
+  object_t *lane_skill = new_string("issues");
 
-  mark(vm);
+  mark();
   // should not be marked because not in frame
   assert_false(teej_skill->is_marked);
   assert_false(lane_skill->is_marked);
@@ -33,11 +33,11 @@ munit_case(RUN, test_single_frame, {
   frame_reference_object(frame, lane_skill);
 
   // after adding and marking, should be marked
-  mark(vm);
+  mark();
   assert_true(teej_skill->is_marked);
   assert_true(lane_skill->is_marked);
 
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 
@@ -45,23 +45,23 @@ munit_case(RUN, test_single_frame, {
  * @brief Test root marking behavior across multiple stack frames.
  */
 munit_case(SUBMIT, test_multi_frame, {
-  vm_t *vm = vm_new();
-  frame_t *frame = vm_new_frame(vm);
-  frame_t *frame2 = vm_new_frame(vm);
+  vm_new();
+  frame_t *frame = vm_new_frame();
+  frame_t *frame2 = vm_new_frame();
 
-  snek_object_t *teej_skill = new_snek_integer(vm, 420);
-  snek_object_t *lane_skill = new_snek_string(vm, "issues");
-  snek_object_t *prime_skill = new_snek_string(vm, "infinite");
+  object_t *teej_skill = new_integer(420);
+  object_t *lane_skill = new_string("issues");
+  object_t *prime_skill = new_string("infinite");
 
   frame_reference_object(frame, teej_skill);
   frame_reference_object(frame, lane_skill);
   frame_reference_object(frame2, prime_skill);
-  mark(vm);
+  mark();
 
   assert_true(teej_skill->is_marked);
   assert_true(lane_skill->is_marked);
   assert_true(prime_skill->is_marked);
-  vm_free(vm);
+  vm_free();
   assert(boot_all_freed());
 });
 

@@ -1,48 +1,87 @@
 #include "vm.h"
 
-#include "snekobject.h"
+#include "object.h"
 #include "stack.h"
 
-void vm_collect_garbage(vm_t *vm) {
-  mark(vm);
-  trace(vm);
-  sweep(vm);
+static vm_t *CURRENT_VM = NULL;
+
+void vm_collect_garbage() {
+  mark();
+  trace();
+  sweep();
 }
 
-void sweep(vm_t *vm) {
-  for (size_t i = 0; i < vm->objects->count; i++) {
-    snek_object_t *obj = vm->objects->data[i];
+vm_t *vm_get_current(void) {
+  return CURRENT_VM;
+}
+
+void sweep() {
+  /* Pass 1:
+  Decref live children and free payloads for unmarked objects
+  Notice that we cannot unmark live objects (obj->is_marked = false) until
+  Pass 2. If Pass 1 unmarks objects on the fly, a later unmarked container
+  visiting a live child might see is_marked == false and fail to decref it!
+  */
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    object_t *obj = CURRENT_VM->objects->data[i];
+    if (obj == NULL || obj->is_marked) {
+      continue;
+    }
+    object_decref_children(obj, true);
+    object_free_payload(obj);
+  }
+
+  /*Pass 2:
+  Free dead headers and unmark surviving objects
+  */
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    object_t *obj = CURRENT_VM->objects->data[i];
+    if (obj == NULL) {
+      continue;
+    }
     if (obj->is_marked) {
       obj->is_marked = false;
       continue;
     }
-    snek_object_free(obj);
-    vm->objects->data[i] = NULL;
+    free(obj);
+    CURRENT_VM->objects->data[i] = NULL;
   }
-  stack_remove_nulls(vm->objects);
+
+  // --- Compaction & Re-indexing ---
+  stack_remove_nulls(CURRENT_VM->objects);
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    object_t *obj = CURRENT_VM->objects->data[i];
+    obj->tracker_id = i;
+  }
 }
 
-// don't touch below this line
-
-void mark(vm_t *vm) {
-  for (size_t i = 0; i < vm->frames->count; i++) {
-    frame_t *frame = vm->frames->data[i];
+void mark() {
+  for (size_t i = 0; i < CURRENT_VM->frames->count; i++) {
+    frame_t *frame = CURRENT_VM->frames->data[i];
     for (size_t j = 0; j < frame->references->count; j++) {
-      snek_object_t *obj = frame->references->data[j];
+      void *obj_ = frame->references->data[j];
+      if (obj_ == NULL) {
+        continue;
+      }
+      object_t *obj = obj_;
       obj->is_marked = true;
     }
   }
 }
 
-void trace(vm_t *vm) {
-  stack_t *gray_objects = stack_new(8);
+void trace() {
+  vm_stack_t *gray_objects = stack_new(8);
   if (gray_objects == NULL) {
     return;
   }
 
   // Get previously marked objects (which are the roots)
-  for (size_t i = 0; i < vm->objects->count; i++) {
-    snek_object_t *obj = vm->objects->data[i];
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    void *obj_ = CURRENT_VM->objects->data[i];
+    if (obj_ == NULL) {
+      continue;
+    }
+    object_t *obj = obj_;
     if (obj->is_marked) {
       stack_push(gray_objects, obj);
     }
@@ -57,8 +96,8 @@ void trace(vm_t *vm) {
   stack_free(gray_objects);
 }
 
-void trace_blacken_object(stack_t *gray_objects, snek_object_t *ref) {
-  snek_object_t *obj = ref;
+void trace_blacken_object(vm_stack_t *gray_objects, object_t *ref) {
+  object_t *obj = ref;
 
   switch (obj->kind) {
   case INTEGER:
@@ -66,7 +105,7 @@ void trace_blacken_object(stack_t *gray_objects, snek_object_t *ref) {
   case STRING:
     break;
   case VECTOR3: {
-    snek_vector_t vec = obj->data.v_vector3;
+    vector_t vec = obj->data.v_vector3;
     trace_mark_object(gray_objects, vec.x);
     trace_mark_object(gray_objects, vec.y);
     trace_mark_object(gray_objects, vec.z);
@@ -81,7 +120,7 @@ void trace_blacken_object(stack_t *gray_objects, snek_object_t *ref) {
   }
 }
 
-void trace_mark_object(stack_t *gray_objects, snek_object_t *obj) {
+void trace_mark_object(vm_stack_t *gray_objects, object_t *obj) {
   if (obj == NULL || obj->is_marked) {
     return;
   }
@@ -90,14 +129,15 @@ void trace_mark_object(stack_t *gray_objects, snek_object_t *obj) {
   obj->is_marked = true;
 }
 
-void frame_reference_object(frame_t *frame, snek_object_t *obj) {
+void frame_reference_object(frame_t *frame, object_t *obj) {
   stack_push(frame->references, obj);
+  refcount_inc(obj);
 }
 
-vm_t *vm_new(void) {
+void vm_new(void) {
   vm_t *vm = malloc(sizeof(vm_t));
   if (vm == NULL) {
-    return NULL;
+    return;
   }
 
   vm->frames = stack_new(8);
@@ -108,48 +148,70 @@ vm_t *vm_new(void) {
     if (vm->objects != NULL)
       stack_free(vm->objects);
     free(vm);
-    return NULL;
+    return;
   }
-  return vm;
+  CURRENT_VM = vm;
 }
 
-void vm_free(vm_t *vm) {
-  // Free the stack frames, and then their container
-  for (size_t i = 0; i < vm->frames->count; i++) {
-    frame_free(vm->frames->data[i]);
+void vm_free() {
+  // Free the stack frames, an!d then their stack container
+  for (size_t i = 0; i < CURRENT_VM->frames->count; i++) {
+    frame_free(CURRENT_VM->frames->data[i]);
   }
-  stack_free(vm->frames);
+  stack_free(CURRENT_VM->frames);
 
-  // Free the objects, and then their container
-  for (size_t i = 0; i < vm->objects->count; i++) {
-    snek_object_free(vm->objects->data[i]);
+  // Free buffers
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    if (CURRENT_VM->objects->data[i] != NULL) {
+      object_free_payload(CURRENT_VM->objects->data[i]);
+    }
   }
-  stack_free(vm->objects);
+  // Free headers
+  for (size_t i = 0; i < CURRENT_VM->objects->count; i++) {
+    if (CURRENT_VM->objects->data[i] != NULL) {
+      free(CURRENT_VM->objects->data[i]);
+    }
+  }
 
-  free(vm);
+  stack_free(CURRENT_VM->objects);
+  free(CURRENT_VM);
 }
 
-void vm_frame_push(vm_t *vm, frame_t *frame) {
-  stack_push(vm->frames, frame);
+void vm_frame_push(frame_t *frame) {
+  stack_push(CURRENT_VM->frames, frame);
 }
 
-frame_t *vm_frame_pop(vm_t *vm) {
-  return stack_pop(vm->frames);
+frame_t *vm_frame_pop() {
+  return stack_pop(CURRENT_VM->frames);
 }
 
-frame_t *vm_new_frame(vm_t *vm) {
+frame_t *vm_new_frame() {
   frame_t *frame = malloc(sizeof(frame_t));
   frame->references = stack_new(8);
 
-  vm_frame_push(vm, frame);
+  vm_frame_push(frame);
   return frame;
 }
 
 void frame_free(frame_t *frame) {
+  for (size_t i = 0; i < frame->references->count; i++) {
+    if (frame->references->data[i] == NULL) {
+      continue;
+    }
+    refcount_dec(frame->references->data[i]);
+  }
   stack_free(frame->references);
   free(frame);
 }
 
-void vm_track_object(vm_t *vm, snek_object_t *obj) {
-  stack_push(vm->objects, obj);
+void vm_track_object(object_t *obj) {
+  stack_push(CURRENT_VM->objects, obj);
+  obj->tracker_id = (CURRENT_VM->objects->count) - 1;
+}
+
+void vm_untrack_object(object_t *obj) {
+  if (obj->tracker_id < CURRENT_VM->objects->count &&
+      CURRENT_VM->objects->data[obj->tracker_id] == obj) {
+    CURRENT_VM->objects->data[obj->tracker_id] = NULL;
+  }
 }
