@@ -153,11 +153,11 @@ format-c-check:
 
 # Format Markdown documentation and skills with mdformat
 format-md:
-    uv run mdformat README.md AGENTS.md lessons .agents
+    uv run mdformat README.md AGENTS.md lessons roadmap .agents
 
 # Check Markdown formatting without modifying files
 format-md-check:
-    uv run mdformat --check README.md AGENTS.md lessons .agents
+    uv run mdformat --check README.md AGENTS.md lessons roadmap .agents
 
 # Format TOML configuration files using taplo
 format-toml:
@@ -189,8 +189,17 @@ lint-docs:
 lint-c:
     clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
-# Run static analysis using clang-tidy, docstring linter, and Python checks
-lint: lint-c lint-docs lint-py
+# Validate roadmap milestone hash IDs, DAG consistency, and markdown links
+lint-roadmap:
+    uv run python scripts/lint_roadmap.py
+
+# Scaffold a new roadmap milestone writeup from template
+new-milestone slug title="":
+    uv run python scripts/new_milestone.py {{slug}} "{{title}}"
+
+# Run static analysis using clang-tidy, docstring linter, roadmap linter, and Python checks
+lint: lint-c lint-docs lint-roadmap lint-py
+
 
 # Install development dependencies via Homebrew Brewfile (macOS)
 install-deps:

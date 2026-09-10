@@ -37,7 +37,7 @@ repos:
 
       - id: mdformat
         name: mdformat
-        entry: uv run mdformat --check README.md AGENTS.md lessons .agents
+        entry: uv run mdformat --check README.md AGENTS.md lessons roadmap .agents
         language: system
         pass_filenames: false
         files: \.md$
@@ -55,3 +55,10 @@ repos:
         language: system
         pass_filenames: false
         files: \.(c|h|cpp)$
+
+      - id: lint-roadmap
+        name: lint roadmap & dag
+        entry: just lint-roadmap
+        language: system
+        pass_filenames: false
+        files: ^(roadmap/.*|README\.md)$
