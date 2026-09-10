@@ -103,11 +103,11 @@ munit_case(RUN, test_reference_object, {
 });
 
 /**
- * @brief Test array object deallocation during vm_free.
+ * @brief Test list object deallocation during vm_free.
  */
-munit_case(RUN, test_array_freed, {
+munit_case(RUN, test_list_freed, {
   vm_new();
-  new_array(3);
+  new_list(3);
   vm_free();
   assert(boot_all_freed());
 });
@@ -179,14 +179,14 @@ munit_case(RUN, test_gc_reclaims_unreachable_cycle, {
   vm_t *vm = vm_get_current();
   frame_t *f = vm_new_frame();
 
-  object_t *arr_a = new_array(1);
-  object_t *arr_b = new_array(1);
+  object_t *arr_a = new_list(1);
+  object_t *arr_b = new_list(1);
   frame_reference_object(f, arr_a);
   frame_reference_object(f, arr_b);
 
   // Form cycle: A -> B and B -> A
-  array_set(arr_a, 0, arr_b);
-  array_set(arr_b, 0, arr_a);
+  list_set(arr_a, 0, arr_b);
+  list_set(arr_b, 0, arr_a);
 
   // Pop and free the only frame referencing the cycle
   frame_free(vm_frame_pop());
@@ -215,9 +215,9 @@ munit_case(RUN, test_gc_reclaims_self_referencing_cycle, {
   vm_t *vm = vm_get_current();
   frame_t *f = vm_new_frame();
 
-  object_t *self_arr = new_array(1);
+  object_t *self_arr = new_list(1);
   frame_reference_object(f, self_arr);
-  array_set(self_arr, 0, self_arr);
+  list_set(self_arr, 0, self_arr);
 
   frame_free(vm_frame_pop());
   assert_false(boot_is_freed(self_arr));
@@ -243,14 +243,14 @@ munit_case(RUN, test_gc_dead_cycle_pointing_to_live_object, {
   frame_reference_object(live_frame, live_str);
 
   frame_t *dead_frame = vm_new_frame();
-  object_t *a = new_array(2);
-  object_t *b = new_array(1);
+  object_t *a = new_list(2);
+  object_t *b = new_list(1);
   frame_reference_object(dead_frame, a);
   frame_reference_object(dead_frame, b);
 
-  array_set(a, 0, b);
-  array_set(b, 0, a);
-  array_set(a, 1, live_str); // dead container holds reference to live object
+  list_set(a, 0, b);
+  list_set(b, 0, a);
+  list_set(a, 1, live_str); // dead container holds reference to live object
 
   // Pop and destroy the dead frame
   frame_free(vm_frame_pop());
@@ -269,19 +269,19 @@ munit_case(RUN, test_gc_dead_cycle_pointing_to_live_object, {
 });
 
 /**
- * @brief Adversarial test: unreachable array containing NULL slots collected safely.
+ * @brief Adversarial test: unreachable list containing NULL slots collected safely.
  */
-munit_case(RUN, test_gc_array_with_null_slots, {
+munit_case(RUN, test_gc_list_with_null_slots, {
   vm_new();
   frame_t *f = vm_new_frame();
-  object_t *arr = new_array(5);
+  object_t *arr = new_list(5);
   frame_reference_object(f, arr);
 
   // Set only slots 0 and 3; slots 1, 2, 4 remain NULL
   object_t *val0 = new_integer(100);
   object_t *val3 = new_integer(300);
-  array_set(arr, 0, val0);
-  array_set(arr, 3, val3);
+  list_set(arr, 0, val0);
+  list_set(arr, 3, val3);
 
   frame_free(vm_frame_pop());
   vm_collect_garbage();
@@ -301,9 +301,9 @@ munit_case(RUN, test_gc_cycle_mesh_with_tail, {
   vm_new();
   frame_t *f = vm_new_frame();
 
-  object_t *n1 = new_array(1);
-  object_t *n2 = new_array(1);
-  object_t *n3 = new_array(2);
+  object_t *n1 = new_list(1);
+  object_t *n2 = new_list(1);
+  object_t *n3 = new_list(2);
   object_t *tail = new_integer(999);
 
   frame_reference_object(f, n1);
@@ -312,11 +312,11 @@ munit_case(RUN, test_gc_cycle_mesh_with_tail, {
   frame_reference_object(f, tail);
 
   // n1 -> n2 -> n3 -> n1 (triangle cycle)
-  array_set(n1, 0, n2);
-  array_set(n2, 0, n3);
-  array_set(n3, 0, n1);
+  list_set(n1, 0, n2);
+  list_set(n2, 0, n3);
+  list_set(n3, 0, n1);
   // n3 also references tail
-  array_set(n3, 1, tail);
+  list_set(n3, 1, tail);
 
   frame_free(vm_frame_pop());
   vm_collect_garbage();
@@ -334,7 +334,7 @@ MunitTest vm_tests[] = {
     munit_test("/simple", test_simple),
     munit_test("/full", test_full),
     munit_test("/reference_object", test_reference_object),
-    munit_test("/array_freed", test_array_freed),
+    munit_test("/list_freed", test_list_freed),
     munit_test("/frames_are_freed", test_frames_are_freed),
     munit_test("/vm_new", test_vm_new),
     munit_test("/new_object", test_new_object),
@@ -344,7 +344,7 @@ MunitTest vm_tests[] = {
                test_gc_reclaims_self_referencing_cycle),
     munit_test("/gc_dead_cycle_pointing_to_live_object",
                test_gc_dead_cycle_pointing_to_live_object),
-    munit_test("/gc_array_with_null_slots", test_gc_array_with_null_slots),
+    munit_test("/gc_list_with_null_slots", test_gc_list_with_null_slots),
     munit_test("/gc_cycle_mesh_with_tail", test_gc_cycle_mesh_with_tail),
     munit_null_test,
 };

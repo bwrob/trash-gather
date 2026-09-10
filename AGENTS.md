@@ -50,12 +50,59 @@ ______________________________________________________________________
 
 ## 🔧 3. Tooling & Development Workflows
 
+### 3.1 Tooling Ecosystem
+
 - **`just`** is the single entry point for all workflows (`just test`, `just lint`, `just bench`, `just check`).
 - **`pre-commit`** gates every commit with formatting (`clang-format`), linting, and docstring checks.
 - **`ruff` + `pyrefly` (strict)** keep Python helper scripts (`scripts/`) clean, typed, and formatted.
 - **`uv`** manages the Python environment reproducibly via `pyproject.toml` + `uv.lock`.
 - **GitHub Actions CI** runs `clang-tidy`, full test suites, build verification, and coverage checks on PRs and `main`.
 - **`Brewfile`** makes macOS onboarding a single `brew bundle` command.
+
+### 3.2 Developer Command Reference (`justfile`)
+
+| Command                      | Description                                                                  |
+| :--------------------------- | :--------------------------------------------------------------------------- |
+| `just all`                   | Run tests, build the sandbox app, and generate `compile_commands.json`       |
+| `just test`                  | Run the unit test suite via µnit with ASan/UBSan and `bootlib` leak tracking |
+| `just test-list`             | List all available unit tests                                                |
+| `just test-filter <pattern>` | Run only tests matching a name prefix/pattern                                |
+| `just coverage`              | Measure line coverage using `gcov` / `llvm-cov`                              |
+| `just bench`                 | Compile and run Google Benchmark microbenchmarks                             |
+| `just bench-build`           | Compile benchmark runner binary without running it                           |
+| `just format`                | Format all C/C++ files in-place using `clang-format`                         |
+| `just format-check`          | Check C/C++ formatting compliance without mutating files                     |
+| `just format-py`             | Format Python scripts in-place (`ruff format`)                               |
+| `just format-md`             | Format all markdown files in-place (`mdformat`)                              |
+| `just lint`                  | Run `clang-tidy` static analysis + docstring lint + Python checks            |
+| `just lint-c`                | Run `clang-tidy` static analysis on C source files                           |
+| `just lint-py`               | Check Python scripts (`ruff` + `pyrefly`)                                    |
+| `just lint-docs`             | Check Doxygen docstrings across configured dirs                              |
+| `just lint-roadmap`          | Validate roadmap milestone hash IDs, DAG consistency, and markdown links     |
+| `just new-milestone <slug>`  | Scaffold a new roadmap milestone writeup from template                       |
+| `just check`                 | Run all pre-commit hooks across the entire repo                              |
+| `just build`                 | Compile the main sandbox application binary                                  |
+| `just run`                   | Build and execute the sandbox app                                            |
+| `just watch`                 | Watch `.c/.h/.cpp/.py` files and auto-rerun tests                            |
+| `just debug [filter]`        | Launch lldb on the test suite (optionally filtered)                          |
+| `just leaks`                 | Inspect OS-level memory leaks on macOS                                       |
+| `just clean`                 | Remove build binaries and gcov artifacts                                     |
+| `just compiledb`             | Regenerate `compile_commands.json` for clangd                                |
+| `just install-deps`          | Install all macOS dev dependencies via Homebrew                              |
+| `just setup-hooks`           | Install pre-commit git hooks                                                 |
+
+> [!NOTE]
+> On macOS, `just install-deps` installs `llvm` via Homebrew which provides `clang-tidy`, but it is keg-only. You must add it to your PATH: `export PATH="/opt/homebrew/opt/llvm/bin:$PATH"`
+
+### 3.3 Continuous Integration Pipeline
+
+All commits and pull requests automatically trigger GitHub Actions (`.github/workflows/ci.yml`):
+
+1. **pre-commit** — `ruff`, `pyrefly`, `clang-format`, `mdformat`, Doxygen docstring lint, and unit tests
+1. **clang-tidy** — deep static analysis on `src/*.c` (`just lint-c`)
+1. **build** — compile the main sandbox binary (`just build`)
+1. **benchmark build** — verify benchmark compilation (`just bench-build`)
+1. **coverage** — line coverage via `gcov` (`just coverage`)
 
 ______________________________________________________________________
 

@@ -104,16 +104,16 @@ void trace_blacken_object(vm_stack_t *gray_objects, object_t *ref) {
   case FLOAT:
   case STRING:
     break;
-  case VECTOR3: {
-    vector_t vec = obj->data.v_vector3;
-    trace_mark_object(gray_objects, vec.x);
-    trace_mark_object(gray_objects, vec.y);
-    trace_mark_object(gray_objects, vec.z);
+  case TUPLE: {
+    tuple_t tuple = obj->data.v_tuple;
+    trace_mark_object(gray_objects, tuple.x);
+    trace_mark_object(gray_objects, tuple.y);
+    trace_mark_object(gray_objects, tuple.z);
     break;
   }
-  case ARRAY: {
-    for (size_t i = 0; i < obj->data.v_array.size; i++) {
-      trace_mark_object(gray_objects, obj->data.v_array.elements[i]);
+  case LIST: {
+    for (size_t i = 0; i < obj->data.v_list.size; i++) {
+      trace_mark_object(gray_objects, obj->data.v_list.elements[i]);
     }
     break;
   }

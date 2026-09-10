@@ -1,7 +1,7 @@
 /**
  * @file test_trace.c
  * @brief Unit tests for garbage collector pointer graph tracing phase across
- * vectors, arrays, nested graphs, and unreachable cycles.
+ * vectors, lists, nested graphs, and unreachable cycles.
  */
 
 #include "bootlib.h"
@@ -52,17 +52,17 @@ munit_case(RUN, test_trace_vector, {
 });
 
 /**
- * @brief Test pointer graph tracing through array element object references.
+ * @brief Test pointer graph tracing through list element object references.
  */
-munit_case(SUBMIT, test_trace_array, {
+munit_case(SUBMIT, test_trace_list, {
   vm_new();
   frame_t *frame = vm_new_frame();
 
-  object_t *devs = new_array(2);
+  object_t *devs = new_list(2);
   object_t *lane = new_string("Lane");
   object_t *teej = new_string("Teej");
-  array_set(devs, 0, lane);
-  array_set(devs, 1, teej);
+  list_set(devs, 0, lane);
+  list_set(devs, 1, teej);
 
   // nothing is marked
   assert_false(devs->is_marked);
@@ -70,7 +70,7 @@ munit_case(SUBMIT, test_trace_array, {
   assert_false(teej->is_marked);
 
   // After referencing and marking, the
-  // array should be marked, but not the contents
+  // list should be marked, but not the contents
   frame_reference_object(frame, devs);
   mark();
   assert_true(devs->is_marked);
@@ -88,31 +88,31 @@ munit_case(SUBMIT, test_trace_array, {
 });
 
 /**
- * @brief Test pointer graph tracing through deeply nested arrays of arrays.
+ * @brief Test pointer graph tracing through deeply nested lists of lists.
  */
 munit_case(SUBMIT, test_trace_nested, {
   vm_new();
   frame_t *frame = vm_new_frame();
 
-  object_t *bootdevs = new_array(2);
+  object_t *bootdevs = new_list(2);
   object_t *lane = new_string("Lane");
   object_t *hunter = new_string("Hunter");
-  array_set(bootdevs, 0, lane);
-  array_set(bootdevs, 1, hunter);
+  list_set(bootdevs, 0, lane);
+  list_set(bootdevs, 1, hunter);
 
-  object_t *terminaldevs = new_array(4);
+  object_t *terminaldevs = new_list(4);
   object_t *prime = new_string("Prime");
   object_t *teej = new_string("Teej");
   object_t *dax = new_string("Dax");
   object_t *adam = new_string("Adam");
-  array_set(terminaldevs, 0, prime);
-  array_set(terminaldevs, 1, teej);
-  array_set(terminaldevs, 2, dax);
-  array_set(terminaldevs, 3, adam);
+  list_set(terminaldevs, 0, prime);
+  list_set(terminaldevs, 1, teej);
+  list_set(terminaldevs, 2, dax);
+  list_set(terminaldevs, 3, adam);
 
-  object_t *alldevs = new_array(2);
-  array_set(alldevs, 0, bootdevs);
-  array_set(alldevs, 1, terminaldevs);
+  object_t *alldevs = new_list(2);
+  list_set(alldevs, 0, bootdevs);
+  list_set(alldevs, 1, terminaldevs);
 
   frame_reference_object(frame, alldevs);
   mark();
@@ -160,9 +160,9 @@ munit_case(SUBMIT, test_trace_mark_object_already_marked, {
  */
 munit_case(SUBMIT, test_trace_unreachable_cycle, {
   vm_new();
-  object_t *unreachable = new_array(1);
+  object_t *unreachable = new_list(1);
 
-  array_set(unreachable, 0, unreachable);
+  list_set(unreachable, 0, unreachable);
 
   mark();
   trace();
@@ -175,7 +175,7 @@ munit_case(SUBMIT, test_trace_unreachable_cycle, {
 
 MunitTest trace_tests[] = {
     munit_test("/vector", test_trace_vector),
-    munit_test("/array", test_trace_array),
+    munit_test("/list", test_trace_list),
     munit_test("/nested", test_trace_nested),
     munit_test("/mark_already_marked", test_trace_mark_object_already_marked),
     munit_test("/unreachable_cycle", test_trace_unreachable_cycle),

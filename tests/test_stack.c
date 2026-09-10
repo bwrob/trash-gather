@@ -67,7 +67,7 @@ munit_case(SUBMIT, create_stack_large, {
 
 /**
  * @brief Test verifying total allocation byte size of stack structure and
- * backing array.
+ * backing list.
  */
 munit_case(SUBMIT, create_stack_allocation_size, {
   size_t capacity = 5;
