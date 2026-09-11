@@ -47,6 +47,16 @@ ______________________________________________________________________
 - **Durable Learning Record**: Every Merge Request (MR) or milestone must produce a corresponding educational lesson file inside `lessons/` (e.g. `lessons/01_mark_and_sweep_basics.md`, `lessons/02_hybrid_gc_and_desneking.md`).
 - **Follow the Skill**: All lesson templates, extraction triggers, quality rubrics, and indexing workflows are defined in the **`lesson-extraction`** skill: \[.agents/skills/lesson-extraction/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/lesson-extraction/SKILL.md).
 
+### 2.5 The Interactive Development & Testing Loop
+
+When pairing on new features or milestones, the collaboration strictly follows this 5-step loop:
+
+1. **Code Must Compile**: The human developer writes and iterates on the runtime in `src/` until the codebase compiles cleanly (`just build`).
+1. **Adversarial Test Generation (No Clues)**: Once compiling, the AI agent generates unit and adversarial tests in `tests/` without giving reviews, hints, or clues about potential implementation bugs.
+1. **Developer Debugging & Fixes**: The human runs the test suite (`just test`), explores test failures, and refines the runtime in `src/` to address the failures independently.
+1. **Iterative Regeneration**: The AI agent writes further stress tests or edge cases if needed until full test coverage is achieved.
+1. **Post-Green Retrospective**: Only once all tests pass cleanly under ASan/UBSan and `boot_all_freed()`, agent and developer engage in discussion regarding potential improvements, simplifications, and systems best practices.
+
 ______________________________________________________________________
 
 ## 🔧 3. Tooling & Development Workflows
