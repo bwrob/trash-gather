@@ -356,6 +356,34 @@ munit_case(
 );
 
 /**
+ * @brief Adversarial test: string concatenation under heap allocation failures.
+ */
+munit_case(
+    RUN,
+    test_add_strings_alloc_failure,
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            vm_new();
+            object_t *a = new_string("Hello ");
+            object_t *b = new_string("World!");
+
+            boot_set_fail_alloc_after(i);
+            object_t *res = add(a, b);
+            if (res != NULL)
+            {
+                assert_int(res->kind, ==, STRING);
+                assert_string_equal(res->data.v_string, "Hello World!");
+            }
+            boot_set_fail_alloc_after(-1);
+
+            vm_free();
+            assert(boot_all_freed());
+        }
+    }
+);
+
+/**
  * @brief Test component-wise addition of tuple objects.
  */
 munit_case(
@@ -435,6 +463,38 @@ munit_case(
 );
 
 /**
+ * @brief Adversarial test: heap failure injection during tuple addition.
+ */
+munit_case(
+    RUN,
+    test_add_tuples_alloc_failure,
+    {
+        for (int fail_idx = 0; fail_idx < 10; fail_idx++)
+        {
+            vm_new();
+            // Pre-expand objects stack so stack_push realloc isn't triggered
+            vm_get_current()->objects->data =
+                realloc(vm_get_current()->objects->data, 64 * sizeof(void *));
+            vm_get_current()->objects->capacity = 64;
+
+            object_t *t1 = new_tuple_2(new_integer(1), new_integer(2));
+            object_t *t2 = new_tuple_2(new_integer(3), new_integer(4));
+
+            boot_set_fail_alloc_after(fail_idx);
+            object_t *res = add(t1, t2);
+            if (res != NULL)
+            {
+                assert_int(res->kind, ==, TUPLE);
+            }
+            boot_set_fail_alloc_after(-1);
+
+            vm_free();
+            assert(boot_all_freed());
+        }
+    }
+);
+
+/**
  * @brief Test list concatenation via addition operator.
  */
 munit_case(
@@ -460,6 +520,64 @@ munit_case(
         assert_int(list_get(res, 0)->data.v_int, ==, 10);
         assert_int(list_get(res, 1)->data.v_int, ==, 20);
         assert_int(list_get(res, 2)->data.v_int, ==, 30);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Adversarial test: list concatenation under heap allocation failures.
+ */
+munit_case(
+    RUN,
+    test_add_lists_alloc_failure,
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            vm_new();
+            object_t *arr1 = new_list(2);
+            object_t *arr2 = new_list(2);
+
+            boot_set_fail_alloc_after(i);
+            object_t *res = add(arr1, arr2);
+            if (res != NULL)
+            {
+                assert_int(res->kind, ==, LIST);
+            }
+            boot_set_fail_alloc_after(-1);
+
+            vm_free();
+            assert(boot_all_freed());
+        }
+    }
+);
+
+/**
+ * @brief Adversarial test: list concatenation preserving sparse NULL slots.
+ */
+munit_case(
+    RUN,
+    test_add_lists_sparse_nulls,
+    {
+        vm_new();
+        object_t *arr1 = new_list(2);
+        object_t *elem1 = new_integer(10);
+        list_set(arr1, 0, elem1);
+
+        object_t *arr2 = new_list(2);
+        object_t *elem2 = new_integer(20);
+        list_set(arr2, 1, elem2);
+
+        object_t *res = add(arr1, arr2);
+        assert_not_null(res);
+        assert_int(res->kind, ==, LIST);
+        assert_size(res->data.v_list.size, ==, 4);
+
+        assert_ptr_equal(list_get(res, 0), elem1);
+        assert_null(list_get(res, 1));
+        assert_null(list_get(res, 2));
+        assert_ptr_equal(list_get(res, 3), elem2);
 
         vm_free();
         assert(boot_all_freed());
@@ -514,10 +632,14 @@ MunitTest object_tests[] = {
     munit_test("/add_integer_and_float", test_add_integer_and_float),
     munit_test("/add_floats", test_add_floats),
     munit_test("/add_strings", test_add_strings),
+    munit_test("/add_strings_alloc_failure", test_add_strings_alloc_failure),
     munit_test("/add_tuples", test_add_tuples),
     munit_test("/add_tuples_size_mismatch", test_add_tuples_size_mismatch),
     munit_test("/add_tuples_empty", test_add_tuples_empty),
+    munit_test("/add_tuples_alloc_failure", test_add_tuples_alloc_failure),
     munit_test("/add_lists", test_add_lists),
+    munit_test("/add_lists_alloc_failure", test_add_lists_alloc_failure),
+    munit_test("/add_lists_sparse_nulls", test_add_lists_sparse_nulls),
     munit_test("/add_invalid_mismatched", test_add_invalid_mismatched),
     munit_null_test,
 };

@@ -420,6 +420,43 @@ munit_case(
     }
 );
 
+/**
+ * @brief Adversarial test: verify mark, trace, sweep, and frame_free handle
+ * NULL slots in frame and object lists.
+ */
+munit_case(
+    RUN,
+    test_vm_null_slots_in_frames_and_objects,
+    {
+        vm_new();
+        frame_t *f = vm_new_frame();
+
+        // Push NULL into frame references
+        stack_push(f->references, NULL);
+
+        // Push NULL into VM objects list
+        stack_push(vm_get_current()->objects, NULL);
+
+        // mark() encounters NULL in frame references
+        mark();
+
+        // trace() encounters NULL in objects list
+        trace();
+
+        // sweep() encounters NULL in objects list during pass 2
+        sweep();
+
+        // Remove the NULL from objects list so clean teardown succeeds
+        stack_pop(vm_get_current()->objects);
+
+        // frame_free() encounters NULL in frame references
+        frame_free(vm_frame_pop());
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
 MunitTest vm_tests[] = {
     munit_test("/simple", test_simple),
     munit_test("/full", test_full),
@@ -441,5 +478,9 @@ MunitTest vm_tests[] = {
     munit_test("/gc_list_with_null_slots", test_gc_list_with_null_slots),
     munit_test("/gc_cycle_mesh_with_tail", test_gc_cycle_mesh_with_tail),
     munit_test("/gc_cycle_with_tuple", test_gc_cycle_with_tuple),
+    munit_test(
+        "/null_slots_in_frames_and_objects",
+        test_vm_null_slots_in_frames_and_objects
+    ),
     munit_null_test,
 };

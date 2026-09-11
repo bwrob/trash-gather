@@ -64,10 +64,6 @@ void object_free_payload(
 void object_free(
     object_t *obj
 );
-void _refcount_dec(
-    object_t *obj,
-    bool live_only
-);
 
 bool list_set(
     object_t *list,
@@ -78,6 +74,7 @@ object_t *list_get(
     object_t *list,
     size_t index
 );
+
 object_t *add(
     object_t *a,
     object_t *b

@@ -345,6 +345,26 @@ munit_case(
     }
 );
 
+/**
+ * @brief Adversarial test: verify stack_push returns false on realloc failure.
+ */
+munit_case(
+    RUN,
+    test_stack_push_realloc_failure,
+    {
+        vm_stack_t *s = stack_new(1);
+        assert_true(stack_push(s, (void *)(uintptr_t)1));
+
+        // Next push triggers realloc(s->data, 2 * sizeof(void *))
+        boot_set_fail_alloc_after(0);
+        assert_false(stack_push(s, (void *)(uintptr_t)2));
+        boot_set_fail_alloc_after(-1);
+
+        stack_free(s);
+        assert(boot_all_freed());
+    }
+);
+
 MunitTest vm_stack_tests[] = {
     munit_test("/create_small", create_stack_small),
     munit_test("/create_large", create_stack_large),
@@ -358,5 +378,6 @@ MunitTest vm_stack_tests[] = {
     munit_test("/multiple_types", multiple_types_stack),
     munit_test("/free_null", free_stack_null),
     munit_test("/alloc_failures", stack_alloc_failures),
+    munit_test("/push_realloc_failure", test_stack_push_realloc_failure),
     munit_null_test,
 };

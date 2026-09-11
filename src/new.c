@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-object_t *_new_object()
+static object_t *_new_object()
 {
     object_t *obj = calloc(1, sizeof(object_t));
     if (obj == NULL)
@@ -54,7 +54,7 @@ object_t *_new_tuple_obj(
     size_t tuple_size
 )
 {
-    tuple_t *tuple = malloc(sizeof(tuple_t) + (tuple_size * sizeof(object_t)));
+    tuple_t *tuple = malloc(sizeof(*tuple) + (tuple_size * sizeof(tuple->elements[0])));
     if (tuple == NULL)
     {
         return NULL;
@@ -75,31 +75,15 @@ object_t *_new_tuple_obj(
 
 object_t *new_tuple_0()
 {
-    object_t *obj = _new_tuple_obj(0);
-    if (obj == NULL)
-    {
-        return NULL;
-    }
-    return obj;
+    return new_tuple(NULL, 0);
 }
 
 object_t *new_tuple_1(
     object_t *x
 )
 {
-    if (x == NULL)
-    {
-        return NULL;
-    }
-
-    object_t *obj = _new_tuple_obj(1);
-    if (obj == NULL)
-    {
-        return NULL;
-    }
-    obj->data.v_tuple->elements[0] = x;
-    refcount_inc(x);
-    return obj;
+    object_t *items[] = {x};
+    return new_tuple(items, 1);
 }
 
 object_t *new_tuple_2(
@@ -107,22 +91,8 @@ object_t *new_tuple_2(
     object_t *y
 )
 {
-    if (x == NULL || y == NULL)
-    {
-        return NULL;
-    }
-
-    object_t *obj = _new_tuple_obj(2);
-    if (obj == NULL)
-    {
-        return NULL;
-    }
-
-    obj->data.v_tuple->elements[0] = x;
-    obj->data.v_tuple->elements[1] = y;
-    refcount_inc(x);
-    refcount_inc(y);
-    return obj;
+    object_t *items[] = {x, y};
+    return new_tuple(items, 2);
 }
 
 object_t *new_tuple_3(
@@ -131,24 +101,8 @@ object_t *new_tuple_3(
     object_t *z
 )
 {
-    if (x == NULL || y == NULL || z == NULL)
-    {
-        return NULL;
-    }
-
-    object_t *obj = _new_tuple_obj(3);
-    if (obj == NULL)
-    {
-        return NULL;
-    }
-
-    obj->data.v_tuple->elements[0] = x;
-    obj->data.v_tuple->elements[1] = y;
-    obj->data.v_tuple->elements[2] = z;
-    refcount_inc(x);
-    refcount_inc(y);
-    refcount_inc(z);
-    return obj;
+    object_t *items[] = {x, y, z};
+    return new_tuple(items, 3);
 }
 
 object_t *new_tuple(
@@ -156,9 +110,14 @@ object_t *new_tuple(
     size_t size
 )
 {
+    if (size == 0 && objects == NULL)
+    {
+        return _new_tuple_obj(0);
+    }
+
     if (objects == NULL)
     {
-        return new_tuple_0();
+        return NULL;
     }
 
     for (size_t i = 0; i < size; i++)

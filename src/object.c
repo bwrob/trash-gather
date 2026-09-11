@@ -62,7 +62,7 @@ void object_free_payload(
     }
 }
 
-void _refcount_dec(
+static void _refcount_dec(
     object_t *obj,
     bool live_only
 )
@@ -175,6 +175,113 @@ object_t *list_get(
     return list->data.v_list.elements[index];
 }
 
+static object_t *_add_tuples(
+    object_t *a,
+    object_t *b
+)
+{
+    size_t a_len = a->data.v_tuple->size;
+    size_t b_len = b->data.v_tuple->size;
+    if (a_len != b_len)
+    {
+        return NULL;
+    }
+    if (a_len == 0)
+    {
+        return new_tuple_0();
+    }
+
+    object_t **added_objects = malloc(sizeof(object_t *) * a_len);
+    if (added_objects == NULL)
+    {
+        return NULL;
+    }
+
+    size_t failure_index = SIZE_MAX;
+    for (size_t i = 0; i < a_len; i++)
+    {
+        added_objects[i] =
+            add(a->data.v_tuple->elements[i], b->data.v_tuple->elements[i]);
+        if (added_objects[i] == NULL)
+        {
+            failure_index = i;
+            break;
+        }
+    }
+
+    // Mid-addition failure cleanup
+    if (failure_index < a_len)
+    {
+        for (size_t i = 0; i < failure_index; i++)
+        {
+            refcount_dec(added_objects[i]);
+        }
+        free(added_objects);
+        return NULL;
+    }
+
+    object_t *tuple = new_tuple(added_objects, a_len);
+
+    // Ownership was passed to the tuple, we need to release
+    // the reference and memory.
+    for (size_t i = 0; i < a_len; i++)
+    {
+        refcount_dec(added_objects[i]);
+    }
+    free(added_objects);
+
+    return tuple;
+}
+
+static object_t *_add_lists(
+    object_t *a,
+    object_t *b
+)
+{
+    size_t a_len = a->data.v_list.size;
+    size_t b_len = b->data.v_list.size;
+    size_t length = a_len + b_len;
+
+    object_t *list = new_list(length);
+
+    for (size_t i = 0; i < a_len; i++)
+    {
+        list_set(list, i, list_get(a, i));
+    }
+
+    for (size_t i = 0; i < b_len; i++)
+    {
+        list_set(list, i + a_len, list_get(b, i));
+    }
+
+    return list;
+}
+static object_t *_add_strings(
+    object_t *a,
+    object_t *b
+)
+{
+    int a_len = strlen(a->data.v_string);
+    int b_len = strlen(b->data.v_string);
+    int len = a_len + b_len + 1;
+
+    char *dst = malloc(len * sizeof(char));
+    if (dst == NULL)
+    {
+        return NULL;
+    }
+
+    dst[0] = '\0';
+
+    strcat(dst, a->data.v_string);
+    strcat(dst, b->data.v_string);
+
+    object_t *obj = new_string(dst);
+    free(dst);
+
+    return obj;
+}
+
 object_t *add(
     object_t *a,
     object_t *b
@@ -215,19 +322,7 @@ object_t *add(
             {
                 case STRING:
                 {
-                    int a_len = strlen(a->data.v_string);
-                    int b_len = strlen(b->data.v_string);
-                    int len = a_len + b_len + 1;
-                    char *dst = malloc(len * sizeof(char));
-                    dst[0] = '\0';
-
-                    strcat(dst, a->data.v_string);
-                    strcat(dst, b->data.v_string);
-
-                    object_t *obj = new_string(dst);
-                    free(dst);
-
-                    return obj;
+                    return _add_strings(a, b);
                 }
                 default:
                     return NULL;
@@ -240,23 +335,7 @@ object_t *add(
             {
                 case TUPLE:
                 {
-                    size_t a_len = a->data.v_tuple->size;
-                    size_t b_len = b->data.v_tuple->size;
-                    if (a_len != b_len)
-                    {
-                        return NULL;
-                    }
-
-                    object_t **added_objects = malloc(sizeof(object_t *) * a_len);
-                    for (size_t i = 0; i < a_len; i++)
-                    {
-                        added_objects[i] =
-                            add(a->data.v_tuple->elements[i],
-                                b->data.v_tuple->elements[i]);
-                    }
-                    object_t *tuple = new_tuple(added_objects, a_len);
-                    free(added_objects);
-                    return tuple;
+                    return _add_tuples(a, b);
                 }
                 default:
                     return NULL;
@@ -269,23 +348,7 @@ object_t *add(
             {
                 case LIST:
                 {
-                    size_t a_len = a->data.v_list.size;
-                    size_t b_len = b->data.v_list.size;
-                    size_t length = a_len + b_len;
-
-                    object_t *list = new_list(length);
-
-                    for (size_t i = 0; i < a_len; i++)
-                    {
-                        list_set(list, i, list_get(a, i));
-                    }
-
-                    for (size_t i = 0; i < b_len; i++)
-                    {
-                        list_set(list, i + a_len, list_get(b, i));
-                    }
-
-                    return list;
+                    return _add_lists(a, b);
                 }
                 default:
                     return NULL;

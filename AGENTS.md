@@ -34,8 +34,9 @@ ______________________________________________________________________
 ### 2.2 Role 2: Adversarial Testing Mandate (`tests/`)
 
 - **Probe & Stress-Test**: Write and maintain unit tests in `tests/` designed to expose edge cases, stress-test memory management, and uncover runtime vulnerabilities.
-- **Follow the Skill**: All heuristics, test patterns (NULL safety, allocation failure simulation, cycle meshes, live escape verification), and workflows are defined in the **`adversarial-testing`** skill: \[.agents/skills/adversarial-testing/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/adversarial-testing/SKILL.md).
+- **Follow the Skill**: All heuristics, test patterns (NULL safety, allocation failure simulation, cycle meshes, live escape verification), and workflows are defined in the **`adversarial-testing`** skill: \[.agents/skills/adversarial-testing/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/adversarial-testing/SKILL.md). In accordance with the **`c-expert`** skill (\[.agents/skills/c-expert/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/c-expert/SKILL.md)), adversarial tests must systematically target memory invariants, multi-stage allocation rollbacks, and ownership transfer semantics.
 - **Enforce Verification**: Every test must strictly check assertions and guarantee zero memory leaks via `boot_all_freed()`.
+- **100% Line Coverage Obligation**: Adversarial testing is strictly obligatory and non-negotiable. Every milestone and PR must achieve **100.00% line coverage** across all files in `src/` (`just coverage`). No defensive guard, NULL check, or allocation failure branch in `src/` may be left uncovered; adversarial tests must be crafted to probe and prove every single line.
 
 ### 2.3 Role 3: Performance Benchmarking (`bench/`)
 
@@ -52,10 +53,14 @@ ______________________________________________________________________
 When pairing on new features or milestones, the collaboration strictly follows this 5-step loop:
 
 1. **Code Must Compile**: The human developer writes and iterates on the runtime in `src/` until the codebase compiles cleanly (`just build`).
-1. **Adversarial Test Generation (No Clues)**: Once compiling, the AI agent generates unit and adversarial tests in `tests/` without giving reviews, hints, or clues about potential implementation bugs.
+1. **Adversarial Test Generation (No Clues)**: Once compiling, the AI agent generates unit and adversarial tests in `tests/` without giving reviews, hints, or clues about potential implementation bugs. Test suites MUST actively probe container reference count parity (releasing via `refcount_dec` rather than masking with `vm_free`), mid-loop failure rollbacks ($0 < k < N$), and heap allocation failure sweeps (`boot_set_fail_alloc_after`).
 1. **Developer Debugging & Fixes**: The human runs the test suite (`just test`), explores test failures, and refines the runtime in `src/` to address the failures independently.
-1. **Iterative Regeneration**: The AI agent writes further stress tests or edge cases if needed until full test coverage is achieved.
-1. **Post-Green Retrospective**: Only once all tests pass cleanly under ASan/UBSan and `boot_all_freed()`, agent and developer engage in discussion regarding potential improvements, simplifications, and systems best practices.
+1. **Iterative Regeneration to 100% Coverage**: The AI agent writes further stress tests, allocation failure injections, and edge cases until **100.00% line coverage** is achieved across all files in `src/` (`just coverage`).
+1. **Post-Green Retrospective & Code Review**: Only once **all tests pass cleanly** (100% pass rate) AND **100.00% line coverage** is reached under ASan/UBSan and `boot_all_freed()`, agent and developer engage in a structured code review covering:
+   - **Style & Idiomatic C**: Naming consistency, DRY patterns, and formatting clarity.
+   - **Memory & Allocation Efficiency**: Correct `sizeof` calculations, cache locality, and buffer sizing.
+   - **Simplifications & Robustness**: Eliminating boilerplate, defensive guards, and systems best practices.
+   - **Lesson Extraction**: Creating or updating the educational milestone writeup in `lessons/`.
 
 ______________________________________________________________________
 

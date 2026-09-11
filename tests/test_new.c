@@ -216,6 +216,8 @@ munit_case(
         assert_null(new_tuple_3(val, NULL, val));
         assert_null(new_tuple_3(val, val, NULL));
         assert_null(new_tuple_3(NULL, NULL, NULL));
+        assert_null(new_tuple(NULL, 1));
+        assert_null(new_tuple(NULL, 5));
 
         object_t *arr_with_null[2];
         arr_with_null[0] = val;

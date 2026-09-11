@@ -16,7 +16,7 @@ vm_stack_t *stack_new(
     size_t capacity
 );
 
-void stack_push(
+bool stack_push(
     vm_stack_t *stack,
     void *obj
 );

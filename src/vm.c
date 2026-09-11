@@ -268,7 +268,7 @@ void vm_track_object(
 )
 {
     stack_push(CURRENT_VM->objects, obj);
-    obj->tracker_id = (CURRENT_VM->objects->count) - 1;
+    obj->tracker_id = CURRENT_VM->objects->count - 1;
 }
 
 void vm_untrack_object(

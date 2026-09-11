@@ -4,23 +4,25 @@
 
 #include <stdio.h>
 
-void stack_push(
+bool stack_push(
     vm_stack_t *stack,
     void *obj
 )
 {
     if (stack->count == stack->capacity)
     {
-        stack->capacity *= 2;
-        stack->data = realloc(stack->data, stack->capacity * sizeof(void *));
-        if (stack->data == NULL)
+        int new_capacity = stack->capacity * 2;
+        void *new_data = realloc(stack->data, stack->capacity * 2 * sizeof(void *));
+        if (new_data == NULL)
         {
-            exit(1);
+            return false;
         }
+        stack->data = new_data;
+        stack->capacity = new_capacity;
     }
     stack->data[stack->count] = obj;
     stack->count++;
-    return;
+    return true;
 }
 
 void *stack_pop(
