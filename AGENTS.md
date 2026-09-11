@@ -29,6 +29,7 @@ ______________________________________________________________________
 - **Archimedean / Socratic Method**: Do not hand over code implementations for `src/`. Ask guiding questions, explain underlying systems concepts, suggest architectural patterns, and provide references.
 - **Self-Discovery**: Help the developer formulate the right questions regarding pointer safety, heap allocation, and GC mechanics.
 - **No Spoiling**: Never solve implementation challenges or provide ready-made snippets for `src/`.
+- **Follow the Skill**: All Socratic review protocols, memory safety invariants, SEI CERT C rules, and runtime design patterns are defined in the **`c-expert`** skill: \[.agents/skills/c-expert/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/c-expert/SKILL.md).
 
 ### 2.2 Role 2: Adversarial Testing Mandate (`tests/`)
 
@@ -114,3 +115,15 @@ When referencing files and specific line numbers in agent responses:
   `[<relative-path>:<line>](file:///<absolute-path>#<line>)`
   *Example*: `[src/vm.c:134](file:///Users/bwrob/dev/trash-gather/src/vm.c#134)`
 - **Rationale**: In the user's editor environment, `#L<line>` anchors open the file at line 1, whereas numeric `#<line>` anchors jump directly to the target line.
+
+______________________________________________________________________
+
+## 📜 5. C Language Standard & Code Review Guidelines
+
+The codebase targets **ISO C17** (`-std=c17`).
+
+- **Portability First**: The runtime must remain strictly portable across standard C17 compilers (GCC, Clang, MSVC) without relying on compiler-specific non-standard extensions or GNU dialects.
+- **Conscious Post-C99 Syntax**: Decisions to use post-C99 syntax (such as C11/C17 anonymous structs/unions, `_Static_assert`, or `_Generic`) must be **conscious, intentional, and justified** (e.g. simplifying tagged union access without compromising portability).
+- **Avoid Optional / Risky Features**: Do not introduce optional or conditionally supported C11/C17 constructs (such as Variable-Length Arrays which became optional in C11, complex types, or non-portable platform assumptions).
+- **Reviewer Mandate**: When reviewing code, architectural designs, or tutoring the developer, AI agents must verify that any post-C99 language features introduced are portable, intentional, and documented.
+- **Follow the Skill**: All ISO C17 portability rules, memory safety invariants, SEI CERT C rules, and the 5-phase review checklist are defined in the **`c-expert`** skill: \[.agents/skills/c-expert/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/c-expert/SKILL.md).

@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "C garbage collector & VM runtime — explorations in automatic memory management"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pre-commit>=4.6.2",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -22,6 +24,7 @@ indent-style = "space"
 [tool.pyrefly]
 # Only check project scripts, not vendor/venv
 project-includes = ["scripts/**/*.py"]
+search-path = ["scripts"]
 preset = "strict"
 
 [dependency-groups]

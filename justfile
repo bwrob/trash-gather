@@ -1,12 +1,16 @@
 default: test
 
 # ==============================================================================
-# Global Configuration Variables
+# Global Configuration Variables (Single Source of Truth)
 # ==============================================================================
+
+# Language Standards
+export C_STD := "c17"
+export CPP_STD := "c++17"
 
 # C Compiler & Build Tooling
 CC := "gcc"
-CFLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
+CFLAGS := "-Wall -Wextra -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
 COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
 
@@ -17,7 +21,7 @@ DOC_LINT_DIRS := "include vendor/bootlib bench tests"
 BENCH_CXX := "clang++"
 BREW_BENCH_INC := `pkg-config --cflags-only-I benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/include ]; then echo "-I/opt/homebrew/opt/google-benchmark/include"; elif [ -d /usr/local/opt/google-benchmark/include ]; then echo "-I/usr/local/opt/google-benchmark/include"; fi`
 BREW_BENCH_LIB := `pkg-config --libs benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/lib ]; then echo "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"; else echo "-lbenchmark -pthread"; fi`
-BENCH_FLAGS := "-O3 -std=c++17 -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib " + BREW_BENCH_INC
+BENCH_FLAGS := "-O3 -std=" + CPP_STD + " -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib " + BREW_BENCH_INC
 BENCH_LIBS := BREW_BENCH_LIB
 
 # ==============================================================================
@@ -187,7 +191,7 @@ lint-docs:
 
 # Run static analysis on C source files using clang-tidy
 lint-c:
-    clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+    clang-tidy src/*.c -- -std={{C_STD}} -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
 # Validate roadmap milestone hash IDs, DAG consistency, and markdown links
 lint-roadmap:
