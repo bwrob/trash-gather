@@ -189,6 +189,9 @@ munit_case(
         assert_ptr_equal(tuple->data.v_tuple->elements[0], x);
         assert_ptr_equal(tuple->data.v_tuple->elements[1], y);
         assert_ptr_equal(tuple->data.v_tuple->elements[2], z);
+        assert_int(x->refcount, ==, 2);
+        assert_int(y->refcount, ==, 2);
+        assert_int(z->refcount, ==, 2);
 
         vm_free();
         assert(boot_all_freed());
@@ -208,14 +211,35 @@ munit_case(
         assert_null(new_tuple_1(NULL));
         assert_null(new_tuple_2(NULL, val));
         assert_null(new_tuple_2(val, NULL));
+        assert_null(new_tuple_2(NULL, NULL));
         assert_null(new_tuple_3(NULL, val, val));
         assert_null(new_tuple_3(val, NULL, val));
         assert_null(new_tuple_3(val, val, NULL));
+        assert_null(new_tuple_3(NULL, NULL, NULL));
 
         object_t *arr_with_null[2];
         arr_with_null[0] = val;
         arr_with_null[1] = NULL;
         assert_null(new_tuple(arr_with_null, 2));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test allocating a 0-element tuple via new_tuple.
+ */
+munit_case(
+    RUN,
+    test_tuple_0_from_array,
+    {
+        vm_new();
+        object_t *tuple = new_tuple(NULL, 0);
+
+        assert_not_null(tuple);
+        assert_int(tuple->kind, ==, TUPLE);
+        assert_size(tuple->data.v_tuple->size, ==, 0);
 
         vm_free();
         assert(boot_all_freed());
@@ -356,6 +380,24 @@ munit_case(
         object_t *z = new_integer(3);
 
         boot_set_fail_alloc_after(0);
+        assert_null(new_tuple_0());
+
+        boot_set_fail_alloc_after(1);
+        assert_null(new_tuple_0());
+
+        boot_set_fail_alloc_after(0);
+        assert_null(new_tuple_1(x));
+
+        boot_set_fail_alloc_after(1);
+        assert_null(new_tuple_1(x));
+
+        boot_set_fail_alloc_after(0);
+        assert_null(new_tuple_2(x, y));
+
+        boot_set_fail_alloc_after(1);
+        assert_null(new_tuple_2(x, y));
+
+        boot_set_fail_alloc_after(0);
         assert_null(new_tuple_3(x, y, z));
 
         boot_set_fail_alloc_after(1);
@@ -383,6 +425,7 @@ MunitTest new_tests[] = {
     munit_test("/float_object", test_float_object),
     munit_test("/string_object", test_string_object),
     munit_test("/tuple_0_empty", test_tuple_0_empty),
+    munit_test("/tuple_0_from_array", test_tuple_0_from_array),
     munit_test("/tuple_1_object", test_tuple_1_object),
     munit_test("/tuple_2_object", test_tuple_2_object),
     munit_test("/tuple_3_object", test_tuple_3_object),

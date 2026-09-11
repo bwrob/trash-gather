@@ -242,6 +242,46 @@ munit_case(
 );
 
 /**
+ * @brief Test cascading decref through deeply nested tuple hierarchies.
+ */
+munit_case(
+    RUN,
+    test_tuple_nested_refcounting,
+    {
+        vm_new();
+        object_t *leaf1 = new_integer(10);
+        object_t *leaf2 = new_string("hello");
+        object_t *inner = new_tuple_2(leaf1, leaf2);
+        object_t *outer = new_tuple_1(inner);
+
+        assert_int(leaf1->refcount, ==, 2);
+        assert_int(leaf2->refcount, ==, 2);
+        assert_int(inner->refcount, ==, 2);
+        assert_int(outer->refcount, ==, 1);
+
+        // Drop external direct references to inner objects
+        refcount_dec(leaf1);
+        refcount_dec(leaf2);
+        refcount_dec(inner);
+
+        // All inner objects are kept alive solely through the outer tuple
+        assert(!boot_is_freed(leaf1));
+        assert(!boot_is_freed(leaf2));
+        assert(!boot_is_freed(inner));
+
+        // Dropping outer tuple cascades and frees inner tuple and leaves
+        refcount_dec(outer);
+        assert(boot_is_freed(outer));
+        assert(boot_is_freed(inner));
+        assert(boot_is_freed(leaf1));
+        assert(boot_is_freed(leaf2));
+
+        vm_cleanup_after_refcount();
+        assert(boot_all_freed());
+    }
+);
+
+/**
  * @brief Adversarial test: NULL pointer safety for refcount operations.
  */
 munit_case(
@@ -304,6 +344,7 @@ MunitTest refcount_tests[] = {
     munit_test("/list_set", test_list_set),
     munit_test("/list_free", test_list_free),
     munit_test("/vector3_refcounting", test_vector3_refcounting),
+    munit_test("/tuple_nested_refcounting", test_tuple_nested_refcounting),
     munit_test("/null_safety", test_refcount_null_safety),
     munit_test("/cycle_limitation", test_cycle_refcount_limitation),
     munit_null_test,

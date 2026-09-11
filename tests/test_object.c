@@ -356,11 +356,11 @@ munit_case(
 );
 
 /**
- * @brief Test component-wise addition of 3D vector objects.
+ * @brief Test component-wise addition of tuple objects.
  */
 munit_case(
     RUN,
-    test_add_vectors,
+    test_add_tuples,
     {
         vm_new();
         object_t *x1 = new_integer(1);
@@ -381,6 +381,53 @@ munit_case(
         assert_int(res->data.v_tuple->elements[0]->data.v_int, ==, 5);
         assert_int(res->data.v_tuple->elements[1]->data.v_int, ==, 7);
         assert_int(res->data.v_tuple->elements[2]->data.v_int, ==, 9);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Adversarial test: adding tuples of differing lengths must be rejected.
+ */
+munit_case(
+    RUN,
+    test_add_tuples_size_mismatch,
+    {
+        vm_new();
+        object_t *i1 = new_integer(1);
+        object_t *i2 = new_integer(2);
+        object_t *i3 = new_integer(3);
+
+        object_t *t2 = new_tuple_2(i1, i2);
+        object_t *t3 = new_tuple_3(i1, i2, i3);
+        object_t *t0 = new_tuple_0();
+
+        assert_null(add(t2, t3));
+        assert_null(add(t3, t2));
+        assert_null(add(t0, t2));
+        assert_null(add(t2, t0));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test adding two empty tuples produces an empty tuple.
+ */
+munit_case(
+    RUN,
+    test_add_tuples_empty,
+    {
+        vm_new();
+        object_t *t0_a = new_tuple_0();
+        object_t *t0_b = new_tuple_0();
+
+        object_t *res = add(t0_a, t0_b);
+        assert_not_null(res);
+        assert_int(res->kind, ==, TUPLE);
+        assert_size(res->data.v_tuple->size, ==, 0);
 
         vm_free();
         assert(boot_all_freed());
@@ -467,7 +514,9 @@ MunitTest object_tests[] = {
     munit_test("/add_integer_and_float", test_add_integer_and_float),
     munit_test("/add_floats", test_add_floats),
     munit_test("/add_strings", test_add_strings),
-    munit_test("/add_vectors", test_add_vectors),
+    munit_test("/add_tuples", test_add_tuples),
+    munit_test("/add_tuples_size_mismatch", test_add_tuples_size_mismatch),
+    munit_test("/add_tuples_empty", test_add_tuples_empty),
     munit_test("/add_lists", test_add_lists),
     munit_test("/add_invalid_mismatched", test_add_invalid_mismatched),
     munit_null_test,

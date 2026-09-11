@@ -54,16 +54,16 @@ object_t *_new_tuple_obj(
     size_t tuple_size
 )
 {
-    object_t *obj = _new_object();
-    if (obj == NULL)
+    tuple_t *tuple = malloc(sizeof(tuple_t) + (tuple_size * sizeof(object_t)));
+    if (tuple == NULL)
     {
         return NULL;
     }
 
-    tuple_t *tuple = malloc(sizeof(tuple_t) + (tuple_size * sizeof(object_t)));
-    if (tuple == NULL)
+    object_t *obj = _new_object();
+    if (obj == NULL)
     {
-        free(obj);
+        free(tuple);
         return NULL;
     }
 
@@ -156,6 +156,11 @@ object_t *new_tuple(
     size_t size
 )
 {
+    if (objects == NULL)
+    {
+        return new_tuple_0();
+    }
+
     for (size_t i = 0; i < size; i++)
     {
         if (objects[i] == NULL)

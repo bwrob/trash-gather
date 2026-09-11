@@ -46,7 +46,7 @@ void object_free_payload(
             break;
         case TUPLE:
         {
-            free(obj->data.v_tuple->elements);
+            free(obj->data.v_tuple);
             break;
         }
         case STRING:
@@ -254,7 +254,9 @@ object_t *add(
                             add(a->data.v_tuple->elements[i],
                                 b->data.v_tuple->elements[i]);
                     }
-                    return new_tuple(added_objects, a_len);
+                    object_t *tuple = new_tuple(added_objects, a_len);
+                    free(added_objects);
+                    return tuple;
                 }
                 default:
                     return NULL;

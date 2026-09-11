@@ -56,6 +56,43 @@ munit_case(
 );
 
 /**
+ * @brief Test pointer graph tracing through deeply nested tuples.
+ */
+munit_case(
+    RUN,
+    test_trace_nested_tuples,
+    {
+        vm_new();
+        frame_t *frame = vm_new_frame();
+
+        object_t *val1 = new_integer(100);
+        object_t *val2 = new_string("nested");
+        object_t *inner = new_tuple_2(val1, val2);
+
+        object_t *val3 = new_float(3.14f);
+        object_t *outer = new_tuple_2(inner, val3);
+
+        frame_reference_object(frame, outer);
+        mark();
+        assert_true(outer->is_marked);
+        assert_false(inner->is_marked);
+        assert_false(val1->is_marked);
+        assert_false(val2->is_marked);
+        assert_false(val3->is_marked);
+
+        trace();
+        assert_true(outer->is_marked);
+        assert_true(inner->is_marked);
+        assert_true(val1->is_marked);
+        assert_true(val2->is_marked);
+        assert_true(val3->is_marked);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
  * @brief Test pointer graph tracing through list element object references.
  */
 munit_case(
@@ -197,6 +234,7 @@ munit_case(
 
 MunitTest trace_tests[] = {
     munit_test("/vector", test_trace_vector),
+    munit_test("/nested_tuples", test_trace_nested_tuples),
     munit_test("/list", test_trace_list),
     munit_test("/nested", test_trace_nested),
     munit_test("/mark_already_marked", test_trace_mark_object_already_marked),

@@ -36,12 +36,12 @@ mkdir-bin:
 
 # Compile munit object
 [private]
-munit-obj: mkdir-bin
+@munit-obj: mkdir-bin
     {{CC}} {{CFLAGS}} -c vendor/munit/munit.c -o {{BIN_DIR}}/munit.o
 
 # Compile src objects
 [private]
-src-objs: mkdir-bin
+@src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
@@ -49,7 +49,7 @@ src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
 
 # Compile test runner binary
-test-build: src-objs munit-obj
+@test-build: src-objs munit-obj
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
@@ -61,21 +61,25 @@ test-build: src-objs munit-obj
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
     {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
 
-# Run all unit tests
-test: test-build
-    ./{{BIN_DIR}}/test_runner
+# Run unit tests (only displaying errors, failures, and summary)
+@test *args="": test-build
+    uv run python scripts/run_tests.py {{args}}
+
+# Run unit tests in verbose mode (displaying all passing and failing tests)
+test-verbose *args="": test-build
+    ./{{BIN_DIR}}/test_runner {{args}}
 
 # List all available unit tests
 test-list: test-build
     ./{{BIN_DIR}}/test_runner --list
 
 # Run tests matching a specific pattern or prefix (e.g. `just test-filter trace` or `just test-filter stack`)
-test-filter pattern: test-build
+@test-filter pattern: test-build
     @TESTS=$(./{{BIN_DIR}}/test_runner --list | grep "{{pattern}}"); \
     if [ -z "$TESTS" ]; then \
         echo "No tests matched pattern: '{{pattern}}'"; exit 1; \
     else \
-        ./{{BIN_DIR}}/test_runner $TESTS; \
+        uv run python scripts/run_tests.py $TESTS; \
     fi
 
 # Run interactive LLDB debugger on test suite with --no-fork (or on matching test pattern)

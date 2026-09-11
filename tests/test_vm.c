@@ -384,6 +384,42 @@ munit_case(
     }
 );
 
+/**
+ * @brief Adversarial test: GC reclaims a circular reference cycle between a list and a
+ * tuple.
+ */
+munit_case(
+    RUN,
+    test_gc_cycle_with_tuple,
+    {
+        vm_new();
+        frame_t *f = vm_new_frame();
+
+        object_t *list = new_list(1);
+        object_t *tup = new_tuple_1(list);
+        list_set(list, 0, tup);
+
+        frame_reference_object(f, list);
+        frame_reference_object(f, tup);
+
+        // Pop frame, making the mutual cycle completely unreachable
+        frame_free(vm_frame_pop());
+
+        // Both objects have non-zero refcounts due to the mutual cycle,
+        // but neither is reachable from any root frame.
+        assert_false(boot_is_freed(list));
+        assert_false(boot_is_freed(tup));
+
+        vm_collect_garbage();
+
+        assert_true(boot_is_freed(list));
+        assert_true(boot_is_freed(tup));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
 MunitTest vm_tests[] = {
     munit_test("/simple", test_simple),
     munit_test("/full", test_full),
@@ -404,5 +440,6 @@ MunitTest vm_tests[] = {
     ),
     munit_test("/gc_list_with_null_slots", test_gc_list_with_null_slots),
     munit_test("/gc_cycle_mesh_with_tail", test_gc_cycle_mesh_with_tail),
+    munit_test("/gc_cycle_with_tuple", test_gc_cycle_with_tuple),
     munit_null_test,
 };
