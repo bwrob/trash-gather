@@ -153,11 +153,11 @@ format: format-c format-md format-toml
 
 # Format all C/C++ source and header files using clang-format
 format-c:
-    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format -i
+    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs uv run clang-format -i
 
 # Check C/C++ formatting without modifying files
 format-c-check:
-    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format --dry-run --Werror
+    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs uv run clang-format --dry-run --Werror
 
 # Format Markdown documentation and skills with mdformat
 format-md:
