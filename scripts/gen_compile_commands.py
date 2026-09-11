@@ -8,11 +8,16 @@ import glob
 import json
 import os
 
+from project_config import get_c_standard, get_cpp_standard
+
 
 def generate_compile_commands() -> None:
     workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    c_std = get_c_standard()
+    cpp_std = get_cpp_standard()
+
     cflags = (
-        "gcc -Wall -Wextra -std=c99 -g -fsanitize=address,undefined "
+        f"gcc -Wall -Wextra -std={c_std} -g -fsanitize=address,undefined "
         "-Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h"
     )
     bench_paths = [
@@ -24,7 +29,7 @@ def generate_compile_commands() -> None:
     extra_inc = " ".join(["-I" + p for p in bench_paths if os.path.isdir(p)])
 
     bench_flags = (
-        "clang++ -O3 -std=c++17 -fsanitize=address,undefined "
+        f"clang++ -O3 -std={cpp_std} -fsanitize=address,undefined "
         f"-Iinclude -Isrc -Ivendor/bootlib {extra_inc}"
     )
 

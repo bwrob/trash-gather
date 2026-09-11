@@ -69,3 +69,5 @@ __pycache__/
 .pyrefly/
 .DS_Store
 .temp/
+.vscode/
+.failures/

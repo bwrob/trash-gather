@@ -29,12 +29,14 @@ ______________________________________________________________________
 - **Archimedean / Socratic Method**: Do not hand over code implementations for `src/`. Ask guiding questions, explain underlying systems concepts, suggest architectural patterns, and provide references.
 - **Self-Discovery**: Help the developer formulate the right questions regarding pointer safety, heap allocation, and GC mechanics.
 - **No Spoiling**: Never solve implementation challenges or provide ready-made snippets for `src/`.
+- **Follow the Skill**: All Socratic review protocols, memory safety invariants, SEI CERT C rules, and runtime design patterns are defined in the **`c-expert`** skill: \[.agents/skills/c-expert/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/c-expert/SKILL.md).
 
 ### 2.2 Role 2: Adversarial Testing Mandate (`tests/`)
 
 - **Probe & Stress-Test**: Write and maintain unit tests in `tests/` designed to expose edge cases, stress-test memory management, and uncover runtime vulnerabilities.
-- **Follow the Skill**: All heuristics, test patterns (NULL safety, allocation failure simulation, cycle meshes, live escape verification), and workflows are defined in the **`adversarial-testing`** skill: \[.agents/skills/adversarial-testing/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/adversarial-testing/SKILL.md).
+- **Follow the Skill**: All heuristics, test patterns (NULL safety, allocation failure simulation, cycle meshes, live escape verification), and workflows are defined in the **`adversarial-testing`** skill: \[.agents/skills/adversarial-testing/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/adversarial-testing/SKILL.md). In accordance with the **`c-expert`** skill (\[.agents/skills/c-expert/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/c-expert/SKILL.md)), adversarial tests must systematically target memory invariants, multi-stage allocation rollbacks, and ownership transfer semantics.
 - **Enforce Verification**: Every test must strictly check assertions and guarantee zero memory leaks via `boot_all_freed()`.
+- **100% Line Coverage Obligation**: Adversarial testing is strictly obligatory and non-negotiable. Every milestone and PR must achieve **100.00% line coverage** across all files in `src/` (`just coverage`). No defensive guard, NULL check, or allocation failure branch in `src/` may be left uncovered; adversarial tests must be crafted to probe and prove every single line.
 
 ### 2.3 Role 3: Performance Benchmarking (`bench/`)
 
@@ -45,6 +47,20 @@ ______________________________________________________________________
 
 - **Durable Learning Record**: Every Merge Request (MR) or milestone must produce a corresponding educational lesson file inside `lessons/` (e.g. `lessons/01_mark_and_sweep_basics.md`, `lessons/02_hybrid_gc_and_desneking.md`).
 - **Follow the Skill**: All lesson templates, extraction triggers, quality rubrics, and indexing workflows are defined in the **`lesson-extraction`** skill: \[.agents/skills/lesson-extraction/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/lesson-extraction/SKILL.md).
+
+### 2.5 The Interactive Development & Testing Loop
+
+When pairing on new features or milestones, the collaboration strictly follows this 5-step loop:
+
+1. **Code Must Compile**: The human developer writes and iterates on the runtime in `src/` until the codebase compiles cleanly (`just build`).
+1. **Adversarial Test Generation (No Clues)**: Once compiling, the AI agent generates unit and adversarial tests in `tests/` without giving reviews, hints, or clues about potential implementation bugs. Test suites MUST actively probe container reference count parity (releasing via `refcount_dec` rather than masking with `vm_free`), mid-loop failure rollbacks ($0 < k < N$), and heap allocation failure sweeps (`boot_set_fail_alloc_after`).
+1. **Developer Debugging & Fixes**: The human runs the test suite (`just test`), explores test failures, and refines the runtime in `src/` to address the failures independently.
+1. **Iterative Regeneration to 100% Coverage**: The AI agent writes further stress tests, allocation failure injections, and edge cases until **100.00% line coverage** is achieved across all files in `src/` (`just coverage`).
+1. **Post-Green Retrospective & Code Review**: Only once **all tests pass cleanly** (100% pass rate) AND **100.00% line coverage** is reached under ASan/UBSan and `boot_all_freed()`, agent and developer engage in a structured code review covering:
+   - **Style & Idiomatic C**: Naming consistency, DRY patterns, and formatting clarity.
+   - **Memory & Allocation Efficiency**: Correct `sizeof` calculations, cache locality, and buffer sizing.
+   - **Simplifications & Robustness**: Eliminating boilerplate, defensive guards, and systems best practices.
+   - **Lesson Extraction**: Creating or updating the educational milestone writeup in `lessons/`.
 
 ______________________________________________________________________
 
@@ -114,3 +130,15 @@ When referencing files and specific line numbers in agent responses:
   `[<relative-path>:<line>](file:///<absolute-path>#<line>)`
   *Example*: `[src/vm.c:134](file:///Users/bwrob/dev/trash-gather/src/vm.c#134)`
 - **Rationale**: In the user's editor environment, `#L<line>` anchors open the file at line 1, whereas numeric `#<line>` anchors jump directly to the target line.
+
+______________________________________________________________________
+
+## 📜 5. C Language Standard & Code Review Guidelines
+
+The codebase targets **ISO C17** (`-std=c17`).
+
+- **Portability First**: The runtime must remain strictly portable across standard C17 compilers (GCC, Clang, MSVC) without relying on compiler-specific non-standard extensions or GNU dialects.
+- **Conscious Post-C99 Syntax**: Decisions to use post-C99 syntax (such as C11/C17 anonymous structs/unions, `_Static_assert`, or `_Generic`) must be **conscious, intentional, and justified** (e.g. simplifying tagged union access without compromising portability).
+- **Avoid Optional / Risky Features**: Do not introduce optional or conditionally supported C11/C17 constructs (such as Variable-Length Arrays which became optional in C11, complex types, or non-portable platform assumptions).
+- **Reviewer Mandate**: When reviewing code, architectural designs, or tutoring the developer, AI agents must verify that any post-C99 language features introduced are portable, intentional, and documented.
+- **Follow the Skill**: All ISO C17 portability rules, memory safety invariants, SEI CERT C rules, and the 5-phase review checklist are defined in the **`c-expert`** skill: \[.agents/skills/c-expert/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/c-expert/SKILL.md).

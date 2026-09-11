@@ -19,7 +19,7 @@ flowchart TD
   subgraph Phase0 ["0. Foundation & Core Engine"]
     m_tooling["d9c6780: Modern Tooling & Safety"]:::completed
     m_hybrid["393f420: Hybrid GC Runtime"]:::completed
-    m_tuple["f9c475f: Variable-Length Tuple"]:::inProgress
+    m_tuple["f9c475f: Variable-Length Tuple"]:::completed
     m_doc["f06ad6f: Comprehensive Source Docs"]:::planned
   end
 
@@ -106,7 +106,7 @@ ______________________________________________________________________
 1. **[Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)**
 
    - **ID:** `f9c475f`
-   - **Status:** 🚧 In Progress (Current Goal)
+   - **Status:** ✅ Completed
    - **Prerequisites:** [`393f420`](393f420_hybrid_gc_runtime.md)
    - **Focus:** Python-style arbitrary-length immutable tuples via heap-allocated `tuple_t` with a C99 flexible array member, contiguous allocation math, and GC lifecycle integration.
 

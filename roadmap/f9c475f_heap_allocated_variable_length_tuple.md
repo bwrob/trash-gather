@@ -1,7 +1,7 @@
 # Milestone: Heap-Allocated Variable-Length Tuple
 
 **ID:** `f9c475f`\
-**Status:** In Progress\
+**Status:** Completed\
 **Focus:** Implement Python-style arbitrary-length immutable tuples via heap-allocated `tuple_t` with a C99 flexible array member, contiguous allocation math, and GC lifecycle integration.\
 **Prerequisites:** [Hybrid Reference Counting & Cycle Collection Runtime](393f420_hybrid_gc_runtime.md)
 

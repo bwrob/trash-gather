@@ -1,12 +1,16 @@
 default: test
 
 # ==============================================================================
-# Global Configuration Variables
+# Global Configuration Variables (Single Source of Truth)
 # ==============================================================================
+
+# Language Standards
+export C_STD := "c17"
+export CPP_STD := "c++17"
 
 # C Compiler & Build Tooling
 CC := "gcc"
-CFLAGS := "-Wall -Wextra -std=c99 -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
+CFLAGS := "-Wall -Wextra -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
 COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
 
@@ -17,7 +21,7 @@ DOC_LINT_DIRS := "include vendor/bootlib bench tests"
 BENCH_CXX := "clang++"
 BREW_BENCH_INC := `pkg-config --cflags-only-I benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/include ]; then echo "-I/opt/homebrew/opt/google-benchmark/include"; elif [ -d /usr/local/opt/google-benchmark/include ]; then echo "-I/usr/local/opt/google-benchmark/include"; fi`
 BREW_BENCH_LIB := `pkg-config --libs benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/lib ]; then echo "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"; else echo "-lbenchmark -pthread"; fi`
-BENCH_FLAGS := "-O3 -std=c++17 -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib " + BREW_BENCH_INC
+BENCH_FLAGS := "-O3 -std=" + CPP_STD + " -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib " + BREW_BENCH_INC
 BENCH_LIBS := BREW_BENCH_LIB
 
 # ==============================================================================
@@ -32,12 +36,12 @@ mkdir-bin:
 
 # Compile munit object
 [private]
-munit-obj: mkdir-bin
+@munit-obj: mkdir-bin
     {{CC}} {{CFLAGS}} -c vendor/munit/munit.c -o {{BIN_DIR}}/munit.o
 
 # Compile src objects
 [private]
-src-objs: mkdir-bin
+@src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
@@ -45,7 +49,7 @@ src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
 
 # Compile test runner binary
-test-build: src-objs munit-obj
+@test-build: src-objs munit-obj
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
@@ -57,21 +61,25 @@ test-build: src-objs munit-obj
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
     {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
 
-# Run all unit tests
-test: test-build
-    ./{{BIN_DIR}}/test_runner
+# Run unit tests (only displaying errors, failures, and summary)
+@test *args="": test-build
+    uv run python scripts/run_tests.py {{args}}
+
+# Run unit tests in verbose mode (displaying all passing and failing tests)
+test-verbose *args="": test-build
+    ./{{BIN_DIR}}/test_runner {{args}}
 
 # List all available unit tests
 test-list: test-build
     ./{{BIN_DIR}}/test_runner --list
 
 # Run tests matching a specific pattern or prefix (e.g. `just test-filter trace` or `just test-filter stack`)
-test-filter pattern: test-build
+@test-filter pattern: test-build
     @TESTS=$(./{{BIN_DIR}}/test_runner --list | grep "{{pattern}}"); \
     if [ -z "$TESTS" ]; then \
         echo "No tests matched pattern: '{{pattern}}'"; exit 1; \
     else \
-        ./{{BIN_DIR}}/test_runner $TESTS; \
+        uv run python scripts/run_tests.py $TESTS; \
     fi
 
 # Run interactive LLDB debugger on test suite with --no-fork (or on matching test pattern)
@@ -145,11 +153,11 @@ format: format-c format-md format-toml
 
 # Format all C/C++ source and header files using clang-format
 format-c:
-    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format -i
+    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs uv run clang-format -i
 
 # Check C/C++ formatting without modifying files
 format-c-check:
-    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs clang-format --dry-run --Werror
+    find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs uv run clang-format --dry-run --Werror
 
 # Format Markdown documentation and skills with mdformat
 format-md:
@@ -187,7 +195,7 @@ lint-docs:
 
 # Run static analysis on C source files using clang-tidy
 lint-c:
-    clang-tidy src/*.c -- -std=c99 -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+    clang-tidy src/*.c -- -std={{C_STD}} -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
 # Validate roadmap milestone hash IDs, DAG consistency, and markdown links
 lint-roadmap:

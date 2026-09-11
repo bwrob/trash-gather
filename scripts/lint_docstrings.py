@@ -10,6 +10,8 @@ import re
 import subprocess
 import sys
 
+from project_config import get_c_standard, get_cpp_standard
+
 
 def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> int:
     """Run clang/clang++ with -Wdocumentation flags to catch Doxygen syntax/command errors."""
@@ -23,7 +25,7 @@ def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> i
             "-Wdocumentation",
             "-Wdocumentation-unknown-command",
             "-Wdocumentation-pedantic",
-            "-std=c99",
+            f"-std={get_c_standard()}",
             "-Iinclude",
             "-Isrc",
             "-Ivendor/munit",
@@ -64,7 +66,7 @@ def run_clang_documentation_check(c_files: list[str], cpp_files: list[str]) -> i
                 "-Wdocumentation",
                 "-Wdocumentation-unknown-command",
                 "-Wdocumentation-pedantic",
-                "-std=c++17",
+                f"-std={get_cpp_standard()}",
                 "-Iinclude",
                 "-Isrc",
                 "-Ivendor/bootlib",

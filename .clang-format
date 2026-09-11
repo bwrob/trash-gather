@@ -1,14 +1,20 @@
 BasedOnStyle: LLVM
 Language: Cpp
 Standard: Latest
-IndentWidth: 2
+IndentWidth: 4
+IndentCaseLabels: true
 
-TabWidth: 2
+TabWidth: 4
 UseTab: Never
 ColumnLimit: 88
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Allman
+AlignAfterOpenBracket: BlockIndent
+BreakFunctionDeclarationParameters: true
+BreakFunctionDefinitionParameters: true
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Empty
-AllowShortFunctionsOnASingleLine: Inline
+AllowShortFunctionsOnASingleLine: None
 PointerAlignment: Right
 SortIncludes: true
 IncludeBlocks: Regroup
