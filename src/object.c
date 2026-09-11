@@ -3,6 +3,7 @@
 #include "new.h"
 #include "vm.h"
 
+#include <stdint.h>
 #include <string.h>
 
 void refcount_inc(
