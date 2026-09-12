@@ -366,7 +366,7 @@ int64_t object_len(
 {
     if (obj == NULL)
     {
-        return -1;
+        return -2;
     }
 
     switch (obj->kind)
@@ -381,4 +381,5 @@ int64_t object_len(
         case LIST:
             return obj->data.v_list.size;
     }
+    return -3;
 }

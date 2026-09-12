@@ -615,17 +615,17 @@ munit_case(
 );
 
 /**
- * @brief Test that object_len safely returns -1 when passed a NULL pointer.
+ * @brief Test that object_len returns -2 when passed a NULL pointer.
  */
 munit_case(
     RUN,
     test_object_len_null,
-    { assert_int64(object_len(NULL), ==, -1); }
+    { assert_int64(object_len(NULL), ==, -2); }
 );
 
 /**
- * @brief Test that object_len returns -1 for non-sequence types and preserves
- * refcounts.
+ * @brief Test that object_len returns -1 for non-sequence types, -3 for invalid kinds,
+ * and preserves refcounts.
  */
 munit_case(
     RUN,
@@ -638,7 +638,7 @@ munit_case(
 
         assert_int64(object_len(i), ==, -1);
         assert_int64(object_len(f), ==, -1);
-        assert_int64(object_len(&invalid_obj), ==, -1);
+        assert_int64(object_len(&invalid_obj), ==, -3);
 
         assert_size(i->refcount, ==, 1);
         assert_size(f->refcount, ==, 1);

@@ -16,22 +16,26 @@ In pure ISO C17 without runtime virtual method tables (vtables), this runtime po
 ```
 object_len(const object_t *obj)
         │
-        ├── obj == NULL   ───────► -1 (defensive error sentinel)
+        ├── obj == NULL   ───────► -2 (NULL pointer error)
         │
         ├── switch (obj->kind)
         │       ├── STRING ──────► strlen(v_string)
         │       ├── LIST   ──────► obj->data.v_list.size
         │       ├── TUPLE  ──────► obj->data.v_tuple->size
-        │       └── default ─────► -1 (type error sentinel)
+        │       ├── INTEGER/FLOAT ► -1 (type error: non-sequence)
+        │       └── fallback ────► -3 (corrupted / invalid kind)
 ```
 
-### The Error Sentinel Dilemma: `-1` vs. `0`
+### The Error Sentinel Strategy: Differentiated Error Codes
 
-A classic runtime design trap is returning `0` when an operation is invoked on an invalid type. However:
+A classic runtime design trap is returning `0` when an operation is invoked on an invalid type. However, `0` is a valid sequence length representing an **empty sequence** (`""`, `[]`, `()`). Returning `0` for an integer or float would cause non-sequence objects to falsely pass empty-container checks (`if len(x) == 0: ...`).
 
-- `0` is a valid sequence length representing an **empty sequence** (`""`, `[]`, `()`).
-- Returning `0` for an integer or float would cause non-sequence objects to falsely pass empty-container checks (`if len(x) == 0: ...`).
-- Returning signed `-1` (`int64_t`) clearly demarcates an invalid type from an empty container, mirroring CPython's internal convention where `sq_length` returns `-1` on error with an active exception.
+To provide fine-grained diagnostics and defensive safety across platforms, `object_len` adopts a tiered negative error code strategy:
+
+- **`>= 0`**: Valid sequence element/character count.
+- **`-1`**: Non-sequence runtime type (`INTEGER`, `FLOAT`).
+- **`-2`**: `NULL` object pointer argument error.
+- **`-3`**: Corrupted or unrecognized object kind discriminator.
 
 ______________________________________________________________________
 
