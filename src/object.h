@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct Object object_t;
 
@@ -75,7 +76,11 @@ object_t *list_get(
     size_t index
 );
 
-object_t *add(
+object_t *object_add(
     object_t *a,
     object_t *b
+);
+
+int64_t object_len(
+    const object_t *obj
 );

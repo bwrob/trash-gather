@@ -202,7 +202,7 @@ static object_t *_add_tuples(
     for (size_t i = 0; i < a_len; i++)
     {
         added_objects[i] =
-            add(a->data.v_tuple->elements[i], b->data.v_tuple->elements[i]);
+            object_add(a->data.v_tuple->elements[i], b->data.v_tuple->elements[i]);
         if (added_objects[i] == NULL)
         {
             failure_index = i;
@@ -283,7 +283,7 @@ static object_t *_add_strings(
     return obj;
 }
 
-object_t *add(
+object_t *object_add(
     object_t *a,
     object_t *b
 )
@@ -314,7 +314,7 @@ object_t *add(
                 case FLOAT:
                     return new_float(a->data.v_float + b->data.v_float);
                 default:
-                    return add(b, a);
+                    return object_add(b, a);
             }
         }
         case STRING:
@@ -358,4 +358,28 @@ object_t *add(
         default:
             return NULL;
     }
+}
+
+int64_t object_len(
+    const object_t *obj
+)
+{
+    if (obj == NULL)
+    {
+        return -2;
+    }
+
+    switch (obj->kind)
+    {
+        case INTEGER:
+        case FLOAT:
+            return -1;
+        case STRING:
+            return strlen(obj->data.v_string);
+        case TUPLE:
+            return obj->data.v_tuple->size;
+        case LIST:
+            return obj->data.v_list.size;
+    }
+    return -3;
 }
