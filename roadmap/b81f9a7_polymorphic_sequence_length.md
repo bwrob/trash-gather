@@ -1,7 +1,7 @@
 # Milestone: Polymorphic Sequence Length Protocol
 
 **ID:** `b81f9a7`\
-**Status:** Planned\
+**Status:** Completed\
 **Focus:** Implement a polymorphic sequence length protocol (`object_len`) unifying length queries across Strings, Lists, and Tuples with $O(1)$ complexity.\
 **Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)
 

@@ -24,7 +24,7 @@ flowchart TD
   end
 
   subgraph TrackA ["Track A: Object Model & Python Ergonomics"]
-    m_seqlen["b81f9a7: Polymorphic Sequence Length"]:::planned
+    m_seqlen["b81f9a7: Polymorphic Sequence Length"]:::completed
     m_negidx["b0c1d8b: Sequence Negative Indexing"]:::planned
     m_none["fc1cc81: None Immortal Singleton"]:::planned
     m_bool["6c3a989: Boolean Singletons & Truthiness"]:::planned
@@ -124,7 +124,7 @@ ______________________________________________________________________
 1. **[Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)**
 
    - **ID:** `b81f9a7`
-   - **Status:** 📋 Planned
+   - **Status:** ✅ Completed
    - **Prerequisites:** [`f9c475f`](f9c475f_heap_allocated_variable_length_tuple.md)
    - **Focus:** Implement a polymorphic sequence length protocol (`object_len`) unifying length queries across Strings, Lists, and Tuples with $O(1)$ complexity.
 

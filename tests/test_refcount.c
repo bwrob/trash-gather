@@ -352,7 +352,7 @@ munit_case(
         object_t *i4 = new_integer(20);
         object_t *t2 = new_tuple_2(i3, i4);
 
-        object_t *res = add(t1, t2);
+        object_t *res = object_add(t1, t2);
         assert_not_null(res);
         assert_int(res->kind, ==, TUPLE);
         assert_size(res->data.v_tuple->size, ==, 2);
@@ -402,7 +402,7 @@ munit_case(
         object_t *t2 = new_tuple_2(i2, i3);
 
         // Element 0 (1 + 2) succeeds; Element 1 ("cannot_add_to_int" + 3) fails
-        object_t *res = add(t1, t2);
+        object_t *res = object_add(t1, t2);
         assert_null(res);
 
         // Release input tuples
@@ -458,7 +458,7 @@ munit_case(
         // Outer addition:
         // index 0: add((1, 2), (10, 20)) -> succeeds! (allocates new inner tuple (11,
         // 22)) index 1: add((3, "unsupported"), (30, 40)) -> fails on component 1!
-        object_t *res = add(outer_a, outer_b);
+        object_t *res = object_add(outer_a, outer_b);
         assert_null(res);
 
         // Decrement inputs
@@ -505,7 +505,7 @@ munit_case(
         object_t *list_b = new_list(1);
         list_set(list_b, 0, elem3);
 
-        object_t *res = add(list_a, list_b);
+        object_t *res = object_add(list_a, list_b);
         assert_not_null(res);
         assert_size(res->data.v_list.size, ==, 3);
 

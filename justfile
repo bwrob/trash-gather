@@ -10,7 +10,7 @@ export CPP_STD := "c++17"
 
 # C Compiler & Build Tooling
 CC := "gcc"
-CFLAGS := "-Wall -Wextra -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
+CFLAGS := "-Wall -Wextra -Wswitch -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
 COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
 

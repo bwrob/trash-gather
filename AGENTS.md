@@ -48,7 +48,14 @@ ______________________________________________________________________
 - **Durable Learning Record**: Every Merge Request (MR) or milestone must produce a corresponding educational lesson file inside `lessons/` (e.g. `lessons/01_mark_and_sweep_basics.md`, `lessons/02_hybrid_gc_and_desneking.md`).
 - **Follow the Skill**: All lesson templates, extraction triggers, quality rubrics, and indexing workflows are defined in the **`lesson-extraction`** skill: \[.agents/skills/lesson-extraction/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/lesson-extraction/SKILL.md).
 
-### 2.5 The Interactive Development & Testing Loop
+### 2.5 Role 5: Milestone Finalization & Quality Gatekeeping (`finalize`)
+
+- **Automated Verification Pipeline**: Orchestrates the multi-stage pipeline verifying builds (`just build`), running tests (`just test`), auditing 100% line coverage and adversarial invariants (`just coverage` per the **`adversarial-testing`** skill: \[.agents/skills/adversarial-testing/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/adversarial-testing/SKILL.md)), conducting structured code reviews, extracting educational lessons, committing, pushing, opening Pull Requests/Merge Requests, and monitoring CI job completion.
+- **Strict Halt-on-Failure Mandate**: Explicitly stops execution if any stage fails or requires developer intervention.
+- **Never Auto-Merge**: The agent must **NEVER** merge a PR/MR without explicit, unambiguous user confirmation.
+- **Follow the Skill**: All pipeline stages, CI checks, and quality gates are defined in the **`finalize`** skill: \[.agents/skills/finalize/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/finalize/SKILL.md).
+
+### 2.6 The Interactive Development & Testing Loop
 
 When pairing on new features or milestones, the collaboration strictly follows this 5-step loop:
 
