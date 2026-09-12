@@ -29,6 +29,9 @@ flowchart TD
     m_none["fc1cc81: None Immortal Singleton"]:::planned
     m_bool["6c3a989: Boolean Singletons & Truthiness"]:::planned
     m_smallint["70b20d3: Small Integer Caching"]:::planned
+    m_mul["687b4cb: Polymorphic Multiplication & Sequence Repetition"]:::planned
+    m_complex["212a3d8: Complex Numbers & Arithmetic"]:::planned
+    m_cycle_iter["586680e: Cycle Iterator Object"]:::planned
     m_repr["bf0a981: Cycle-Safe String Repr"]:::planned
   end
 
@@ -58,12 +61,21 @@ flowchart TD
 
   m_tuple --> m_seqlen
   m_seqlen --> m_negidx
+  m_seqlen --> m_bool
+  m_seqlen --> m_mul
   m_doc --> m_none
   m_none --> m_bool
   m_none --> m_smallint
+  m_seqlen --> m_cycle_iter
+  m_bool --> m_cycle_iter
+  m_bool --> m_complex
+  m_mul --> m_complex
   m_bool --> m_repr
   m_none --> m_repr
   m_negidx --> m_repr
+  m_cycle_iter --> m_repr
+  m_mul --> m_repr
+  m_complex --> m_repr
 
   m_doc --> m_offset0
   m_offset0 --> m_dict
@@ -146,8 +158,8 @@ ______________________________________________________________________
 
    - **ID:** `6c3a989`
    - **Status:** 📋 Planned
-   - **Prerequisites:** [`fc1cc81`](fc1cc81_none_immortal_singleton.md)
-   - **Focus:** Implement immortal boolean singleton objects (`True` and `False`), protect them from GC sweep deallocation, and introduce runtime truthiness evaluation (`object_is_truthy`).
+   - **Prerequisites:** [`fc1cc81`](fc1cc81_none_immortal_singleton.md), [`b81f9a7`](b81f9a7_polymorphic_sequence_length.md)
+   - **Focus:** Implement immortal boolean singleton objects (`True` and `False`), protect them from GC sweep deallocation, introduce polymorphic truthiness evaluation (`object_is_truthy`, `object_to_bool`), and implement short-circuiting iteration predicates (`object_all`, `object_any`).
 
 1. **[Small Integer Caching](70b20d3_small_integer_caching.md)**
 
@@ -156,11 +168,32 @@ ______________________________________________________________________
    - **Prerequisites:** [`fc1cc81`](fc1cc81_none_immortal_singleton.md)
    - **Focus:** Pre-allocate an immortal static cache of small integer objects (`[-128, 127]`), eliminating heap allocation churn for common numbers and introducing pointer identity semantics.
 
+1. **[Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md)**
+
+   - **ID:** `687b4cb`
+   - **Status:** 📋 Planned
+   - **Prerequisites:** [`b81f9a7`](b81f9a7_polymorphic_sequence_length.md)
+   - **Focus:** Implement polymorphic binary multiplication (`multiply`) supporting numeric arithmetic (integer and float) and Python-style sequence repetition (string, list, tuple) with commutative operand ordering.
+
+1. **[Complex Numbers & Arithmetic](212a3d8_complex_numbers.md)**
+
+   - **ID:** `212a3d8`
+   - **Status:** 📋 Planned
+   - **Prerequisites:** [`687b4cb`](687b4cb_polymorphic_multiplication.md), [`6c3a989`](6c3a989_bool_singletons_and_truthiness.md)
+   - **Focus:** Introduce Python-style complex numbers (`COMPLEX`) with 64-bit IEEE 754 components, integrating into polymorphic arithmetic (`add`, `multiply`), truthiness evaluation, and lifecycle tracking without compiler-specific extensions.
+
+1. **[Cycle Iterator Object](586680e_cycle_iterator_object.md)**
+
+   - **ID:** `586680e`
+   - **Status:** 📋 Planned
+   - **Prerequisites:** [`b81f9a7`](b81f9a7_polymorphic_sequence_length.md), [`6c3a989`](6c3a989_bool_singletons_and_truthiness.md)
+   - **Focus:** Implement an `itertools.cycle`-style circular iterator object that holds a reference to an underlying sequence, cycles through elements indefinitely via modular arithmetic, and integrates with the cycle collector.
+
 1. **[Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md)**
 
    - **ID:** `bf0a981`
    - **Status:** 📋 Planned
-   - **Prerequisites:** [`fc1cc81`](fc1cc81_none_immortal_singleton.md), [`6c3a989`](6c3a989_bool_singletons_and_truthiness.md), [`b0c1d8b`](b0c1d8b_python_sequence_negative_indexing.md)
+   - **Prerequisites:** [`fc1cc81`](fc1cc81_none_immortal_singleton.md), [`6c3a989`](6c3a989_bool_singletons_and_truthiness.md), [`b0c1d8b`](b0c1d8b_python_sequence_negative_indexing.md), [`586680e`](586680e_cycle_iterator_object.md), [`687b4cb`](687b4cb_polymorphic_multiplication.md), [`212a3d8`](212a3d8_complex_numbers.md)
    - **Focus:** Serialize arbitrary objects to human-readable strings (`object_to_string()`), detecting and suppressing recursive loops for cyclic structures (`[...]`).
 
 ______________________________________________________________________
