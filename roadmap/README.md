@@ -26,7 +26,7 @@ flowchart TD
   subgraph TrackA ["Track A: Object Model & Python Ergonomics"]
     m_seqlen["b81f9a7: Polymorphic Sequence Length"]:::completed
     m_negidx["b0c1d8b: Sequence Negative Indexing"]:::planned
-    m_none["fc1cc81: None Immortal Singleton"]:::planned
+    m_none["fc1cc81: None Immortal Singleton"]:::completed
     m_bool["6c3a989: Boolean Singletons & Truthiness"]:::planned
     m_smallint["70b20d3: Small Integer Caching"]:::planned
     m_mul["687b4cb: Polymorphic Multiplication & Sequence Repetition"]:::planned
@@ -150,7 +150,7 @@ ______________________________________________________________________
 1. **[The `None` Immortal Singleton Object](fc1cc81_none_immortal_singleton.md)**
 
    - **ID:** `fc1cc81`
-   - **Status:** 📋 Planned
+   - **Status:** ✅ Completed
    - **Prerequisites:** [`f06ad6f`](f06ad6f_document_entire_source.md)
    - **Focus:** Implement the `None` singleton object, protect it against GC sweep deallocation (immortality), and use it for uninitialized slots and default returns.
 

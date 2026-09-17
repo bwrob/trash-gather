@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define OBJECT_IMMORTAL_REFCOUNT SIZE_MAX
+
 typedef struct Object object_t;
 
 typedef struct
@@ -27,6 +29,7 @@ typedef enum ObjectKind
     STRING,
     TUPLE,
     LIST,
+    NONE,
 } object_kind_t;
 
 typedef union ObjectData
@@ -64,6 +67,10 @@ void object_free_payload(
 );
 void object_free(
     object_t *obj
+);
+
+bool object_is_immortal(
+    const object_t *obj
 );
 
 bool list_set(

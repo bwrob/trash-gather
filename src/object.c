@@ -10,11 +10,10 @@ void refcount_inc(
     object_t *obj
 )
 {
-    if (obj == NULL)
+    if (obj == NULL || object_is_immortal(obj))
     {
         return;
     }
-
     obj->refcount++;
     return;
 }
@@ -23,11 +22,12 @@ void refcount_dec(
     object_t *obj
 )
 {
-    if (obj == NULL)
+    if (obj == NULL || object_is_immortal(obj))
     {
         return;
     }
     obj->refcount--;
+
     if (obj->refcount == 0)
     {
         object_free(obj);
@@ -40,10 +40,15 @@ void object_free_payload(
     object_t *obj
 )
 {
+    if (obj == NULL)
+    {
+        return;
+    }
     switch (obj->kind)
     {
         case INTEGER:
         case FLOAT:
+        case NONE:
             break;
         case TUPLE:
         {
@@ -88,6 +93,7 @@ void object_decref_children(
         case INTEGER:
         case FLOAT:
         case STRING:
+        case NONE:
             break;
         case TUPLE:
         {
@@ -131,12 +137,10 @@ bool list_set(
     {
         return false;
     }
-
     if (list->kind != LIST)
     {
         return false;
     }
-
     if (index >= list->data.v_list.size)
     {
         return false;
@@ -146,7 +150,6 @@ bool list_set(
     {
         refcount_dec(list->data.v_list.elements[index]);
     }
-
     list->data.v_list.elements[index] = value;
     refcount_inc(value);
     return true;
@@ -161,12 +164,10 @@ object_t *list_get(
     {
         return NULL;
     }
-
     if (list->kind != LIST)
     {
         return NULL;
     }
-
     if (index >= list->data.v_list.size)
     {
         return NULL;
@@ -244,19 +245,22 @@ static object_t *_add_lists(
     size_t length = a_len + b_len;
 
     object_t *list = new_list(length);
+    if (list == NULL)
+    {
+        return NULL;
+    }
 
     for (size_t i = 0; i < a_len; i++)
     {
         list_set(list, i, list_get(a, i));
     }
-
     for (size_t i = 0; i < b_len; i++)
     {
         list_set(list, i + a_len, list_get(b, i));
     }
-
     return list;
 }
+
 static object_t *_add_strings(
     object_t *a,
     object_t *b
@@ -273,7 +277,6 @@ static object_t *_add_strings(
     }
 
     dst[0] = '\0';
-
     strcat(dst, a->data.v_string);
     strcat(dst, b->data.v_string);
 
@@ -368,11 +371,11 @@ int64_t object_len(
     {
         return -2;
     }
-
     switch (obj->kind)
     {
         case INTEGER:
         case FLOAT:
+        case NONE:
             return -1;
         case STRING:
             return strlen(obj->data.v_string);
@@ -382,4 +385,15 @@ int64_t object_len(
             return obj->data.v_list.size;
     }
     return -3;
+}
+
+bool object_is_immortal(
+    const object_t *obj
+)
+{
+    if (obj == NULL)
+    {
+        return false;
+    }
+    return obj->refcount == OBJECT_IMMORTAL_REFCOUNT;
 }

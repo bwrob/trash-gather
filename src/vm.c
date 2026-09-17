@@ -1,5 +1,6 @@
 #include "vm.h"
 
+#include "new.h"
 #include "object.h"
 #include "stack.h"
 
@@ -21,15 +22,21 @@ vm_t *vm_get_current(
 
 void sweep()
 {
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
+    {
+        return;
+    }
+
     /* Pass 1:
     Decref live children and free payloads for unmarked objects
     Notice that we cannot unmark live objects (obj->is_marked = false) until
     Pass 2. If Pass 1 unmarks objects on the fly, a later unmarked container
     visiting a live child might see is_marked == false and fail to decref it!
     */
-    for (size_t i = 0; i < CURRENT_VM->objects->count; i++)
+    for (size_t i = 0; i < vm->objects->count; i++)
     {
-        object_t *obj = CURRENT_VM->objects->data[i];
+        object_t *obj = vm->objects->data[i];
         if (obj == NULL || obj->is_marked)
         {
             continue;
@@ -41,9 +48,9 @@ void sweep()
     /*Pass 2:
     Free dead headers and unmark surviving objects
     */
-    for (size_t i = 0; i < CURRENT_VM->objects->count; i++)
+    for (size_t i = 0; i < vm->objects->count; i++)
     {
-        object_t *obj = CURRENT_VM->objects->data[i];
+        object_t *obj = vm->objects->data[i];
         if (obj == NULL)
         {
             continue;
@@ -54,27 +61,33 @@ void sweep()
             continue;
         }
         free(obj);
-        CURRENT_VM->objects->data[i] = NULL;
+        vm->objects->data[i] = NULL;
     }
 
     // --- Compaction & Re-indexing ---
-    stack_remove_nulls(CURRENT_VM->objects);
-    for (size_t i = 0; i < CURRENT_VM->objects->count; i++)
+    stack_remove_nulls(vm->objects);
+    for (size_t i = 0; i < vm->objects->count; i++)
     {
-        object_t *obj = CURRENT_VM->objects->data[i];
+        object_t *obj = vm->objects->data[i];
         obj->tracker_id = i;
     }
 }
 
 void mark()
 {
-    for (size_t i = 0; i < CURRENT_VM->frames->count; i++)
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
     {
-        frame_t *frame = CURRENT_VM->frames->data[i];
+        return;
+    }
+
+    for (size_t i = 0; i < vm->frames->count; i++)
+    {
+        frame_t *frame = vm->frames->data[i];
         for (size_t j = 0; j < frame->references->count; j++)
         {
             void *obj_ = frame->references->data[j];
-            if (obj_ == NULL)
+            if (obj_ == NULL || object_is_immortal(obj_))
             {
                 continue;
             }
@@ -86,6 +99,12 @@ void mark()
 
 void trace()
 {
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
+    {
+        return;
+    }
+
     vm_stack_t *gray_objects = stack_new(8);
     if (gray_objects == NULL)
     {
@@ -93,9 +112,9 @@ void trace()
     }
 
     // Get previously marked objects (which are the roots)
-    for (size_t i = 0; i < CURRENT_VM->objects->count; i++)
+    for (size_t i = 0; i < vm->objects->count; i++)
     {
-        void *obj_ = CURRENT_VM->objects->data[i];
+        void *obj_ = vm->objects->data[i];
         if (obj_ == NULL)
         {
             continue;
@@ -119,16 +138,20 @@ void trace()
 
 void trace_blacken_object(
     vm_stack_t *gray_objects,
-    object_t *ref
+    object_t *obj
 )
 {
-    object_t *obj = ref;
+    if (obj == NULL)
+    {
+        return;
+    }
 
     switch (obj->kind)
     {
         case INTEGER:
         case FLOAT:
         case STRING:
+        case NONE:
             break;
         case TUPLE:
         {
@@ -154,7 +177,7 @@ void trace_mark_object(
     object_t *obj
 )
 {
-    if (obj == NULL || obj->is_marked)
+    if (obj == NULL || obj->is_marked || object_is_immortal(obj))
     {
         return;
     }
@@ -170,6 +193,15 @@ void frame_reference_object(
 {
     stack_push(frame->references, obj);
     refcount_inc(obj);
+}
+
+void _immortals_free(
+    immortals_t *imm
+)
+{
+    free(imm->none);
+    object_free_payload(imm->empty_tuple);
+    free(imm->empty_tuple);
 }
 
 void vm_new(
@@ -193,49 +225,80 @@ void vm_new(
         free(vm);
         return;
     }
+
+    immortals_t *imm = &vm->immortals;
+    imm->none = create_none_singleton();
+    imm->empty_tuple = create_empty_tuple_singleton();
+    if (imm->none == NULL || imm->empty_tuple == NULL)
+    {
+        _immortals_free(imm);
+        stack_free(vm->frames);
+        stack_free(vm->objects);
+        free(vm);
+        return;
+    }
+
     CURRENT_VM = vm;
 }
 
 void vm_free()
 {
-    // Free the stack frames, an!d then their stack container
-    for (size_t i = 0; i < CURRENT_VM->frames->count; i++)
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
     {
-        frame_free(CURRENT_VM->frames->data[i]);
+        return;
     }
-    stack_free(CURRENT_VM->frames);
+    // Free the stack frames, an!d then their stack container
+    for (size_t i = 0; i < vm->frames->count; i++)
+    {
+        frame_free(vm->frames->data[i]);
+    }
+    stack_free(vm->frames);
 
     // Free buffers
-    for (size_t i = 0; i < CURRENT_VM->objects->count; i++)
+    for (size_t i = 0; i < vm->objects->count; i++)
     {
-        if (CURRENT_VM->objects->data[i] != NULL)
+        if (vm->objects->data[i] != NULL)
         {
-            object_free_payload(CURRENT_VM->objects->data[i]);
+            object_free_payload(vm->objects->data[i]);
         }
     }
     // Free headers
-    for (size_t i = 0; i < CURRENT_VM->objects->count; i++)
+    for (size_t i = 0; i < vm->objects->count; i++)
     {
-        if (CURRENT_VM->objects->data[i] != NULL)
+        if (vm->objects->data[i] != NULL)
         {
-            free(CURRENT_VM->objects->data[i]);
+            free(vm->objects->data[i]);
         }
     }
+    stack_free(vm->objects);
 
-    stack_free(CURRENT_VM->objects);
-    free(CURRENT_VM);
+    _immortals_free(&vm->immortals);
+
+    free(vm);
+    CURRENT_VM = NULL;
 }
 
 void vm_frame_push(
     frame_t *frame
 )
 {
-    stack_push(CURRENT_VM->frames, frame);
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
+    {
+        return;
+    }
+    stack_push(vm->frames, frame);
 }
 
 frame_t *vm_frame_pop()
 {
-    return stack_pop(CURRENT_VM->frames);
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
+    {
+        return NULL;
+    }
+    return stack_pop(vm->frames);
 }
 
 frame_t *vm_new_frame()
@@ -267,17 +330,49 @@ void vm_track_object(
     object_t *obj
 )
 {
-    stack_push(CURRENT_VM->objects, obj);
-    obj->tracker_id = CURRENT_VM->objects->count - 1;
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
+    {
+        return;
+    }
+    stack_push(vm->objects, obj);
+    obj->tracker_id = vm->objects->count - 1;
 }
 
 void vm_untrack_object(
     object_t *obj
 )
 {
-    if (obj->tracker_id < CURRENT_VM->objects->count &&
-        CURRENT_VM->objects->data[obj->tracker_id] == obj)
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
     {
-        CURRENT_VM->objects->data[obj->tracker_id] = NULL;
+        return;
+    }
+    if (obj == NULL)
+    {
+        return;
+    }
+    if (obj->tracker_id < vm->objects->count &&
+        vm->objects->data[obj->tracker_id] == obj)
+    {
+        vm->objects->data[obj->tracker_id] = NULL;
     }
 }
+object_t *vm_get_empty_tuple()
+{
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
+    {
+        return NULL;
+    }
+    return vm->immortals.empty_tuple;
+};
+object_t *vm_get_none()
+{
+    vm_t *vm = vm_get_current();
+    if (vm == NULL)
+    {
+        return NULL;
+    }
+    return vm->immortals.none;
+};

@@ -361,49 +361,67 @@ munit_case(
 
         boot_set_fail_alloc_after(0);
         assert_null(new_integer(1));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
         assert_null(new_float(1.0f));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
         assert_null(new_string("test"));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
         assert_null(new_string("test"));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
         assert_null(new_list(5));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
         assert_null(new_list(5));
+        assert_true(boot_fail_alloc_triggered());
 
         object_t *x = new_integer(1);
         object_t *y = new_integer(2);
         object_t *z = new_integer(3);
 
         boot_set_fail_alloc_after(0);
-        assert_null(new_tuple_0());
+        assert_null(create_empty_tuple_singleton());
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
-        assert_null(new_tuple_0());
+        assert_null(create_empty_tuple_singleton());
+        assert_true(boot_fail_alloc_triggered());
+
+        boot_set_fail_alloc_after(0);
+        assert_null(create_none_singleton());
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
         assert_null(new_tuple_1(x));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
         assert_null(new_tuple_1(x));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
         assert_null(new_tuple_2(x, y));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
         assert_null(new_tuple_2(x, y));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
         assert_null(new_tuple_3(x, y, z));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
         assert_null(new_tuple_3(x, y, z));
+        assert_true(boot_fail_alloc_triggered());
 
         object_t *items[3];
         items[0] = x;
@@ -411,9 +429,127 @@ munit_case(
         items[2] = z;
         boot_set_fail_alloc_after(0);
         assert_null(new_tuple(items, 3));
+        assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
         assert_null(new_tuple(items, 3));
+        assert_true(boot_fail_alloc_triggered());
+
+        // Persistent OOM failure simulation: every allocation fails
+        boot_set_fail_alloc_repeat(0, -1);
+        assert_null(new_integer(100));
+        assert_null(new_float(2.0f));
+        assert_null(new_string("oom"));
+        assert_null(new_list(10));
+        assert_null(new_tuple_1(x));
+        assert_size(boot_fail_alloc_injected_count(), >=, 5);
+        boot_reset_fail_alloc();
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that new_none returns a valid singleton with identical pointer across
+ * repeated calls.
+ */
+munit_case(
+    RUN,
+    test_none_singleton_identity,
+    {
+        vm_new();
+        size_t allocs_before = boot_total_alloc_count();
+        object_t *none1 = new_none();
+        assert_not_null(none1);
+        assert_int(none1->kind, ==, NONE, "must be NONE kind");
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "new_none must perform zero heap allocations"
+        );
+
+        object_t *none2 = new_none();
+        assert_ptr_equal(none1, none2);
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "repeated new_none must perform zero heap allocations"
+        );
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that new_none, new_tuple_0, and new_tuple(..., 0) return NULL safely when
+ * no VM is active.
+ */
+munit_case(
+    RUN,
+    test_none_without_vm,
+    {
+        object_t *none = new_none();
+        assert_null(none);
+
+        object_t *t0 = new_tuple_0();
+        assert_null(t0);
+
+        object_t *t_null = new_tuple(NULL, 0);
+        assert_null(t_null);
+
+        object_t *dummy[] = {NULL};
+        object_t *t_dummy = new_tuple(dummy, 0);
+        assert_null(t_dummy);
+    }
+);
+
+/**
+ * @brief Test that new_tuple_0 and new_tuple(..., 0) return the singleton empty tuple.
+ */
+munit_case(
+    RUN,
+    test_tuple_0_singleton_identity,
+    {
+        vm_new();
+        size_t allocs_before = boot_total_alloc_count();
+        object_t *t1 = new_tuple_0();
+        assert_not_null(t1);
+        assert_int(t1->kind, ==, TUPLE, "empty tuple must have TUPLE kind");
+        assert_int(t1->data.v_tuple->size, ==, 0, "empty tuple must have size 0");
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "new_tuple_0 must perform zero heap allocations"
+        );
+
+        object_t *t2 = new_tuple_0();
+        assert_ptr_equal(t1, t2);
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "repeated new_tuple_0 must perform zero heap allocations"
+        );
+
+        object_t *t3 = new_tuple(NULL, 0);
+        assert_ptr_equal(t1, t3);
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "new_tuple(NULL, 0) must perform zero heap allocations"
+        );
+
+        object_t *dummy[] = {NULL};
+        object_t *t4 = new_tuple(dummy, 0);
+        assert_ptr_equal(t1, t4);
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "new_tuple(dummy, 0) must perform zero heap allocations"
+        );
+
+        object_t *items[] = {t1};
+        object_t *t5 = new_tuple(items, 0);
+        assert_ptr_equal(t1, t5);
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "new_tuple(items, 0) must perform zero heap allocations"
+        );
 
         vm_free();
         assert(boot_all_freed());
@@ -434,8 +570,11 @@ MunitTest new_tests[] = {
     munit_test("/tuple_null_rejection", test_tuple_null_rejection),
     munit_test("/tuple_arbitrary_array", test_tuple_arbitrary_array),
     munit_test("/tuple_large_n", test_tuple_large_n),
+    munit_test("/tuple_0_singleton_identity", test_tuple_0_singleton_identity),
     munit_test("/list_object", test_list_object),
     munit_test("/list_empty", test_list_empty),
+    munit_test("/none_singleton_identity", test_none_singleton_identity),
+    munit_test("/none_without_vm", test_none_without_vm),
     munit_test("/alloc_failures", test_alloc_failures),
     munit_null_test,
 };
