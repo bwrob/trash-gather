@@ -179,6 +179,50 @@
 #define assert_str_eq_3(a, b, msg) munit_assert_string_equal(a, b)
 #define assert_string_equal(...) GET_ASSERT_STR_EQ_MACRO(__VA_ARGS__, assert_str_eq_3, assert_str_eq_2)(__VA_ARGS__)
 
+/**
+ * @brief Assert boolean condition is true with optional failure message.
+ */
+#ifdef assert_true
+#undef assert_true
+#endif
+#define GET_ASSERT_TRUE_MACRO(_1, _2, NAME, ...) NAME
+#define assert_true_1(expr) munit_assert_true(expr)
+#define assert_true_2(expr, msg) munit_assert_true(expr)
+#define assert_true(...) GET_ASSERT_TRUE_MACRO(__VA_ARGS__, assert_true_2, assert_true_1)(__VA_ARGS__)
+
+/**
+ * @brief Assert boolean condition is false with optional failure message.
+ */
+#ifdef assert_false
+#undef assert_false
+#endif
+#define GET_ASSERT_FALSE_MACRO(_1, _2, NAME, ...) NAME
+#define assert_false_1(expr) munit_assert_false(expr)
+#define assert_false_2(expr, msg) munit_assert_false(expr)
+#define assert_false(...) GET_ASSERT_FALSE_MACRO(__VA_ARGS__, assert_false_2, assert_false_1)(__VA_ARGS__)
+
+/**
+ * @brief Assert 64-bit integer comparison outcome with optional failure message.
+ */
+#ifdef assert_int64
+#undef assert_int64
+#endif
+#define GET_ASSERT_INT64_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+#define assert_int64_3(a, op, b) munit_assert_int64(a, op, b)
+#define assert_int64_4(a, op, b, msg) munit_assert_int64(a, op, b)
+#define assert_int64(...) GET_ASSERT_INT64_MACRO(__VA_ARGS__, assert_int64_4, assert_int64_3)(__VA_ARGS__)
+
+/**
+ * @brief Assert double comparison outcome within specified decimal precision.
+ */
+#ifdef assert_double_equal
+#undef assert_double_equal
+#endif
+#define GET_ASSERT_DBL_EQ_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+#define assert_double_eq_3(a, b, precision) munit_assert_double_equal(a, b, precision)
+#define assert_double_eq_4(a, b, precision, msg) munit_assert_double_equal(a, b, precision)
+#define assert_double_equal(...) GET_ASSERT_DBL_EQ_MACRO(__VA_ARGS__, assert_double_eq_4, assert_double_eq_3)(__VA_ARGS__)
+
 /* Memory tracking function declarations */
 
 /**
@@ -257,6 +301,110 @@ void boot_reset_tracking(void);
  * @param count Number of successful allocations before returning NULL on the next call.
  */
 void boot_set_fail_alloc_after(int count);
+
+/**
+ * @brief Memory allocation checkpoint snapshot for scoped leak verification.
+ */
+typedef struct {
+  size_t min_alloc_id; /**< Monotonic allocation ID at checkpoint creation */
+  size_t live_count;   /**< Number of live allocations at checkpoint */
+  size_t alloc_size;   /**< Total live bytes allocated at checkpoint */
+} boot_checkpoint_t;
+
+/**
+ * @brief Capture a memory allocation checkpoint.
+ * @return Checkpoint snapshot record.
+ */
+boot_checkpoint_t boot_checkpoint(void);
+
+/**
+ * @brief Verify that all allocations created since the checkpoint have been freed.
+ * @param cp Checkpoint record to evaluate against.
+ * @return true if zero leaks exist since checkpoint, false otherwise.
+ */
+bool boot_checkpoint_all_freed(boot_checkpoint_t cp);
+
+/**
+ * @brief Count active unreleased allocations made since the checkpoint.
+ * @param cp Checkpoint record to evaluate against.
+ * @return Number of unreleased allocations since checkpoint.
+ */
+size_t boot_checkpoint_leak_count(boot_checkpoint_t cp);
+
+/**
+ * @brief Compute total live memory bytes allocated since the checkpoint.
+ * @param cp Checkpoint record to evaluate against.
+ * @return Active bytes allocated since checkpoint.
+ */
+size_t boot_checkpoint_alloc_size(boot_checkpoint_t cp);
+
+/**
+ * @brief Count currently active (unfreed) allocations.
+ * @return Number of live allocations.
+ */
+size_t boot_live_alloc_count(void);
+
+/**
+ * @brief Cumulative total of memory allocation calls (malloc, calloc, realloc).
+ * @return Cumulative allocation count.
+ */
+size_t boot_total_alloc_count(void);
+
+/**
+ * @brief Cumulative total of free deallocation calls.
+ * @return Cumulative free count.
+ */
+size_t boot_total_free_count(void);
+
+/**
+ * @brief Peak memory usage in bytes across the tracking lifetime.
+ * @return High-water mark of live allocated memory.
+ */
+size_t boot_peak_alloc_size(void);
+
+/**
+ * @brief Count total unreleased memory allocations.
+ * @return Number of currently leaking allocations.
+ */
+size_t boot_leak_count(void);
+
+/**
+ * @brief Query the allocated size of a specific tracked memory pointer.
+ * @param ptr Pointer to look up.
+ * @return Size in bytes of the allocated block, or 0 if untracked.
+ */
+size_t boot_ptr_size(void *ptr);
+
+/**
+ * @brief Check whether a pointer is currently recorded in the tracking table.
+ * @param ptr Pointer to look up.
+ * @return true if pointer is tracked, false otherwise.
+ */
+bool boot_is_tracked(void *ptr);
+
+/**
+ * @brief Configure repetitive or persistent allocation failure simulation.
+ * @param after Number of successful allocations before failure begins.
+ * @param repeat Number of consecutive allocations to fail (-1 for persistent failure).
+ */
+void boot_set_fail_alloc_repeat(int after, int repeat);
+
+/**
+ * @brief Check whether the allocation failure injector was triggered since last configured.
+ * @return true if an allocation attempt was rejected, false otherwise.
+ */
+bool boot_fail_alloc_triggered(void);
+
+/**
+ * @brief Query the total number of allocations rejected by the failure injector.
+ * @return Count of injected allocation failures.
+ */
+size_t boot_fail_alloc_injected_count(void);
+
+/**
+ * @brief Reset allocation failure simulation configuration and counters.
+ */
+void boot_reset_fail_alloc(void);
 
 #ifndef BOOTLIB_NO_OVERRIDE
 #define malloc(size) boot_malloc(size, __FILE__, __LINE__)

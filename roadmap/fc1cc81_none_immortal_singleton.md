@@ -1,7 +1,7 @@
 # Milestone: The `None` Immortal Singleton Object
 
 **ID:** `fc1cc81`\
-**Status:** Planned\
+**Status:** Completed\
 **Focus:** Implement the `None` singleton object, protect it against GC sweep deallocation (immortality), and use it for uninitialized slots and default returns.\
 **Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md)
 

@@ -33,3 +33,13 @@ object_t *new_tuple(
     object_t **objects,
     size_t size
 );
+object_t *new_none(
+    void
+);
+
+object_t *create_empty_tuple_singleton(
+    void
+);
+object_t *create_none_singleton(
+    void
+);

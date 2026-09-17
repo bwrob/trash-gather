@@ -3,13 +3,17 @@
 #include "object.h"
 #include "stack.h"
 
+typedef struct Immortals
+{
+    object_t *none;
+    object_t *empty_tuple;
+} immortals_t;
+
 typedef struct VirtualMachine
 {
-    // stack frames: vm_stack_t frame_t
     vm_stack_t *frames;
-
-    // These are the rest of the objects: vm_stack_t object_t
     vm_stack_t *objects;
+    immortals_t immortals;
 } vm_t;
 
 typedef struct StackFrame
@@ -25,11 +29,11 @@ void vm_collect_garbage();
 
 void trace_blacken_object(
     vm_stack_t *gray_objects,
-    object_t *ref
+    object_t *obj
 );
 void trace_mark_object(
     vm_stack_t *gray_objects,
-    object_t *ref
+    object_t *obj
 );
 
 void vm_new(
@@ -62,3 +66,5 @@ void frame_reference_object(
 vm_t *vm_get_current(
     void
 );
+object_t *vm_get_empty_tuple();
+object_t *vm_get_none();

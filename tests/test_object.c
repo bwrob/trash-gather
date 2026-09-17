@@ -454,6 +454,8 @@ munit_case(
 
         object_t *res = object_add(t0_a, t0_b);
         assert_not_null(res);
+        assert_ptr_equal(res, t0_a);
+        assert_ptr_equal(res, t0_b);
         assert_int(res->kind, ==, TUPLE);
         assert_size(res->data.v_tuple->size, ==, 0);
 
@@ -836,6 +838,128 @@ munit_case(
     }
 );
 
+/**
+ * @brief Test object_is_immortal predicate on NULL, mortal objects, and immortals.
+ */
+munit_case(
+    RUN,
+    test_object_is_immortal_predicate,
+    {
+        assert_false(object_is_immortal(NULL));
+
+        vm_new();
+        object_t *i = new_integer(10);
+        object_t *f = new_float(2.5f);
+        object_t *s = new_string("mortal");
+        object_t *l = new_list(1);
+        object_t *none = new_none();
+        object_t *empty_t = new_tuple_0();
+
+        assert_false(object_is_immortal(i));
+        assert_false(object_is_immortal(f));
+        assert_false(object_is_immortal(s));
+        assert_false(object_is_immortal(l));
+
+        assert_true(object_is_immortal(none));
+        assert_true(object_is_immortal(empty_t));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test None object kind, len, and payload free safety.
+ */
+munit_case(
+    RUN,
+    test_none_properties,
+    {
+        vm_new();
+        object_t *none = new_none();
+        assert_not_null(none);
+        assert_int(none->kind, ==, NONE, "kind must be NONE");
+        assert_int64(object_len(none), ==, -1);
+
+        object_free_payload(none);
+        object_free_payload(NULL);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test list_set and list_get mutations with None objects.
+ */
+munit_case(
+    RUN,
+    test_none_in_list_mutation,
+    {
+        vm_new();
+        object_t *lst = new_list(3);
+        object_t *none = new_none();
+
+        assert_true(list_set(lst, 0, none));
+        assert_true(list_set(lst, 1, none));
+        assert_ptr_equal(list_get(lst, 0), none);
+        assert_ptr_equal(list_get(lst, 1), none);
+        assert_null(list_get(lst, 2));
+
+        object_t *replacement = new_integer(123);
+        assert_true(list_set(lst, 0, replacement));
+        assert_ptr_equal(list_get(lst, 0), replacement);
+        assert_ptr_equal(list_get(lst, 1), none);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that arithmetic addition with None safely returns NULL.
+ */
+munit_case(
+    RUN,
+    test_none_add_operations,
+    {
+        vm_new();
+        object_t *none = new_none();
+        object_t *num = new_integer(42);
+        object_t *empty_t = new_tuple_0();
+
+        assert_null(object_add(none, none));
+        assert_null(object_add(none, num));
+        assert_null(object_add(num, none));
+        assert_null(object_add(none, empty_t));
+        assert_null(object_add(empty_t, none));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that adding empty tuple to non-empty tuple returns NULL due to size
+ * mismatch.
+ */
+munit_case(
+    RUN,
+    test_tuple_add_empty_with_nonempty,
+    {
+        vm_new();
+        object_t *t0 = new_tuple_0();
+        object_t *elem = new_integer(42);
+        object_t *t1 = new_tuple_1(elem);
+
+        assert_null(object_add(t0, t1));
+        assert_null(object_add(t1, t0));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
 MunitTest object_tests[] = {
     munit_test("/field_exists", test_field_exists),
     munit_test("/marked_is_false", test_marked_is_false),
@@ -871,5 +995,10 @@ MunitTest object_tests[] = {
     munit_test("/len_tuples", test_object_len_tuples),
     munit_test("/len_cyclic_containers", test_object_len_cyclic_containers),
     munit_test("/len_deep_and_large", test_object_len_deep_and_large_sequences),
+    munit_test("/object_is_immortal_predicate", test_object_is_immortal_predicate),
+    munit_test("/none_properties", test_none_properties),
+    munit_test("/none_in_list_mutation", test_none_in_list_mutation),
+    munit_test("/none_add_operations", test_none_add_operations),
+    munit_test("/tuple_add_empty_with_nonempty", test_tuple_add_empty_with_nonempty),
     munit_null_test,
 };

@@ -232,6 +232,62 @@ munit_case(
     }
 );
 
+/**
+ * @brief Test pointer graph tracing through containers referencing None and
+ * empty tuple singletons.
+ */
+munit_case(
+    RUN,
+    test_trace_immortals,
+    {
+        vm_new();
+        frame_t *frame = vm_new_frame();
+
+        object_t *none = new_none();
+        object_t *t0 = new_tuple_0();
+        object_t *container = new_tuple_2(none, t0);
+
+        assert_false(none->is_marked);
+        assert_false(t0->is_marked);
+        assert_false(container->is_marked);
+
+        frame_reference_object(frame, container);
+        mark();
+        assert_true(container->is_marked);
+        assert_false(none->is_marked);
+        assert_false(t0->is_marked);
+
+        trace();
+        assert_true(container->is_marked);
+        assert_false(none->is_marked);
+        assert_false(t0->is_marked);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Adversarial test: trace_blacken_object and trace_mark_object safely
+ * handle NULL pointers without crashing.
+ */
+munit_case(
+    RUN,
+    test_trace_null_safety,
+    {
+        vm_new();
+        vm_stack_t *gray_objects = stack_new(8);
+
+        trace_blacken_object(gray_objects, NULL);
+        trace_mark_object(gray_objects, NULL);
+        assert_size(gray_objects->count, ==, 0);
+
+        stack_free(gray_objects);
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
 MunitTest trace_tests[] = {
     munit_test("/vector", test_trace_vector),
     munit_test("/nested_tuples", test_trace_nested_tuples),
@@ -239,5 +295,7 @@ MunitTest trace_tests[] = {
     munit_test("/nested", test_trace_nested),
     munit_test("/mark_already_marked", test_trace_mark_object_already_marked),
     munit_test("/unreachable_cycle", test_trace_unreachable_cycle),
+    munit_test("/immortals", test_trace_immortals),
+    munit_test("/null_safety", test_trace_null_safety),
     munit_null_test,
 };

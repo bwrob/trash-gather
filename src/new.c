@@ -21,6 +21,19 @@ static object_t *_new_object()
     return obj;
 }
 
+static object_t *_immortal_object()
+{
+    object_t *obj = calloc(1, sizeof(*obj));
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+
+    obj->is_marked = false;
+    obj->refcount = OBJECT_IMMORTAL_REFCOUNT;
+    return obj;
+}
+
 object_t *new_list(
     size_t size
 )
@@ -73,9 +86,30 @@ object_t *_new_tuple_obj(
     return obj;
 }
 
+object_t *create_empty_tuple_singleton()
+{
+    tuple_t *tuple = malloc(sizeof(*tuple));
+    if (tuple == NULL)
+    {
+        return NULL;
+    }
+
+    object_t *obj = _immortal_object();
+    if (obj == NULL)
+    {
+        free(tuple);
+        return NULL;
+    }
+
+    tuple->size = 0;
+    obj->kind = TUPLE;
+    obj->data.v_tuple = tuple;
+    return obj;
+}
+
 object_t *new_tuple_0()
 {
-    return new_tuple(NULL, 0);
+    return vm_get_empty_tuple();
 }
 
 object_t *new_tuple_1(
@@ -112,14 +146,12 @@ object_t *new_tuple(
 {
     if (size == 0 && objects == NULL)
     {
-        return _new_tuple_obj(0);
+        return new_tuple_0();
     }
-
-    if (objects == NULL)
+    if (objects == NULL || size == 0)
     {
         return NULL;
     }
-
     for (size_t i = 0; i < size; i++)
     {
         if (objects[i] == NULL)
@@ -133,7 +165,6 @@ object_t *new_tuple(
     {
         return NULL;
     }
-
     obj->kind = TUPLE;
     for (size_t i = 0; i < size; i++)
     {
@@ -197,4 +228,22 @@ object_t *new_string(
     obj->kind = STRING;
     obj->data.v_string = dst;
     return obj;
+}
+
+object_t *create_none_singleton(
+
+)
+{
+    object_t *obj = _immortal_object();
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+    obj->kind = NONE;
+    return obj;
+}
+
+object_t *new_none()
+{
+    return vm_get_none();
 }

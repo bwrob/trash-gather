@@ -184,11 +184,12 @@ munit_case(
     RUN,
     test_vm_alloc_failures,
     {
-        for (int i = 0; i <= 4; i++)
+        for (int i = 0; i <= 7; i++)
         {
             boot_set_fail_alloc_after(i);
             vm_new();
             assert_null(vm_get_current());
+            assert_true(boot_fail_alloc_triggered());
         }
 
         vm_new();
@@ -199,6 +200,7 @@ munit_case(
 
         boot_set_fail_alloc_after(0);
         trace();
+        assert_true(boot_fail_alloc_triggered());
 
         vm_free();
         assert(boot_all_freed());
@@ -452,7 +454,269 @@ munit_case(
         // frame_free() encounters NULL in frame references
         frame_free(vm_frame_pop());
 
+        // vm_untrack_object safely handles NULL
+        vm_untrack_object(NULL);
+
         vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that None singleton survives unrooted garbage collection passes.
+ */
+munit_case(
+    RUN,
+    test_none_survives_gc_sweep,
+    {
+        vm_new();
+        object_t *none1 = new_none();
+        assert_not_null(none1);
+
+        // Run garbage collection when None has no frame references
+        vm_collect_garbage();
+
+        assert(!boot_is_freed(none1));
+        object_t *none2 = new_none();
+        assert_ptr_equal(none1, none2);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that empty tuple singleton survives unrooted garbage collection passes.
+ */
+munit_case(
+    RUN,
+    test_empty_tuple_survives_gc_sweep,
+    {
+        vm_new();
+        object_t *t1 = new_tuple_0();
+        assert_not_null(t1);
+
+        // Run garbage collection when empty tuple has no frame references
+        vm_collect_garbage();
+
+        assert(!boot_is_freed(t1));
+        object_t *t2 = new_tuple_0();
+        assert_ptr_equal(t1, t2);
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that a reference cycle referencing None is reclaimed while None survives.
+ */
+munit_case(
+    RUN,
+    test_none_in_cycle_reclaimed,
+    {
+        vm_new();
+        object_t *none = new_none();
+
+        // Construct cyclic mesh A <-> B where A also holds None
+        object_t *list_a = new_list(2);
+        object_t *list_b = new_list(1);
+
+        list_set(list_a, 0, list_b);
+        list_set(list_a, 1, none);
+        list_set(list_b, 0, list_a);
+
+        // Cycle is unrooted (not in any frame)
+        vm_collect_garbage();
+
+        assert_true(boot_is_freed(list_a));
+        assert_true(boot_is_freed(list_b));
+        assert(!boot_is_freed(none));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test consecutive VM instances cleanly allocate and destroy immortals without
+ * leaks.
+ */
+munit_case(
+    RUN,
+    test_sequential_vm_lifecycles_with_immortals,
+    {
+        for (int round = 0; round < 3; round++)
+        {
+            vm_new();
+            object_t *none = new_none();
+            object_t *t0 = new_tuple_0();
+            assert_not_null(none);
+            assert_not_null(t0);
+
+            vm_free();
+            assert(boot_all_freed());
+        }
+    }
+);
+
+/**
+ * @brief Test referencing None and empty tuple across multiple stack frames and popping
+ * them.
+ */
+munit_case(
+    RUN,
+    test_frame_stack_immortal_churn,
+    {
+        vm_new();
+        object_t *none = new_none();
+        object_t *t0 = new_tuple_0();
+
+        const size_t num_frames = 5;
+        for (size_t i = 0; i < num_frames; i++)
+        {
+            frame_t *frame = vm_new_frame();
+            frame_reference_object(frame, none);
+            frame_reference_object(frame, t0);
+        }
+
+        // Run GC while referenced on frames
+        vm_collect_garbage();
+        assert(!boot_is_freed(none));
+        assert(!boot_is_freed(t0));
+
+        // Pop and free all frames
+        for (size_t i = 0; i < num_frames; i++)
+        {
+            frame_t *frame = vm_frame_pop();
+            frame_free(frame);
+        }
+
+        // Run GC after all frames are popped
+        vm_collect_garbage();
+        assert(!boot_is_freed(none));
+        assert(!boot_is_freed(t0));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test that VM operations safely no-op or return NULL when CURRENT_VM is NULL.
+ */
+munit_case(
+    RUN,
+    test_vm_operations_without_active_vm,
+    {
+        assert_null(vm_get_current());
+
+        // Calling GC and VM routines when no VM is active must safely return without
+        // crashing
+        vm_free();
+        mark();
+        trace();
+        sweep();
+        vm_collect_garbage();
+
+        vm_frame_push(NULL);
+        assert_null(vm_frame_pop());
+
+        vm_track_object(NULL);
+        vm_untrack_object(NULL);
+
+        assert_null(vm_get_empty_tuple());
+        assert_null(vm_get_none());
+
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Adversarial test: Dead cycle mesh containing immortals (None and ()) pointing
+ * to a live external tail. Verifies cycle collection, live tail survival, refcount
+ * adjustment, and immortal stability.
+ */
+munit_case(
+    RUN,
+    test_gc_mesh_cycle_with_immortals,
+    {
+        vm_new();
+        object_t *none = new_none();
+        object_t *t0 = new_tuple_0();
+
+        // Node A: holds B and None
+        object_t *node_a = new_list(2);
+        // Node B: holds C and ()
+        object_t *node_b = new_list(2);
+        // Node C: holds A, None, and live_tail
+        object_t *node_c = new_list(3);
+
+        object_t *live_tail = new_integer(999);
+
+        // Frame roots only the live_tail
+        frame_t *frame = vm_new_frame();
+        frame_reference_object(frame, live_tail);
+
+        list_set(node_a, 0, node_b);
+        list_set(node_a, 1, none);
+
+        list_set(node_b, 0, node_c);
+        list_set(node_b, 1, t0);
+
+        list_set(node_c, 0, node_a);
+        list_set(node_c, 1, none);
+        list_set(node_c, 2, live_tail);
+
+        // Drop caller's local reference so live_tail is held only by frame and node_c
+        refcount_dec(live_tail);
+        assert_int(live_tail->refcount, ==, 2);
+
+        // Run GC: cycle A-B-C is unrooted and must be collected
+        vm_collect_garbage();
+
+        assert_true(boot_is_freed(node_a));
+        assert_true(boot_is_freed(node_b));
+        assert_true(boot_is_freed(node_c));
+
+        // live_tail must survive and refcount should drop from 2 to 1
+        assert_false(boot_is_freed(live_tail));
+        assert_int(live_tail->refcount, ==, 1);
+
+        // Immortals must survive untouched
+        assert_false(boot_is_freed(none));
+        assert_false(boot_is_freed(t0));
+        assert_size(none->refcount, ==, OBJECT_IMMORTAL_REFCOUNT);
+        assert_size(t0->refcount, ==, OBJECT_IMMORTAL_REFCOUNT);
+
+        // Now pop the frame rooting live_tail
+        frame_free(vm_frame_pop());
+
+        // Second GC sweep reclaims live_tail
+        vm_collect_garbage();
+        assert_true(boot_is_freed(live_tail));
+
+        assert_false(boot_is_freed(none));
+        assert_false(boot_is_freed(t0));
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Adversarial test: VM initialization under persistent out-of-memory failure.
+ */
+munit_case(
+    RUN,
+    test_vm_persistent_alloc_failure,
+    {
+        boot_set_fail_alloc_repeat(0, -1);
+        vm_new();
+        assert_null(vm_get_current());
+        assert_true(boot_fail_alloc_triggered());
+        boot_reset_fail_alloc();
+
         assert(boot_all_freed());
     }
 );
@@ -482,5 +746,16 @@ MunitTest vm_tests[] = {
         "/null_slots_in_frames_and_objects",
         test_vm_null_slots_in_frames_and_objects
     ),
+    munit_test("/none_survives_gc_sweep", test_none_survives_gc_sweep),
+    munit_test("/empty_tuple_survives_gc_sweep", test_empty_tuple_survives_gc_sweep),
+    munit_test("/none_in_cycle_reclaimed", test_none_in_cycle_reclaimed),
+    munit_test(
+        "/sequential_vm_lifecycles_with_immortals",
+        test_sequential_vm_lifecycles_with_immortals
+    ),
+    munit_test("/frame_stack_immortal_churn", test_frame_stack_immortal_churn),
+    munit_test("/operations_without_active_vm", test_vm_operations_without_active_vm),
+    munit_test("/gc_mesh_cycle_with_immortals", test_gc_mesh_cycle_with_immortals),
+    munit_test("/persistent_alloc_failure", test_vm_persistent_alloc_failure),
     munit_null_test,
 };
