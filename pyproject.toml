@@ -25,9 +25,13 @@ project-includes = ["scripts/**/*.py"]
 search-path = ["scripts"]
 preset = "strict"
 
+[tool.complexipy]
+paths = ["scripts"]
+
 [dependency-groups]
 dev = [
     "clang-format>=23.0.0",
+    "complexipy>=8.0.1",
     "mdformat>=1.0.0",
     "mdformat-frontmatter>=2.1.2",
     "mdformat-gfm>=1.0.0",

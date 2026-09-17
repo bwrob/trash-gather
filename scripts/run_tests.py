@@ -49,6 +49,116 @@ def _flush_failure_log(
     return log_path
 
 
+class TestStreamParser:
+    """Stream parser for munit test runner stdout."""
+
+    def __init__(self, failures_dir: Path, run_timestamp: str) -> None:
+        self.failures_dir = failures_dir
+        self.run_timestamp = run_timestamp
+        self.current_test_name: str | None = None
+        self.current_lines: list[str] = []
+        self.failed_tests: list[tuple[str, Path]] = []
+        self.summary_info: tuple[int, int, int] | None = None
+        self.current_seed: str = "unknown"
+
+    def flush_failure(self) -> None:
+        """Flush any currently buffered failure lines to a diagnostic log."""
+        if self.current_test_name is not None and self.current_lines:
+            log_path = _flush_failure_log(
+                self.failures_dir,
+                self.current_test_name,
+                self.run_timestamp,
+                self.current_seed,
+                self.current_lines,
+            )
+            self.failed_tests.append((self.current_test_name, log_path))
+            self.current_test_name = None
+            self.current_lines = []
+
+    def handle_line(self, line: str) -> None:
+        """Process a single stdout line from the test runner."""
+        stripped = line.strip()
+
+        if stripped.startswith("Running test suite with seed "):
+            self.current_seed = stripped.split("with seed ")[-1].rstrip(".")
+            print(f"{DIM}🌱 Test suite seeded with {self.current_seed}{RESET}\n")
+            return
+
+        test_match = TEST_PATTERN.match(stripped)
+        if test_match:
+            self.flush_failure()
+            t_name, t_status = test_match.groups()
+            if t_status in ("ERROR", "FAIL"):
+                self.current_test_name = t_name
+                self.current_lines = [line]
+            return
+
+        sum_match = SUMMARY_PATTERN.match(stripped)
+        if sum_match:
+            self.flush_failure()
+            passed, total, pct = sum_match.groups()
+            self.summary_info = (int(passed), int(total), int(pct))
+            return
+
+        if self.current_test_name is not None:
+            self.current_lines.append(line)
+
+
+def _prepare_test_cmd(bin_path: Path, user_args: list[str]) -> list[str]:
+    """Assemble test execution command with logging flags."""
+    extra_args = []
+    if "--log-visible" not in user_args:
+        extra_args.extend(["--log-visible", "debug"])
+    return [str(bin_path), *extra_args, *user_args]
+
+
+def _setup_environment() -> dict[str, str]:
+    """Configure ASan and UBSan options for clean stacktrace emission."""
+    env = os.environ.copy()
+    env.setdefault(
+        "ASAN_OPTIONS",
+        "print_stacktrace=1:check_initialization_order=1:detect_stack_use_after_return=1:verbosity=0",
+    )
+    env.setdefault("UBSAN_OPTIONS", "print_stacktrace=1")
+    return env
+
+
+def _print_summary(
+    failed_tests: list[tuple[str, Path]],
+    summary_info: tuple[int, int, int] | None,
+    run_timestamp: str,
+) -> None:
+    """Print formatted summary box with links to failure diagnostic logs."""
+    print("\n" + "═" * 80)
+    print(f"{BOLD}📊 Test Suite Summary{RESET}")
+    print("═" * 80)
+
+    if not failed_tests:
+        total_count = summary_info[1] if summary_info else 0
+        print(f"{GREEN}✅ All {total_count} tests passed cleanly! (100%){RESET}")
+        print("═" * 80 + "\n")
+        return
+
+    passed_count = summary_info[0] if summary_info else 0
+    total_count = summary_info[1] if summary_info else len(failed_tests)
+    pct = (
+        summary_info[2]
+        if summary_info
+        else int((passed_count / total_count) * 100 if total_count else 0)
+    )
+    fail_count = len(failed_tests)
+
+    print(
+        f"{RED}❌ {fail_count} test(s) failed{RESET} "
+        f"({passed_count}/{total_count} passed, {pct}%)\n"
+    )
+    print(f"{BOLD}Failure Logs ({run_timestamp}):{RESET}")
+    for t_name, log_path in failed_tests:
+        print(f"  {RED}✖{RESET} {BOLD}{t_name}{RESET}")
+        print(f"    {CYAN}↳ file://{log_path}{RESET}")
+    print("═" * 80 + "\n")
+
+
 def main() -> int:
     """Run unit test binary, stream failures to .failures/, and print summary."""
     bin_path = Path("bin/test_runner")
@@ -60,20 +170,8 @@ def main() -> int:
     failures_dir.mkdir(parents=True, exist_ok=True)
     run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    # Pass verbose logging options to munit if not already provided
-    user_args = sys.argv[1:]
-    extra_args = []
-    if "--log-visible" not in user_args:
-        extra_args.extend(["--log-visible", "debug"])
-
-    cmd = [str(bin_path), *extra_args, *user_args]
-
-    env = os.environ.copy()
-    env.setdefault(
-        "ASAN_OPTIONS",
-        "print_stacktrace=1:check_initialization_order=1:detect_stack_use_after_return=1:verbosity=0",
-    )
-    env.setdefault("UBSAN_OPTIONS", "print_stacktrace=1")
+    cmd = _prepare_test_cmd(bin_path, sys.argv[1:])
+    env = _setup_environment()
 
     proc = subprocess.Popen(
         cmd,
@@ -83,101 +181,14 @@ def main() -> int:
         env=env,
     )
 
-    current_test_name: str | None = None
-    current_lines: list[str] = []
-    failed_tests: list[tuple[str, Path]] = []
-    summary_info: tuple[int, int, int] | None = None
-    current_seed: str = "unknown"
-
+    parser = TestStreamParser(failures_dir, run_timestamp)
     if proc.stdout is not None:
         for line in proc.stdout:
-            stripped = line.strip()
-
-            if stripped.startswith("Running test suite with seed "):
-                current_seed = stripped.split("with seed ")[-1].rstrip(".")
-                print(f"{DIM}🌱 Test suite seeded with {current_seed}{RESET}\n")
-                continue
-
-            test_match = TEST_PATTERN.match(stripped)
-            if test_match:
-                if current_test_name is not None and current_lines:
-                    log_path = _flush_failure_log(
-                        failures_dir,
-                        current_test_name,
-                        run_timestamp,
-                        current_seed,
-                        current_lines,
-                    )
-                    failed_tests.append((current_test_name, log_path))
-                    current_test_name = None
-                    current_lines = []
-
-                t_name, t_status = test_match.groups()
-                if t_status in ("ERROR", "FAIL"):
-                    current_test_name = t_name
-                    current_lines = [line]
-                continue
-
-            sum_match = SUMMARY_PATTERN.match(stripped)
-            if sum_match:
-                if current_test_name is not None and current_lines:
-                    log_path = _flush_failure_log(
-                        failures_dir,
-                        current_test_name,
-                        run_timestamp,
-                        current_seed,
-                        current_lines,
-                    )
-                    failed_tests.append((current_test_name, log_path))
-                    current_test_name = None
-                    current_lines = []
-                passed, total, pct = sum_match.groups()
-                summary_info = (int(passed), int(total), int(pct))
-                continue
-
-            if current_test_name is not None:
-                current_lines.append(line)
-
-    if current_test_name is not None and current_lines:
-        log_path = _flush_failure_log(
-            failures_dir,
-            current_test_name,
-            run_timestamp,
-            current_seed,
-            current_lines,
-        )
-        failed_tests.append((current_test_name, log_path))
+            parser.handle_line(line)
+    parser.flush_failure()
 
     return_code = proc.wait()
-
-    # Print decorative summary block
-    print("\n" + "═" * 80)
-    print(f"{BOLD}📊 Test Suite Summary{RESET}")
-    print("═" * 80)
-
-    if failed_tests:
-        passed_count = summary_info[0] if summary_info else 0
-        total_count = summary_info[1] if summary_info else len(failed_tests)
-        pct = (
-            summary_info[2]
-            if summary_info
-            else int((passed_count / total_count) * 100 if total_count else 0)
-        )
-        fail_count = len(failed_tests)
-
-        print(
-            f"{RED}❌ {fail_count} test(s) failed{RESET} "
-            f"({passed_count}/{total_count} passed, {pct}%)\n"
-        )
-        print(f"{BOLD}Failure Logs ({run_timestamp}):{RESET}")
-        for t_name, log_path in failed_tests:
-            print(f"  {RED}✖{RESET} {BOLD}{t_name}{RESET}")
-            print(f"    {CYAN}↳ file://{log_path}{RESET}")
-    else:
-        total_count = summary_info[1] if summary_info else 0
-        print(f"{GREEN}✅ All {total_count} tests passed cleanly! (100%){RESET}")
-
-    print("═" * 80 + "\n")
+    _print_summary(parser.failed_tests, parser.summary_info, run_timestamp)
     return return_code
 
 

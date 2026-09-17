@@ -178,11 +178,12 @@ format-toml-check:
 # Check all formatting without modifying files
 format-check: format-c-check format-md-check format-toml-check
 
-# Check Python code formatting, linting, and types (ruff & pyrefly)
+# Check Python code formatting, linting, types, and cognitive complexity (ruff, pyrefly, complexipy)
 lint-py:
     uv run ruff check scripts/
     uv run ruff format --check scripts/
     uv run pyrefly check scripts/
+    uv run complexipy
 
 # Automatically format Python scripts and fix lint issues
 format-py:

@@ -28,6 +28,13 @@ repos:
         pass_filenames: false
         files: ^scripts/.*\.py$
 
+      - id: complexipy
+        name: complexipy
+        entry: uv run complexipy
+        language: system
+        pass_filenames: false
+        files: ^scripts/.*\.py$
+
       - id: clang-format
         name: clang-format
         entry: just format-c-check
