@@ -96,9 +96,10 @@ def main() -> int:
     print("Next Steps:")
     print(f"1. Open '{target_file}' and fill out Sections 1 through 5.")
     print("2. Open 'roadmap/README.md':")
-    print(f'   - Add node: m_{slug}["{hash_id}: {title}"]:::planned to the appropriate track.')
+    node_str = f'm_{slug}["{hash_id}: {title} (Diff: {args.difficulty})"]:::planned'
+    print(f"   - Add node: {node_str} to the matching difficulty tier.")
     print(f"   - Connect prerequisite edges (e.g., m_parent --> m_{slug}).")
-    print("   - Add milestone entry to the Track index.")
+    print("   - Add milestone entry to the Tier progression index.")
     print("3. Run 'just lint-roadmap' to verify DAG integrity and link consistency.")
 
     return 0

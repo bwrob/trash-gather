@@ -24,11 +24,14 @@ Activate this skill and create or update roadmap milestones when:
 
 ______________________________________________________________________
 
-## 🧭 Guiding Philosophy: Incrementalism & Verifiability
+## 🧭 Guiding Philosophy: Single Tiered DAG & Incrementalism
 
-1. **Pedagogical Ordering & DAG Placement**: New milestones must never be arbitrarily appended to the end of the roadmap. Every milestone must be intentionally situated within the curriculum DAG:
-   - Identify its educational track (e.g. Object Model, CPython Memory Hierarchy, Collector Evolution, Developer Tools).
-   - Determine its exact prerequisite foundations (what concepts and runtime invariants must exist before this goal is approachable for a beginner?).
+1. **Single Tiered DAG Mandate**: The roadmap must **never** be fragmented into separate, parallel, or isolated "tracks". It is strictly maintained as **one single unified Directed Acyclic Graph (DAG)** organized into **sequential, difficulty-calibrated Tiers** (e.g., Tier 0: Foundation, Tier 1: Core Ergonomics (Diff 1), Tier 2: Intermediate Arithmetic & Slabs (Diff 2), Tier 3: Advanced Views & Pools (Diff 3), etc.).
+1. **Easiest-First Ordering Principle**: Milestones must be ordered logically with easiest tasks first. A lower-difficulty milestone (e.g. Difficulty 1) should always be prioritized over higher-difficulty milestones unless it is strictly blocked by an architectural prerequisite it builds upon.
+1. **Intentional DAG Placement**: Every new milestone must be intentionally situated within the single tiered DAG:
+   - Assign an accurate **Difficulty Level** from `1 / 5` (entry) to `5 / 5` (expert).
+   - Place the milestone into its matching difficulty tier in `roadmap/README.md`.
+   - Determine its exact prerequisite foundations (what concepts and runtime invariants must exist before this goal is approachable?).
    - Position the node in the Mermaid DAG in `roadmap/README.md` and connect both incoming and outgoing dependency edges.
    - Maintain a gentle learning slope, ensuring complexity advances incrementally without overwhelming jumps in abstraction.
 1. **Enumerated Progression**: Roadmaps must always use enumerated lists (`1.`, `2.`, `3.`), never unstructured bullet points. Learning systems programming requires a clear, ordered sequence of operations.
@@ -46,13 +49,13 @@ ______________________________________________________________________
    - **Order Decoupling**: Sequence order lives exclusively in `roadmap/README.md` and the root `README.md`. Writeup filenames and titles never hardcode milestone sequence numbers, making reordering and inserting friction-free.
 1. **Single Source of Truth (`roadmap/README.md`)**:
    - `roadmap/README.md` is the authoritative single source of truth for the project roadmap.
-   - It defines the **pedagogical Directed Acyclic Graph (DAG)** showing tracks and milestone prerequisite dependencies via a Mermaid diagram (`flowchart TD`).
-   - Every milestone is cataloged with its title, persistent hash ID, status (`✅ Completed`, `🚧 In Progress`, `📋 Planned`), and technical focus.
+   - It defines the **single unified pedagogical Directed Acyclic Graph (DAG)** organized into sequential difficulty-calibrated tiers via a Mermaid diagram (`flowchart TD`).
+   - Every milestone is cataloged with its title, persistent hash ID, status (`✅ Completed`, `🚧 In Progress`, `📋 Planned`), difficulty rating (`**Difficulty:** <1-5> / 5`), and technical focus.
 1. **Top-Level README Linkage**:
    - The top-level `README.md` does not duplicate the milestone list; it maintains a concise roadmap summary that links directly to `roadmap/README.md`.
 1. **Automation & Quality Tooling**:
-   - **Scaffolding**: Run `just new-milestone <slug> "[Title]"` to automatically compute the deterministic 7-character sha256 hash ID and instantiate the template in `roadmap/<hash>_<slug>.md`.
-   - **Linting**: Run `just lint-roadmap` to validate hash integrity, metadata presence, 5-section schema compliance, link validity, and Mermaid DAG representation. This check runs automatically in `just lint` and `just check`.
+   - **Scaffolding**: Run `just new-milestone <slug> "[Title]" [difficulty]` to automatically compute the deterministic 7-character sha256 hash ID and instantiate the template in `roadmap/<hash>_<slug>.md`.
+   - **Linting**: Run `just lint-roadmap` to validate hash integrity, metadata presence (including difficulty), 5-section schema compliance, link validity, and Mermaid DAG representation. This check runs automatically in `just lint` and `just check`.
 
 ______________________________________________________________________
 
@@ -129,11 +132,12 @@ ______________________________________________________________________
 
 Before finalizing a roadmap milestone, verify:
 
-1. **Pedagogical Placement**: Is the milestone placed thoughtfully into the DAG with its conceptual prerequisites satisfied, maintaining an approachable learning curve?
+1. **Single Tiered DAG Placement**: Is the milestone placed into the single unified DAG within the appropriate difficulty tier, ensuring easier prerequisites are satisfied first?
+1. **Difficulty Rating**: Does the milestone define a calibrated `**Difficulty:** <1-5> / 5` consistent with its complexity?
 1. **Enumeration**: Is every list in the roadmap file enumerated (`1.`, `2.`, etc.) rather than bulleted?
 1. **Self-Containment**: Can this milestone be completed and verified on its own without breaking the master build?
 1. **Uniform Format**: Does the milestone match the exact template above, with all 5 numbered sections present?
-1. **Index & DAG Updated**: Is the milestone registered in `roadmap/README.md` and connected with incoming/outgoing edges in the Mermaid DAG?
+1. **Index & Tier Updated**: Is the milestone registered in `roadmap/README.md` under its difficulty tier and connected with incoming/outgoing edges in the Mermaid DAG?
 1. **Roadmap Linter Passing**: Does `just lint-roadmap` pass with zero errors?
 1. **Single Source of Truth**: Does the root `README.md` link directly to `roadmap/README.md` without duplicating the milestone list?
 1. **Status Emojis**: Are completed milestones marked with `✅ Completed` in `roadmap/README.md`?
