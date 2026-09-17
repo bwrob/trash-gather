@@ -30,6 +30,7 @@ REQUIRED_SECTIONS = [
 REQUIRED_METADATA = [
     "**ID:**",
     "**Status:**",
+    "**Difficulty:**",
     "**Focus:**",
     "**Prerequisites:**",
 ]
@@ -96,6 +97,13 @@ def validate_milestone_file(path: Path) -> tuple[str, list[str]]:
             )
     else:
         errors.append(f"{path}: Could not parse **ID:** metadata line")
+
+    # Check Difficulty level 1-5
+    diff_match = re.search(r"^\*\*Difficulty:\*\*\s*([1-5])\s*/\s*5", content, re.M)
+    if not diff_match:
+        errors.append(
+            f"{path}: Missing or malformed **Difficulty:** field (expected '1 / 5' to '5 / 5')"
+        )
 
     # Check all 5 required sections
     for sec in REQUIRED_SECTIONS:

@@ -2,8 +2,9 @@
 
 **ID:** `01be152`\
 **Status:** Planned\
+**Difficulty:** 5 / 5\
 **Focus:** Implement multi-generation garbage collection leveraging the weak generational hypothesis, nursery allocations, survivor promotion, and write barriers.\
-**Prerequisites:** [Automatic GC Pacing & Allocation Thresholds](eaa403e_automatic_gc_pacing_and_thresholds.md), [Weak References & Non-Owning Pointers (weakref_t)](a7ca40b_weak_references_and_non_owning_pointers.md)
+**Prerequisites:** [Automatic GC Pacing & Allocation Thresholds](eaa403e_automatic_gc_pacing_and_thresholds.md), [Weak References & Non-Owning Pointers (weakref_t)](a7ca40b_weak_references_and_non_owning_pointers.md), [Page-Aligned PyMalloc with Bitmask Pool Recovery](a929415_page_aligned_pymalloc.md)
 
 ______________________________________________________________________
 

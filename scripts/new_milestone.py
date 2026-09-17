@@ -46,6 +46,14 @@ def main() -> int:
         default=None,
         help="Human-readable milestone title (defaults to Title Cased Slug)",
     )
+    parser.add_argument(
+        "--difficulty",
+        "-d",
+        type=int,
+        choices=[1, 2, 3, 4, 5],
+        default=3,
+        help="Difficulty level from 1 (entry) to 5 (expert), default: 3",
+    )
 
     args = parser.parse_args()
     slug = slugify(args.slug)
@@ -77,12 +85,14 @@ def main() -> int:
     template_content = template_path.read_text(encoding="utf-8")
     content = template_content.replace("<hash_id>", hash_id)
     content = content.replace("<Milestone Title>", title)
+    content = content.replace("<1-5>", str(args.difficulty))
 
     target_file.write_text(content, encoding="utf-8")
     print(f"✨ Created milestone writeup: {target_file}")
-    print(f"   ID:    {hash_id}")
-    print(f"   Slug:  {slug}")
-    print(f"   Title: {title}\n")
+    print(f"   ID:         {hash_id}")
+    print(f"   Slug:       {slug}")
+    print(f"   Title:      {title}")
+    print(f"   Difficulty: {args.difficulty} / 5\n")
     print("Next Steps:")
     print(f"1. Open '{target_file}' and fill out Sections 1 through 5.")
     print("2. Open 'roadmap/README.md':")

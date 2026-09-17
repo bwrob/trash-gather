@@ -2,6 +2,7 @@
 
 **ID:** `f06ad6f`\
 **Status:** Planned\
+**Difficulty:** 1 / 5\
 **Focus:** Add complete Doxygen docstrings, memory contracts, and architectural invariants across all source files in `src/`, expanding automated docstring linting to enforce runtime coverage.\
 **Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)
 

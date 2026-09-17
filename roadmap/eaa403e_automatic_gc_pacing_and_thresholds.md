@@ -2,6 +2,7 @@
 
 **ID:** `eaa403e`\
 **Status:** Planned\
+**Difficulty:** 3 / 5\
 **Focus:** Transition from purely manual collection calls to an automatic, threshold-driven GC pacing engine triggered during memory allocation.\
 **Prerequisites:** [Garbage Collector Telemetry & Allocation Statistics](330a2b1_gc_telemetry_and_metrics.md)
 

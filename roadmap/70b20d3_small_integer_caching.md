@@ -2,6 +2,7 @@
 
 **ID:** `70b20d3`\
 **Status:** Planned\
+**Difficulty:** 1 / 5\
 **Focus:** Pre-allocate an immortal static cache of small integer objects (`[-128, 127]`), eliminating heap allocation churn for common numbers and introducing pointer identity semantics.\
 **Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md)
 

@@ -2,6 +2,7 @@
 
 **ID:** `b0c1d8b`\
 **Status:** Planned\
+**Difficulty:** 1 / 5\
 **Focus:** Support signed integer offsets (`int64_t`) across list and tuple accessors, enabling Python-style negative indexing with robust bounds validation.\
 **Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)
 

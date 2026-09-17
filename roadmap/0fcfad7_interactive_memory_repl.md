@@ -2,8 +2,9 @@
 
 **ID:** `0fcfad7`\
 **Status:** Planned\
+**Difficulty:** 4 / 5\
 **Focus:** Build an interactive command-line interface (`just run`) for allocating objects, pushing/popping frames, triggering garbage collection passes, and inspecting runtime telemetry in real time.\
-**Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md), [Function Objects & Closures (closure_t)](a0c00e1_closures_and_lexical_environments.md), [Generational Garbage Collection](01be152_generational_garbage_collection.md)
+**Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md), [Function Objects & Closures (closure_t)](a0c00e1_closures_and_lexical_environments.md), [Generational Garbage Collection](01be152_generational_garbage_collection.md), [Page-Aligned PyMalloc with Bitmask Pool Recovery](a929415_page_aligned_pymalloc.md)
 
 ______________________________________________________________________
 

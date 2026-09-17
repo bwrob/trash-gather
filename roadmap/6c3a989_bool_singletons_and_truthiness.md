@@ -2,6 +2,7 @@
 
 **ID:** `6c3a989`\
 **Status:** Planned\
+**Difficulty:** 1 / 5\
 **Focus:** Implement immortal boolean singleton objects (`True` and `False`), protect them from GC deallocation, introduce polymorphic truthiness evaluation (`object_is_truthy`, `object_to_bool`), and implement short-circuiting iteration predicates (`object_all`, `object_any`).\
 **Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)
 

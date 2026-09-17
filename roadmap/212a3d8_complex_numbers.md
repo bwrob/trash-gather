@@ -2,6 +2,7 @@
 
 **ID:** `212a3d8`\
 **Status:** Planned\
+**Difficulty:** 2 / 5\
 **Focus:** Introduce Python-style complex numbers (`COMPLEX`) with 64-bit IEEE 754 components, integrating into polymorphic arithmetic (`add`, `multiply`), truthiness evaluation, and lifecycle tracking without compiler-specific extensions.\
 **Prerequisites:** [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md)
 

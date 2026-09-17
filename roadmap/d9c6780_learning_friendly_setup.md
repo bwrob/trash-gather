@@ -2,6 +2,7 @@
 
 **ID:** `d9c6780`\
 **Status:** Completed\
+**Difficulty:** 1 / 5\
 **Focus:** Establish professional C development, sanitizers, leak tracking, formatting, and pre-commit tooling from day one.\
 **Prerequisites:** None
 

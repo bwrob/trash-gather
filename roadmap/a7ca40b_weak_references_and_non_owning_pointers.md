@@ -2,6 +2,7 @@
 
 **ID:** `a7ca40b`\
 **Status:** Planned\
+**Difficulty:** 4 / 5\
 **Focus:** Implement non-owning pointer handles (`weakref_t`) that observe target objects without preventing GC reclamation, automatically clearing to NULL when the referee is collected.\
 **Prerequisites:** [Full CPython-Style Offset-0 Hierarchy](222f6ce_cpython_offset0_hierarchy.md)
 

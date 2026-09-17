@@ -2,6 +2,7 @@
 
 **ID:** `330a2b1`\
 **Status:** Planned\
+**Difficulty:** 2 / 5\
 **Focus:** Instrument the VM with a telemetry stats structure (`gc_stats_t`), tracking total allocations, freed bytes, sweep counts, and live object counts for runtime observability.\
 **Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md)
 

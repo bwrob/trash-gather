@@ -2,6 +2,7 @@
 
 **ID:** `<hash_id>`\
 **Status:** Planned | In Progress | Completed\
+**Difficulty:** \<1-5> / 5\
 **Focus:** \<1-2 sentence core technical objective summarizing the engineering goal>\
 **Prerequisites:** \[<Milestone Title>\](\<hash_id>\_<slug>.md) | None
 

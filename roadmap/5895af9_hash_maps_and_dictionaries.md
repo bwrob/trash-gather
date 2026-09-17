@@ -2,6 +2,7 @@
 
 **ID:** `5895af9`\
 **Status:** Planned\
+**Difficulty:** 4 / 5\
 **Focus:** Implement associative key-value dictionaries with open addressing, collision resolution, tombstone markers, and bidirectional GC traversal.\
 **Prerequisites:** [Full CPython-Style Offset-0 Hierarchy](222f6ce_cpython_offset0_hierarchy.md)
 

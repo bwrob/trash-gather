@@ -2,14 +2,15 @@
 
 **ID:** `bf0a981`\
 **Status:** Planned\
+**Difficulty:** 3 / 5\
 **Focus:** Serialize arbitrary objects to human-readable strings (`object_to_string()`), detecting and suppressing recursive loops for cyclic structures (`[...]`), paving the way for the interactive REPL.\
-**Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md), [Cycle Iterator Object](586680e_cycle_iterator_object.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md)
+**Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md), [Cycle Iterator Object](586680e_cycle_iterator_object.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [NumPy-Style Raw Float Matrix & Strided Views](e67df2f_raw_float_matrix.md)
 
 ______________________________________________________________________
 
 ## 1. Objective & Technical Scope
 
-1. **Primary Goals**: Implement `object_to_string(object_t *obj)` returning a dynamically allocated `char *` containing human-readable representations for all object types (`123`, `3.14`, `(1+2j)`, `"hello"`, `None`, `True`, `False`, `[1, 2, 3]`, `(1, "a")`, `<cycle_iterator at 0x...>`).
+1. **Primary Goals**: Implement `object_to_string(object_t *obj)` returning a dynamically allocated `char *` containing human-readable representations for all object types (`123`, `3.14`, `(1+2j)`, `"hello"`, `None`, `True`, `False`, `[1, 2, 3]`, `(1, "a")`, `<cycle_iterator at 0x...>`, `[[1.0, 2.0], [3.0, 4.0]]`).
 1. **Scope Boundaries**: Terminal colorization and ANSI syntax highlighting are deferred to Milestone 14 (Interactive REPL).
 
 ______________________________________________________________________

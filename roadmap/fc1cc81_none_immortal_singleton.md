@@ -2,8 +2,9 @@
 
 **ID:** `fc1cc81`\
 **Status:** Completed\
+**Difficulty:** 1 / 5\
 **Focus:** Implement the `None` singleton object, protect it against GC sweep deallocation (immortality), and use it for uninitialized slots and default returns.\
-**Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md)
+**Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)
 
 ______________________________________________________________________
 

@@ -2,6 +2,7 @@
 
 **ID:** `393f420`\
 **Status:** Completed\
+**Difficulty:** 3 / 5\
 **Focus:** Implement immediate Reference Counting alongside Mark-and-Sweep cycle collection, resolving the single-pass deallocation trap and POSIX header collisions.\
 **Prerequisites:** [Learning-Friendly Modern Tooling & Safety Infrastructure](d9c6780_learning_friendly_setup.md)
 

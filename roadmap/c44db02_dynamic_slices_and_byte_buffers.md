@@ -2,8 +2,9 @@
 
 **ID:** `c44db02`\
 **Status:** Planned\
+**Difficulty:** 3 / 5\
 **Focus:** Implement non-owning container sub-views, resizable raw byte buffers, and investigate interior pointer reference tracking in the garbage collector.\
-**Prerequisites:** [Full CPython-Style Offset-0 Hierarchy](222f6ce_cpython_offset0_hierarchy.md)
+**Prerequisites:** [NumPy-Style Raw Float Matrix & Strided Views](e67df2f_raw_float_matrix.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md)
 
 ______________________________________________________________________
 

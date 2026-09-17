@@ -202,8 +202,8 @@ lint-roadmap:
     uv run python scripts/lint_roadmap.py
 
 # Scaffold a new roadmap milestone writeup from template
-new-milestone slug title="":
-    uv run python scripts/new_milestone.py {{slug}} "{{title}}"
+new-milestone slug title="" difficulty="3":
+    uv run python scripts/new_milestone.py {{slug}} "{{title}}" --difficulty {{difficulty}}
 
 # Run static analysis using clang-tidy, docstring linter, roadmap linter, and Python checks
 lint: lint-c lint-docs lint-roadmap lint-py

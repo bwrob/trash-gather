@@ -2,8 +2,9 @@
 
 **ID:** `222f6ce`\
 **Status:** Planned\
+**Difficulty:** 4 / 5\
 **Focus:** Eliminate the tagged union by adopting offset-0 base header embedding (`PyObject` style), achieving single-allocation objects and eliminating union memory bloat.\
-**Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md)
+**Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md), [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md)
 
 ______________________________________________________________________
 

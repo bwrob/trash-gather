@@ -2,6 +2,7 @@
 
 **ID:** `a0c00e1`\
 **Status:** Planned\
+**Difficulty:** 5 / 5\
 **Focus:** Implement first-class function objects that capture lexical environment scopes, holding references to parent frames and variables beyond their stack lifetimes.\
 **Prerequisites:** [Hash Maps & Dictionaries (dict_t)](5895af9_hash_maps_and_dictionaries.md)
 

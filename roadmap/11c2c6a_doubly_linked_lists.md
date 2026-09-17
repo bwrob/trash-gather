@@ -2,6 +2,7 @@
 
 **ID:** `11c2c6a`\
 **Status:** Planned\
+**Difficulty:** 4 / 5\
 **Focus:** Implement node-based doubly linked lists with mutual `prev`/`next` reference cycles to stress-test cyclic GC discovery, traversal, and reclamation.\
 **Prerequisites:** [Full CPython-Style Offset-0 Hierarchy](222f6ce_cpython_offset0_hierarchy.md)
 

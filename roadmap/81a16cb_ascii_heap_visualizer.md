@@ -2,6 +2,7 @@
 
 **ID:** `81a16cb`\
 **Status:** Planned\
+**Difficulty:** 3 / 5\
 **Focus:** Build an ASCII pointer graph visualizer that renders live root frames, object topologies, reachable structures, and unreachable cyclic islands in the terminal.\
 **Prerequisites:** [Interactive Memory REPL](0fcfad7_interactive_memory_repl.md)
 
