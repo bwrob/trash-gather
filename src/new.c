@@ -109,7 +109,7 @@ object_t *create_empty_tuple_singleton()
 
 object_t *new_tuple_0()
 {
-    return vm_get_empty_tuple();
+    return new_tuple(NULL, 0);
 }
 
 object_t *new_tuple_1(
@@ -144,11 +144,11 @@ object_t *new_tuple(
     size_t size
 )
 {
-    if (size == 0 && objects == NULL)
+    if (size == 0)
     {
-        return new_tuple_0();
+        return vm_get_empty_tuple();
     }
-    if (objects == NULL || size == 0)
+    if (objects == NULL)
     {
         return NULL;
     }

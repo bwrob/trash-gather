@@ -481,7 +481,8 @@ munit_case(
 );
 
 /**
- * @brief Test that new_none and new_tuple_0 return NULL safely when no VM is active.
+ * @brief Test that new_none, new_tuple_0, and new_tuple(..., 0) return NULL safely when
+ * no VM is active.
  */
 munit_case(
     RUN,
@@ -492,11 +493,18 @@ munit_case(
 
         object_t *t0 = new_tuple_0();
         assert_null(t0);
+
+        object_t *t_null = new_tuple(NULL, 0);
+        assert_null(t_null);
+
+        object_t *dummy[] = {NULL};
+        object_t *t_dummy = new_tuple(dummy, 0);
+        assert_null(t_dummy);
     }
 );
 
 /**
- * @brief Test that new_tuple_0 and new_tuple(NULL, 0) return the singleton empty tuple.
+ * @brief Test that new_tuple_0 and new_tuple(..., 0) return the singleton empty tuple.
  */
 munit_case(
     RUN,
@@ -528,7 +536,20 @@ munit_case(
         );
 
         object_t *dummy[] = {NULL};
-        assert_null(new_tuple(dummy, 0));
+        object_t *t4 = new_tuple(dummy, 0);
+        assert_ptr_equal(t1, t4);
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "new_tuple(dummy, 0) must perform zero heap allocations"
+        );
+
+        object_t *items[] = {t1};
+        object_t *t5 = new_tuple(items, 0);
+        assert_ptr_equal(t1, t5);
+        assert_size(
+            boot_total_alloc_count(), ==, allocs_before,
+            "new_tuple(items, 0) must perform zero heap allocations"
+        );
 
         vm_free();
         assert(boot_all_freed());
