@@ -56,3 +56,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify acyclic deallocation, nested freeing, and self-referencing cycles.
 1. **Zero-Leak Guarantee**: Confirm 100% reclamation via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass with zero sanitizer warnings.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [CPython Garbage Collection Architecture](https://devguide.python.org/internals/garbage-collector/): Conceptual breakdown of hybrid reference counting paired with cyclic garbage collection.
+   - [Concurrent Cycle Collection in Reference Counted Systems (Bacon & Rajan)](https://researcher.watson.ibm.com/researcher/files/us-bacon/Bacon01Concurrent.pdf): The foundational algorithm for isolating, finding, and collecting cyclic pointer meshes.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython gcmodule.c Source Walkthrough](https://github.com/python/cpython/blob/main/Modules/gcmodule.c): Production implementation of cyclic garbage collection, trial deletion, and doubly-linked tracking rings.
+   - [The Garbage Collection Handbook: Reference Counting Cycles](https://gchandbook.org/): Theoretical trade-offs between pure mark-and-sweep, deferred reference counting, and cycle detectors.

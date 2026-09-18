@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 3 / 5\
 **Focus:** Implement a multi-size-class pool allocator (PyMalloc Lite) that categorizes small allocations (16–256 bytes) into discrete size classes and dedicated 4 KB pools, falling back to system malloc for larger requests.\
-**Prerequisites:** [Fixed-Size Object Slab Allocator](e10d642_object_slab_allocator.md)
+**Prerequisites:** [Multi-Arena Dynamic Chaining & VM Runtime Integration](f682854_multi_arena_slab_chaining.md)
 
 ______________________________________________________________________
 
@@ -113,3 +113,14 @@ ______________________________________________________________________
 1. **Milestone Completion & Lesson Extraction**:
    1. Update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`.
    1. Document educational takeaways on segregated size-class pool design in `lessons/` per the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Segregated Storage and Multi-Size-Class Memory Pools](https://en.wikipedia.org/wiki/Memory_pool): Categorizing small requests into discrete size classes to eliminate external fragmentation.
+   - [Internal vs External Memory Fragmentation](<https://en.wikipedia.org/wiki/Fragmentation_(computing)>): Analyzing padding waste inside fixed blocks versus unallocatable gaps between blocks.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/obmalloc.c Small Object Allocator](https://github.com/python/cpython/blob/main/Objects/obmalloc.c): Comprehensive source walkthrough of PyMalloc's 256-byte pool categories and size-class tables.
+   - [jemalloc Size Classes Architecture](https://github.com/jemalloc/jemalloc/blob/dev/include/jemalloc/internal/sc.h): How production allocators calculate logarithmically spaced size classes for optimal cache utilization.

@@ -129,3 +129,14 @@ ______________________________________________________________________
    - `just check` (all pre-commit hooks clean).
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [ISO C17 Complex Numbers and Portability](https://en.cppreference.com/w/c/numeric/complex): Standard C complex number definitions and arithmetic rules without GNU dialect dependencies.
+   - [Python Complex Number Semantics (cmath)](https://docs.python.org/3/library/cmath.html): Language specification for 64-bit real and imaginary components.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/complexobject.c Implementation](https://github.com/python/cpython/blob/main/Objects/complexobject.c): Production layout of `PyComplexObject` and precision-preserving complex arithmetic routines.
+   - [Branch Cuts for Complex Elementary Functions (W. Kahan)](https://people.freebsd.org/~das/kahan86branch.pdf): The classical foundation for handling complex signs of zero, infinity, and branch cuts.

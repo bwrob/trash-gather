@@ -68,3 +68,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify empty tuples ($N = 0$), singletons ($N = 1$), large tuples ($N = 1{,}000$), and simulated allocation failures via `bootlib`.
 1. **Zero-Leak Guarantee**: Confirm `assert(boot_all_freed())` passes at the end of all test cases.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass with zero errors.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [C99 Flexible Array Members (ISO/IEC 9899:1999 §6.7.2.1)](https://en.cppreference.com/w/c/language/struct): Official standard rules governing trailing zero-size array members in contiguous structures.
+   - [Struct Memory Alignment and offsetof in C](https://en.cppreference.com/w/c/types/offsetof): Hardware alignment requirements and calculating exact contiguous allocation byte sizes.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/tupleobject.c Implementation](https://github.com/python/cpython/blob/main/Objects/tupleobject.c): How CPython uses flexible contiguous memory arrays and singleton empty tuples for immutable sequences.
+   - [CPython PyTupleObject C API Reference](https://docs.python.org/3/c-api/tuple.html): API contracts, immutability guarantees, and initialization semantics for Python tuples.

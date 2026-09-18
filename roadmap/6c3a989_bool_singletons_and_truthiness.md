@@ -146,3 +146,14 @@ ______________________________________________________________________
    - `just check` (all pre-commit git hooks clean).
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Python Truth Value Testing Specification](https://docs.python.org/3/library/stdtypes.html#truth-value-testing): The formal definition of truthiness across numbers, singletons, and empty collections.
+   - [Boolean Type Support in C99/C17 (stdbool.h)](https://en.cppreference.com/w/c/types/boolean_type): Standard ISO C boolean semantics, integer promotion, and true/false macros.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython boolobject.c Implementation](https://github.com/python/cpython/blob/main/Objects/boolobject.c): How Python implements True and False as singleton instances of an int subclass.
+   - [PEP 285 – Adding a bool type to Python](https://peps.python.org/pep-0285/): Historical design rationale and mathematical philosophy behind Boolean types in dynamic languages.

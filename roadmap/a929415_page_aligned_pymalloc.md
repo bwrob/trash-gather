@@ -103,3 +103,14 @@ ______________________________________________________________________
 1. **Milestone Completion & Lesson Extraction**:
    1. Update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`.
    1. Document the 4 KB bitmask trick and CPython obmalloc architecture in `lessons/` per the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Virtual Memory Page Alignment and POSIX memalign](<https://en.wikipedia.org/wiki/Page_(computer_memory)>): Allocating page-aligned heap memory (`posix_memalign`) and hardware memory boundaries.
+   - [Bitmask Address Arithmetic for Header Recovery](<https://en.wikipedia.org/wiki/Mask_(computing)>): Using `ptr & ~0xFFF` to recover 4 KB pool headers in O(1) time without lookup tables.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/obmalloc.c Pool Address Bitmasking](https://github.com/python/cpython/blob/main/Objects/obmalloc.c): The exact production code CPython uses to resolve pool headers from arbitrary object pointers.
+   - [CPython Memory Management Architecture Overview](https://docs.python.org/3/c-api/memory.html): How PyMalloc arenas, pools, and blocks layer atop system memory allocators.

@@ -67,3 +67,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Create cyclic garbage in a tight loop without manual `vm_collect()` calls, asserting that the heap object count remains bounded as the automatic collector fires; test that disabling auto-GC suppresses collections.
 1. **Zero-Leak Guarantee**: All automatically collected cycles and surviving objects are completely accounted for, exiting cleanly with `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings under ASan/UBSan.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Python gc.set_threshold() Pacing Mechanics](https://docs.python.org/3/library/gc.html#gc.set_threshold): Understanding allocation-to-deallocation net thresholds for triggering garbage collections.
+   - [Adaptive Allocation Pacing in Managed Runtimes](<https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)>): Balancing throughput against memory footprint by pacing collection cycles.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [Go Runtime Garbage Collector Pacing Guide](https://go.dev/doc/gc-guide): Deep technical guide on how Go's concurrent collector paces sweeps based on heap growth targets.
+   - [CPython gcmodule.c Threshold Evaluation](https://github.com/python/cpython/blob/main/Modules/gcmodule.c): The exact C logic evaluating generational thresholds during object tracking.

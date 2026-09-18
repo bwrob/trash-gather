@@ -94,7 +94,7 @@ def main() -> int:
     print(f"   Title:      {title}")
     print(f"   Difficulty: {args.difficulty} / 5\n")
     print("Next Steps:")
-    print(f"1. Open '{target_file}' and fill out Sections 1 through 5.")
+    print(f"1. Open '{target_file}' and fill out Sections 1 through 6.")
     print("2. Open 'roadmap/README.md':")
     node_str = f'm_{slug}["{hash_id}: {title} (Diff: {args.difficulty})"]:::planned'
     print(f"   - Add node: {node_str} to the matching difficulty tier.")

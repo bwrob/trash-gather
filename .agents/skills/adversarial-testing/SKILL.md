@@ -33,6 +33,7 @@ ______________________________________________________________________
 1. **Be Adversarial**: Assume every pointer can be `NULL`, every allocation can fail, and every container can form an arbitrary reference cycle.
 1. **Never Touch `src/`**: As an AI agent, you write and maintain tests in `tests/` and benchmarks in `bench/`, but never edit runtime code in `src/`.
 1. **Enforce Zero Leaks**: Every test must conclude with `assert_true(boot_all_freed())` or `assert(boot_all_freed())` to ensure no heap blocks remain orphaned.
+1. **Atomic Micro-Loop Delivery**: When collaborating on multi-operation milestones (e.g. `append` $\\to$ `insert` $\\to$ `pop`), tests must be written and delivered incrementally in lockstep with the active micro-loop. Generate tests strictly targeting the currently implemented function $A$ rather than dumping tests for future functions $B$ or $C$.
 1. **Mandate 100.00% Line Coverage**: Adversarial testing is not complete until every file in `src/` achieves **100.00% line coverage** (`just coverage`). Every defensive guard, NULL check, allocation rollback, and error path must be actively stimulated and verified by a test in `tests/`. No uncovered lines are permitted.
 
 ______________________________________________________________________

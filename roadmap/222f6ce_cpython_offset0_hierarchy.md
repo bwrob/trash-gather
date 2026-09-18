@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 4 / 5\
 **Focus:** Eliminate the tagged union by adopting offset-0 base header embedding (`PyObject` style), achieving single-allocation objects and eliminating union memory bloat.\
-**Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md), [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md)
+**Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md)
 
 ______________________________________________________________________
 
@@ -73,3 +73,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Run the full suite with polymorphic casts across all object types.
 1. **Zero-Leak Guarantee**: `assert(boot_all_freed())` verifies zero leaks with single-allocation objects.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [C99 Struct Pointer Casting and Common Initial Sequence](https://en.cppreference.com/w/c/language/struct): Official standard guarantees for casting between pointers to structs sharing initial members.
+   - [CPython PyObject Base Header Definition](https://docs.python.org/3/c-api/structures.html#c.PyObject): How Python achieves single-allocation polymorphism by embedding PyObject at offset 0.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Include/object.h PyObject Definition](https://github.com/python/cpython/blob/main/Include/object.h): Inspection of `_PyObject_HEAD_EXTRA` and base object layout in modern CPython.
+   - [Polymorphism via Offset-0 Embedding in Production Runtimes](https://devguide.python.org/internals/exploring-cpython/): Comparative study of C-based object-oriented runtimes avoiding C++ vtable overhead.

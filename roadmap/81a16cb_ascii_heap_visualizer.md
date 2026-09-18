@@ -2,9 +2,9 @@
 
 **ID:** `81a16cb`\
 **Status:** Planned\
-**Difficulty:** 3 / 5\
+**Difficulty:** 2 / 5\
 **Focus:** Build an ASCII pointer graph visualizer that renders live root frames, object topologies, reachable structures, and unreachable cyclic islands in the terminal.\
-**Prerequisites:** [Interactive Memory REPL](0fcfad7_interactive_memory_repl.md)
+**Prerequisites:** [Garbage Collector Telemetry & Allocation Statistics](330a2b1_gc_telemetry_and_metrics.md)
 
 ______________________________________________________________________
 
@@ -57,11 +57,11 @@ ______________________________________________________________________
    1. Define visualizer configuration and rendering interfaces in `src/inspector.h`.
    1. Implement visited address set tracking and DFS tree traversal in `src/inspector.c`.
    1. Format box connectors, indentation levels, object metadata (type, ID, generation, refcount), and cyclic back-references.
-   1. Expose the `dump` / `graph` inspection command in the interactive REPL (`src/repl.c`).
+   1. Expose diagnostic inspection functions `vm_dump_heap(vm)` and `vm_print_object(obj)` for CLI and debugging.
    1. Write unit tests in `tests/test_inspector.c` asserting correct ASCII rendering and cycle suppression on linear, tree, and cyclic graph topologies.
 1. **File Touchpoints**:
    1. `src/inspector.h`, `src/inspector.c`
-   1. `src/repl.c`
+   1. `src/vm.h`, `src/vm.c`
    1. `tests/test_inspector.c`
 
 ______________________________________________________________________
@@ -71,3 +71,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Tests in `tests/test_inspector.c` verifying ASCII output on self-referential objects, two-node cycles, complex DAGs, and multi-frame stacks.
 1. **Zero-Leak Guarantee**: All temporary buffers and visited tracking sets allocated during inspection are completely freed, confirmed by `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings under ASan/UBSan.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Directed Graph ASCII Rendering Techniques](https://en.wikipedia.org/wiki/Graph_drawing): Algorithms for rendering trees, DAGs, and pointer relationships in plain text consoles.
+   - [Depth-First and Breadth-First Tree Traversal](https://en.wikipedia.org/wiki/Tree_traversal): Visiting complex heap graphs and suppressing recursive loops during visualization.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [Graphviz DOT Engine Design Principles](https://graphviz.org/documentation/): Theory of hierarchical graph drawing and layout algorithms for complex dependency graphs.
+   - [Linux Kernel kmemleak Memory Visualizer](https://www.kernel.org/doc/html/latest/dev-tools/kmemleak.html): How the Linux kernel scans, tracks, and visualizes unreferenced memory nodes in kernel space.

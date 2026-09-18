@@ -25,6 +25,7 @@ REQUIRED_SECTIONS = [
     "## 3. Systems Concepts & Guiding Questions",
     "## 4. Implementation Steps & Touchpoints",
     "## 5. Verification & Acceptance Criteria",
+    "## 6. Recommended Reading & External References",
 ]
 
 REQUIRED_METADATA = [
@@ -41,9 +42,14 @@ def validate_links(file_path: Path, content: str) -> list[str]:
     errors: list[str] = []
     dir_path = file_path.parent
 
-    # Find [text](target.md) or [text](target.md#anchor)
-    links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
+    # Strip code blocks and inline code to prevent false positives (e.g. interval notation `[a, b)`)
+    cleaned_content = re.sub(r"```[\s\S]*?```", "", content)
+    cleaned_content = re.sub(r"`[^`\n]+`", "", cleaned_content)
+
+    # Find [text](<target>) or [text](target)
+    links = re.findall(r"\[([^\]]+)\]\((<[^>]+>|[^)\s]+)\)", cleaned_content)
     for text, target in links:
+        target = target.strip("<>")
         if target.startswith("http://") or target.startswith("https://") or target.startswith("#"):
             continue
         # Strip anchor if present

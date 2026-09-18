@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 5 / 5\
 **Focus:** Implement first-class function objects that capture lexical environment scopes, holding references to parent frames and variables beyond their stack lifetimes.\
-**Prerequisites:** [Hash Maps & Dictionaries (dict_t)](5895af9_hash_maps_and_dictionaries.md)
+**Prerequisites:** [Dictionary Tombstone Deletion & Dynamic Rehashing](e883213_dict_tombstone_deletion_and_rehashing.md)
 
 ______________________________________________________________________
 
@@ -70,3 +70,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify higher-order functions (e.g. counter generators), multi-level nested scopes, and parameter binding.
 1. **Zero-Leak Guarantee**: Escaped closure test verifies variables survive frame popping and are 100% reclaimed when closure root is dropped via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Lexical Scoping and Closures in Programming Languages](<https://en.wikipedia.org/wiki/Closure_(computer_programming)>): First-class functions, lexical environments, and capturing variables beyond stack scope.
+   - [Call Stacks and Activation Records](https://en.wikipedia.org/wiki/Call_stack): Stack frames, activation lifetimes, and moving captured variables from stack to heap.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/cellobject.c and Upvalue Storage](https://github.com/python/cpython/blob/main/Objects/cellobject.c): How Python uses `cell` objects to share variables between nested lexical closures.
+   - [The Implementation of Lua 5.0 (Ierusalimschy et al.)](https://www.lua.org/doc/jucs05.pdf): The classic paper explaining the open vs closed upvalue architecture for efficient closures.

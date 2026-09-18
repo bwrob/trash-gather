@@ -81,14 +81,16 @@ Every lesson must follow this standard structure:
 
 ---
 
-## 4. Performance & Systems Optimization (Optional/When Applicable)
-- Hot path vs. cold path trade-offs (e.g., where inlining belongs in refcounted systems).
-- Cache locality, instruction cache footprint, and allocator overhead.
+## 4. Hardware & Silicon Mechanics (What the Machine Did)
+- Physical memory layout: struct padding holes, CPU word alignment (8-byte boundaries), and bus transaction efficiency.
+- CPU Cache Locality: Cache line chunking (64-byte chunks), spatial/temporal locality, and L1/L2 hits vs cache miss stalls.
+- Branch Prediction & CPU Pipeline: Branch predictor behavior (e.g. monomorphic vs polymorphic dispatch tables, predicted branches in error guards).
+- Virtual Memory & MMU: Page boundaries (4 KB), bitmasks, address translation, and TLB efficiency.
 
 ---
 
 ## 5. Tooling Insights & Workflow Takeaways
-- What role did the tooling play in accelerating discovery? (e.g., ASan shadow bytes, `bootlib` leak tracking, `just test-filter`).
+- What role did the tooling play in accelerating discovery? (e.g., ASan shadow bytes, `bootlib` leak tracking, `just test-filter`, `lldb` watchpoints).
 - What testing heuristics or assertions caught the issue?
 ```
 
@@ -102,4 +104,5 @@ Before finalizing a lesson, verify that it meets these standards:
 - [ ] **Defines the Invariants**: Clearly identifies what invariants broke and what invariants restored correctness.
 - [ ] **Diagnostic Fidelity**: Quotes real sanitizer errors or test failures that guided the investigation.
 - [ ] **Explains the "Why"**: Compares architectural alternatives and explains the performance/safety trade-offs.
+- [ ] **Hardware Intuition**: Documents the underlying physical machine mechanics (cache lines, CPU word alignment, branch predictor, or virtual memory paging).
 - [ ] **Formatting**: Markdown is clean and formatted compliant with pre-commit checks (`just check`).

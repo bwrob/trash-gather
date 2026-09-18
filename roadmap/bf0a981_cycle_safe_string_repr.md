@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 3 / 5\
 **Focus:** Serialize arbitrary objects to human-readable strings (`object_to_string()`), detecting and suppressing recursive loops for cyclic structures (`[...]`), paving the way for the interactive REPL.\
-**Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md), [Cycle Iterator Object](586680e_cycle_iterator_object.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [NumPy-Style Raw Float Matrix & Strided Views](e67df2f_raw_float_matrix.md)
+**Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md), [Cycle Iterator Object](586680e_cycle_iterator_object.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [NumPy-Style Raw Float Matrix & Strided Views](e67df2f_raw_float_matrix.md), [Dynamic String Builder & Safe Formatting](4911b8b_dynamic_string_builder.md)
 
 ______________________________________________________________________
 
@@ -67,3 +67,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify formatting across all types: ints, floats, strings, tuples, empty containers, nested lists, and deliberate self-referencing cycles (`list -> list`).
 1. **Zero-Leak Guarantee**: Formatted strings freed by tests leave zero leaked bytes confirmed via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Cycle Detection in Directed Graphs](<https://en.wikipedia.org/wiki/Cycle_(graph_theory)>): Using DFS and visited address sets to detect circular pointer graphs.
+   - [Python repr() Protocol and Recursion Suppression](https://docs.python.org/3/reference/datamodel.html#object.__repr__): Language conventions for printing nested containers and displaying `[...]` for self-references.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Python/sysmodule.c Py_ReprEnter Mechanism](https://github.com/python/cpython/blob/main/Python/sysmodule.c): How Python tracks currently printing objects using an internal thread-safe recursion dictionary.
+   - [Depth-First Graph Traversal with Visited Sets](https://en.wikipedia.org/wiki/Depth-first_search): Memory-efficient graph traversal techniques avoiding stack overflows on deeply nested structures.

@@ -31,6 +31,8 @@ ______________________________________________________________________
 ### 2.1 Role 1: Socratic Tutoring & Guidance
 
 - **Archimedean / Socratic Method**: Do not hand over code implementations for `src/`. Ask guiding questions, explain underlying systems concepts, suggest architectural patterns, and provide references.
+- **Mathematical Inductive Invariants**: Frame memory safety as mathematical induction: Base initialization invariant $\\mathcal{I}_0$, inductive mutation step $\\mathcal{I}_k \\implies \\mathcal{I}_{k+1}$, and rollback invariant $\\mathcal{I}_{\\text{rollback}}$.
+- **Native LLDB Debugging Support**: When the developer faces complex ASan/UBSan failures or memory corruption, provide Socratic triage and suggest specific `lldb` commands (`just debug`, `p *obj`, `x/8xg`, `watchpoint set expression`) per the `lldb-debugging` runbook without revealing code solutions.
 - **Self-Discovery**: Help the developer formulate the right questions regarding pointer safety, heap allocation, and GC mechanics.
 - **No Spoiling**: Never solve implementation challenges or provide ready-made snippets for `src/`.
 - **Follow the Skill**: All Socratic review protocols, memory safety invariants, SEI CERT C rules, and runtime design patterns are defined in the **`c-expert`** skill: \[.agents/skills/c-expert/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/c-expert/SKILL.md).
@@ -59,13 +61,19 @@ ______________________________________________________________________
 - **Never Auto-Merge**: The agent must **NEVER** merge a PR/MR without explicit, unambiguous user confirmation.
 - **Follow the Skill**: All pipeline stages, CI checks, and quality gates are defined in the **`finalize`** skill: \[.agents/skills/finalize/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/finalize/SKILL.md).
 
-### 2.6 The Interactive Development & Testing Loop
+### 2.6 Role 6: Milestone Initialization & Readiness (`initialize`)
 
-When pairing on new features or milestones, the collaboration strictly follows this 5-step loop:
+- **Pre-Flight Readiness Pipeline**: Orchestrates starting a milestone by validating DAG topological fit and prerequisites, framing the concise logic and mathematical inductive invariants ($\\mathcal{I}\_0, \\mathcal{I}_k, \\mathcal{I}_{\\text{rollback}}$), and conducting an interactive systems knowledge pre-check **one question at a time**.
+- **Follow the Skill**: All initialization steps, DAG verification rules, and pre-check protocols are defined in the **`initialize`** skill: \[.agents/skills/initialize/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/initialize/SKILL.md).
 
-1. **Code Must Compile**: The human developer writes and iterates on the runtime in `src/` until the codebase compiles cleanly (`just build`).
+### 2.7 The Interactive Development & Testing Loop
+
+When pairing on new features or milestones, the collaboration strictly follows this 6-step loop:
+
+0. **Milestone Initialization (`initialize`)**: The AI agent verifies DAG prerequisites, provides a concise logic description with mathematical inductive invariants ($\\mathcal{I}\_0, \\mathcal{I}_k, \\mathcal{I}_{\\text{rollback}}$), explains **what the physical hardware is doing** (CPU word alignment, cache line chunking, bus fetching, MMU page boundaries, memory controllers), and conducts a knowledge pre-check **one question at a time** using `ask_question`. For multi-operation milestones, the work is structured into **Incremental Micro-Loops**.
+1. **Code Must Compile (Incremental Micro-Loops)**: For multi-operation milestones (e.g. `append` $\\to$ `insert` $\\to$ `pop`), development proceeds in incremental micro-loops: implement operation $A$ in `src/` $\\to$ test $A$ $\\to$ achieve green $\\to$ proceed to operation $B$. This avoids large architectural rewrites and allows early insights to inform subsequent functions.
 1. **Adversarial Test Generation (No Clues)**: Once compiling, the AI agent generates unit and adversarial tests in `tests/` without giving reviews, hints, or clues about potential implementation bugs. Test suites MUST actively probe container reference count parity (releasing via `refcount_dec` rather than masking with `vm_free`), mid-loop failure rollbacks ($0 < k < N$), and heap allocation failure sweeps (`boot_set_fail_alloc_after`).
-1. **Developer Debugging & Fixes**: The human runs the test suite (`just test`), explores test failures, and refines the runtime in `src/` to address the failures independently.
+1. **Developer Debugging & Socratic Triage (LLDB Guidance)**: The human runs the test suite (`just test`), explores test failures, and refines the runtime in `src/` independently. If stuck on ASan/UBSan failures or cryptic memory corruption, the agent assists with Socratic triage and targeted LLDB commands (`just debug`, `watchpoint`, `memory read / x`) per `c-expert/references/lldb-debugging.md` without revealing solutions or touching `src/`.
 1. **Iterative Regeneration to 100% Coverage**: The AI agent writes further stress tests, allocation failure injections, and edge cases until **100.00% line coverage** is achieved across all files in `src/` (`just coverage`).
 1. **Post-Green Retrospective & Code Review**: Only once **all tests pass cleanly** (100% pass rate) AND **100.00% line coverage** is reached under ASan/UBSan and `boot_all_freed()`, agent and developer engage in a structured code review covering:
    - **Style & Idiomatic C**: Naming consistency, DRY patterns, and formatting clarity.
@@ -106,6 +114,7 @@ ______________________________________________________________________
 | `just lint-py`               | Check Python scripts (`ruff` + `pyrefly`)                                    |
 | `just lint-docs`             | Check Doxygen docstrings across configured dirs                              |
 | `just lint-roadmap`          | Validate roadmap milestone hash IDs, DAG consistency, and markdown links     |
+| `just update-dag`            | Synchronize Mermaid DAG with transitive reduction in `roadmap/README.md`     |
 | `just new-milestone <slug>`  | Scaffold a new roadmap milestone writeup from template                       |
 | `just check`                 | Run all pre-commit hooks across the entire repo                              |
 | `just build`                 | Compile the main sandbox application binary                                  |

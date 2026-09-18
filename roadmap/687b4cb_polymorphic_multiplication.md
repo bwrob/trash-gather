@@ -136,3 +136,14 @@ ______________________________________________________________________
    - `just check` (all pre-commit hooks clean).
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Emulating Numeric Types in Dynamic Languages](https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types): Protocol rules for binary operations, reflected operands (`__rmul__`), and type coercion.
+   - [IEEE 754 Floating-Point Multiplication](https://en.wikipedia.org/wiki/IEEE_754): Understanding roundoff, infinities, NaNs, and mixed-mode int/float arithmetic.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/abstract.c PyNumber_Multiply Implementation](https://github.com/python/cpython/blob/main/Objects/abstract.c): How Python dispatches binary multiplication between numeric math and sequence repetition.
+   - [Python Sequence Repetition Reference Pitfalls](https://docs.python.org/3/faq/programming.html#how-do-i-create-a-multidimensional-list): Why shallow reference repetition in `[[]] * N` causes unexpected shared mutations.

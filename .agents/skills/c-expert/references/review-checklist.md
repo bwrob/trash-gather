@@ -34,13 +34,14 @@ Every C systems review must systematically verify the following 5 phases:
 - [ ] Is ownership clearly defined for every pointer returned by or passed to a function (borrowed vs. owned)?
 - [ ] If returning a borrowed pointer, is its lifetime tied to a rooted or alive parent object?
 - [ ] Are reference count increments and decrements strictly balanced across all execution paths?
+- [ ] **Inductive Invariant Preservation**: Does the operation preserve invariant $\\mathcal{I}_k \\implies \\mathcal{I}_{k+1}$ (valid refcount parity, zero dangling pointers)?
 
 ### Phase 2: Allocation Sizing & Failure Recovery
 
 - [ ] Is allocation size arithmetic checked against integer overflow before calling `malloc`?
 - [ ] Are all fallible allocation calls checked for `NULL` before dereferencing?
-- [ ] In multi-stage allocations, does failure at step $K$ roll back steps $1 \\dots K-1$ cleanly without leaking?
-- [ ] Are all new object slots zero-initialized to `NULL` to ensure GC tracing safety?
+- [ ] **Base Invariant $\\mathcal{I}\_0$**: Are all freshly allocated object slots zero-initialized to `NULL` to ensure GC tracing safety?
+- [ ] **Rollback Invariant $\\mathcal{I}\_{\\text{rollback}}$**: In multi-stage allocations, does a failure at step $k \\in {0, \\dots, N-1}$ strictly unwind and free steps ${0, \\dots, k-1}$ without leaking or double-freeing?
 
 ### Phase 3: Runtime & GC Lifecycle Synchronization
 

@@ -73,3 +73,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify push, pop, bidirectional traversal, arbitrary node splicing, and deep $1{,}000$-node chains.
 1. **Zero-Leak Guarantee**: Detaching a $1{,}000$-node list reclaims all $1{,}001$ objects during `vm_collect_garbage()` with `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Doubly Linked Lists Structure and Sentinel Nodes](https://en.wikipedia.org/wiki/Doubly_linked_list): Bidirectional pointer linking, head/tail sentinels, and boundary condition safety.
+   - [Pointer Cycle Hazards in Reference Counted Systems](https://en.wikipedia.org/wiki/Reference_counting#Dealing_with_reference_cycles): Why doubly-linked node pairs create immediate reference cycles requiring cyclic GC collection.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [Linux Kernel Intrusive list_head Implementation](https://kernelnewbies.org/FAQ/LinkedLists): The gold standard for high-performance intrusive bidirectional list management in C systems.
+   - [CPython GC Doubly-Linked Tracking Rings](https://github.com/python/cpython/blob/main/Include/internal/pycore_gc.h): How CPython threads `PyGC_Head` intrusive links through every tracked container.

@@ -44,3 +44,14 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Explicit assertion that all allocations are tracked and confirmed freed via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test` (100% pass with ASan/UBSan), `just lint` (`clang-tidy` + docstrings), `just check` (all pre-commit hooks).
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [\<Primary Theory/Standard Resource Title>](url): \<1-sentence annotation on what concepts to study before coding>.
+   - [\<Secondary Tutorial/Documentation Title>](url): \<1-sentence annotation on language/API semantics>.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [<Production Runtime Reference Title>](url): \<1-sentence annotation on how CPython, Linux, or production runtimes implement this>.
+   - [\<Advanced Systems/Optimization Paper Title>](url): \<1-sentence annotation on deeper trade-offs, historical context, or performance benchmarks>.

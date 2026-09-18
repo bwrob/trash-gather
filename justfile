@@ -198,6 +198,10 @@ lint-docs:
 lint-c:
     clang-tidy src/*.c -- -std={{C_STD}} -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
+# Update Mermaid DAG in roadmap/README.md with transitive reduction
+update-dag:
+    uv run python scripts/generate_roadmap_dag.py
+
 # Validate roadmap milestone hash IDs, DAG consistency, and markdown links
 lint-roadmap:
     uv run python scripts/lint_roadmap.py

@@ -57,3 +57,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: µnit test suite runs with ASan/UBSan enabled.
 1. **Zero-Leak Guarantee**: Test cases conclude with `assert(boot_all_freed())` confirming 100% reclamation.
 1. **Tooling Quality Gates**: `just check`, `just lint`, and `just test` pass cleanly on macOS and CI.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Clang AddressSanitizer Documentation](https://clang.llvm.org/docs/AddressSanitizer.html): Core concepts of shadow memory, redzones, and compile-time instrumentation for memory bug detection.
+   - [SEI CERT C Coding Standard](https://wiki.sei.cmu.edu/confluence/display/c/SEI+CERT+C+Coding+Standard): Essential memory safety, undefined behavior rules, and defensive systems programming guidelines.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [Catching Memory Errors with AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer): Deep dive into ASan runtime performance characteristics, false negatives, and kernel-level integration.
+   - [LLVM Clang-Tidy Diagnostics & Checks](https://clang.llvm.org/extra/clang-tidy/): Modern static analysis passes enforcing bug prevention, memory leak detection, and readability standards.

@@ -74,3 +74,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Assert that `new_integer(42) == new_integer(42)`, assert that `new_integer(1000) != new_integer(1000)` (distinct addresses), and assert that running multiple GC cycles retains all small integer pointers without memory corruption.
 1. **Zero-Leak Guarantee**: Shutting down the VM releases all cached integer objects cleanly with zero remaining allocations, verified via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings under ASan/UBSan.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [The Flyweight Pattern in Systems Programming](https://en.wikipedia.org/wiki/Flyweight_pattern): Memory optimization pattern sharing fine-grained immutable scalar instances across a runtime.
+   - [CPython Small Integer Caching Specification](https://docs.python.org/3/c-api/long.html): Rationale behind pre-allocating an array of common integer objects to eliminate allocation churn.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/longobject.c Small Integer Cache Table](https://github.com/python/cpython/blob/main/Objects/longobject.c): Inspection of `small_ints` static array and fast path checks inside `PyLong_FromLong`.
+   - [Python is vs == Identity Semantics](https://docs.python.org/3/reference/expressions.html#is): The language consequences of small integer caching on pointer identity checks versus equality.

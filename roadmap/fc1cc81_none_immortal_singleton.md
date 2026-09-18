@@ -69,3 +69,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify `new_none()` returns the identical pointer on repeated calls, and setting list/tuple slots to `None` works smoothly.
 1. **Zero-Leak Guarantee**: Running repeated GC collection passes with rooted and unrooted `None` references confirms `assert(boot_all_freed())` upon `vm_free()`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero errors.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [PEP 683 – Immortal Objects, Using a Fixed Reference Count](https://peps.python.org/pep-0683/): Architectural rationale for immortal singletons with saturated reference counts immune to GC sweeps.
+   - [The Singleton Pattern in Systems Programming](https://en.wikipedia.org/wiki/Singleton_pattern): Memory lifecycle, thread-safety considerations, and global accessibility of shared immutable instances.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Immortal Object Implementation in Objects/object.c](https://github.com/python/cpython/blob/main/Objects/object.c): How Python 3.12+ tags immortal objects using high reference count bit flags (`0xFFFFFFFF`).
+   - [Dismissing Python Garbage Collection at Instagram](https://instagram-engineering.com/dismissing-python-garbage-collection-at-instagram-4dca40b29172): Real-world engineering study on why reference count churn on shared singletons harms Linux copy-on-write.

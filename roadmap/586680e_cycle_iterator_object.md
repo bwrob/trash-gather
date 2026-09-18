@@ -132,3 +132,14 @@ ______________________________________________________________________
    - `just check` (all pre-commit hooks clean).
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Python Iterator Protocol Specification](https://docs.python.org/3/c-api/iterator.html): Standard language contracts for `__iter__` and `__next__` traversal in C runtimes.
+   - [Circular Buffers and Modular Arithmetic](https://en.wikipedia.org/wiki/Circular_buffer): Implementing cyclic index wrapping via modular arithmetic in finite sequences.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Modules/itertoolsmodule.c Implementation](https://github.com/python/cpython/blob/main/Modules/itertoolsmodule.c): Production inspection of `itertools.cycle` holding sequence references and managing iteration.
+   - [The Iterator Design Pattern in Systems Runtimes](https://en.wikipedia.org/wiki/Iterator_pattern): Decoupling collection internal traversal logic from consumer algorithms.

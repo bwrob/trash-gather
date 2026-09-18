@@ -91,3 +91,14 @@ ______________________________________________________________________
    - `just check` (all pre-commit git hooks clean).
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Python Sequence Protocol Specification](https://docs.python.org/3/c-api/sequence.html): The standard abstract protocol governing sequence length queries and element access in dynamic runtimes.
+   - [Polymorphic Object Models in Procedural C](<https://en.wikipedia.org/wiki/Polymorphism_(computer_science)>): Techniques for implementing uniform dispatch across distinct concrete types without C++ classes.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/abstract.c Protocol Engine](https://github.com/python/cpython/blob/main/Objects/abstract.c): How Python routes generic len() queries through slot wrappers down to concrete type implementations.
+   - [Python Data Model __len__ Contract](https://docs.python.org/3/reference/datamodel.html#object.__len__): Language-level constraints, non-negative integer requirements, and error conditions for sequence lengths.

@@ -19,6 +19,10 @@ ______________________________________________________________________
 
 - **State Ownership**: Every pointer passed to or returned by a function must have an unambiguous ownership contract (borrowed vs. owned).
 - **Check All Fallible Calls**: Never assume an allocation or system call succeeded. Every `malloc`, `calloc`, or container lookup must be verified before dereferencing.
+- **Inductive Memory Invariants**: Formulate memory safety as mathematical induction:
+  - **Base Invariant $\\mathcal{I}\_0$**: At initialization, state has zero uninitialized slots, refcounts are balanced, and object is safely tracked/rooted.
+  - **Inductive Step $\\mathcal{I}_k \\implies \\mathcal{I}_{k+1}$**: Every container mutation, slice, or reference acquisition preserves ownership balance, pointer symmetry, and cycle reachability invariants.
+  - **Rollback Invariant $\\mathcal{I}\_{\\text{rollback}}$**: A failure at step $k \\in {0, \\dots, N-1}$ guarantees clean destruction of ${0, \\dots, k-1}$ with zero leaks and zero double-frees.
 - **Roll Back on Failure**: In multi-stage allocations, a failure at step $K$ must unwind steps $1 \\dots K-1$ cleanly without leaking resources (`goto cleanup` pattern).
 - **Assert Internal Invariants**: State invariants and validate boundaries at leaf functions. Check sizes before multiplication to prevent integer overflow.
 - **Portability First**: Target ISO C17 (`-std=c17`). Post-C99 syntax (such as anonymous structs/unions or `_Static_assert`) must be conscious, intentional, and portable across GCC, Clang, and MSVC.
@@ -78,6 +82,7 @@ ______________________________________________________________________
 Consult these comprehensive guides in [references/](./references/) when writing, auditing, or reviewing:
 
 - [review-checklist.md](./references/review-checklist.md) — Socratic code review protocol, question templates, and 5-phase review checklist.
+- [lldb-debugging.md](./references/lldb-debugging.md) — Interactive native runtime debugging guide, breakpoint patterns, struct inspection, watchpoints, and ASan diagnosis.
 - [gc-runtime-architecture.md](./references/gc-runtime-architecture.md) — Object models, flexible array members, reference counting, mark-and-sweep, and failure rollbacks.
 - [c17-portability.md](./references/c17-portability.md) — ISO C17 standards, conscious post-C99 syntax, cross-compiler rules, and prohibited constructs.
 - [memory-safety.md](./references/memory-safety.md) — Lifetimes, allocation arithmetic, buffer overflow mitigation, and sanitizer configurations.

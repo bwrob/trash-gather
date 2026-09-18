@@ -126,6 +126,13 @@ Defines empirical validation gates:
 1. **Tooling Quality Gates**: `just test` (100% pass with ASan/UBSan), `just lint` (`clang-tidy` + docstrings + roadmap linter), `just check` (all pre-commit hooks).
 1. **Milestone Completion & Lesson Extraction**: Explicit protocol triggered upon completion: update status in writeup and `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate a durable lesson in `lessons/` via `lesson-extraction`.
 
+### Section 6: Recommended Reading & External References
+
+Provides curated online literature recommended before and after the goal:
+
+1. **Before Implementation (Conceptual Foundations)**: Authoritative ISO C standards (cppreference), CPython internal documentation (devguide, PEPs), SEI CERT C coding standards, and computer science foundations that the developer must review to understand required data structures, pointer semantics, and memory safety rules before writing code.
+1. **After Implementation (Deep Dives & Systems Context)**: Production runtime source files (CPython, Lua, Linux kernel), systems engineering papers, historical design retrospectives, or comparative VM analyses that contextualize how production systems scale the implemented pattern.
+
 ______________________________________________________________________
 
 ## ✅ Quality Rubric
@@ -136,7 +143,8 @@ Before finalizing a roadmap milestone, verify:
 1. **Difficulty Rating**: Does the milestone define a calibrated `**Difficulty:** <1-5> / 5` consistent with its complexity?
 1. **Enumeration**: Is every list in the roadmap file enumerated (`1.`, `2.`, etc.) rather than bulleted?
 1. **Self-Containment**: Can this milestone be completed and verified on its own without breaking the master build?
-1. **Uniform Format**: Does the milestone match the exact template above, with all 5 numbered sections present?
+1. **Uniform Format**: Does the milestone match the exact template above, with all 6 numbered sections present?
+1. **Curated References**: Does Section 6 provide specific, valid URLs with 1-sentence annotations for both Before and After reading?
 1. **Index & Tier Updated**: Is the milestone registered in `roadmap/README.md` under its difficulty tier and connected with incoming/outgoing edges in the Mermaid DAG?
 1. **Roadmap Linter Passing**: Does `just lint-roadmap` pass with zero errors?
 1. **Single Source of Truth**: Does the root `README.md` link directly to `roadmap/README.md` without duplicating the milestone list?

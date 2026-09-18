@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 2 / 5\
 **Focus:** Instrument the VM with a telemetry stats structure (`gc_stats_t`), tracking total allocations, freed bytes, sweep counts, and live object counts for runtime observability.\
-**Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md)
+**Prerequisites:** [None Immortal Singleton](fc1cc81_none_immortal_singleton.md)
 
 ______________________________________________________________________
 
@@ -78,3 +78,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify that allocating 100 objects and running GC accurately reflects 100 allocations, the exact number of objects swept, and the remaining live count.
 1. **Zero-Leak Guarantee**: Telemetry calls introduce zero heap allocations and produce zero leaks verified via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero errors.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Memory Profiling and Instrumentation Techniques in C](<https://en.wikipedia.org/wiki/Profiling_(computer_programming)>): Techniques for non-intrusive runtime metric collection and memory footprint tracking.
+   - [Python gc.get_stats() Documentation](https://docs.python.org/3/library/gc.html#gc.get_stats): Standard API contracts for exposing collections, allocations, and survivor counts.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [V8 Garbage Collector Telemetry and Metrics](https://v8.dev/blog/trash-talk): How modern enterprise virtual machines instrument allocation rates and pause-time distributions.
+   - [Prometheus Systems Monitoring Guidelines](https://prometheus.io/docs/concepts/metric_types/): Industry best practices for designing counters, gauges, and telemetry structs in systems code.

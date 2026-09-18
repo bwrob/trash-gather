@@ -1,65 +1,86 @@
-# Milestone: Dynamic Slices & Byte Buffers (`slice_t`)
+# Milestone: Non-Owning Sequence Slices & Sub-Views (`slice_t`)
 
 **ID:** `c44db02`\
 **Status:** Planned\
 **Difficulty:** 3 / 5\
-**Focus:** Implement non-owning container sub-views, resizable raw byte buffers, and investigate interior pointer reference tracking in the garbage collector.\
-**Prerequisites:** [NumPy-Style Raw Float Matrix & Strided Views](e67df2f_raw_float_matrix.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md)
+**Focus:** Implement non-owning container sub-views (`slice_t`) over lists, tuples, and byte buffers, mastering zero-copy sub-windowing, offset translation, and garbage collection base reference retention.\
+**Prerequisites:** [Raw Byte Buffer Object (bytes_t)](52fb556_raw_byte_buffer.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md)
 
 ______________________________________________________________________
 
 ## 1. Objective & Technical Scope
 
-1. **Primary Goals**: Implement a resizable raw byte buffer `byte_buffer_t` and non-owning slices `slice_t` representing a sub-window `[offset, offset + length)` over an underlying sequence object (`list_t`, `tuple_t`, `byte_buffer_t`).
-1. **Scope Boundaries**: Strided slices and multi-dimensional tensor sub-views are deferred to numerical runtime milestones.
+1. **Primary Goals**:
+   - Introduce `SLICE` as a first-class `object_kind_t` backed by an embedded `slice_t` payload in `object_data_t`.
+   - Implement `new_slice(object_t *source, int64_t start, int64_t stop, int64_t step)` supporting sequence types (`LIST`, `TUPLE`, `BYTES`).
+   - Implement zero-copy read indexing `slice_get(object_t *slice, int64_t index)` mapping to the corresponding element in the underlying container.
+   - Enforce base container retention: `slice_t` increments `refcount_inc(source)` and marks `source` during GC cycle tracing, guaranteeing the backing buffer remains alive while the slice is reachable.
+   - Hook into `object_len(slice)` returning the logical slice length calculated via standard Python slice arithmetic: $\\max(0, \\lceil(\\text{stop} - \\text{start}) / \\text{step}\\rceil)$.
+1. **Scope Boundaries**:
+   - In-place slice assignments (`seq[a:b] = replacement`) with buffer shifts are deferred to advanced container milestones.
+   - Multidimensional tensor slicing is deferred to numerical computing milestones.
 
 ______________________________________________________________________
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
-   - Slice and byte buffer structures:
+   - Non-owning slice structure:
      ```c
      typedef struct {
-       object_t *source;
-       size_t offset;
-       size_t length;
+         object_t *source; // Underlying sequence container (LIST, TUPLE, BYTES)
+         size_t start;     // Normalized start index
+         size_t stop;      // Normalized stop index
+         int64_t step;     // Stride step (typically 1)
+         size_t length;    // Precomputed element count
      } slice_t;
-
-     typedef struct {
-       size_t size;
-       size_t capacity;
-       uint8_t *data;
-     } byte_buffer_t;
+     ```
+   - Slice Reference Retention Graph:
+     ```
+     Root Variable: my_slice
+     +-----------------------------------------+
+     | object_t                                |
+     | kind: SLICE                             |
+     | data.v_slice:                           |
+     |   source: points to my_list (incref'd)  |
+     |   start: 2, stop: 5, step: 1, length: 3 |
+     +-------------------|---------------------+
+                         |
+                         v
+     +-----------------------------------------+
+     | object_t (LIST: [0, 1, 2, 3, 4, 5, 6])  | (Kept alive by slice!)
+     +-----------------------------------------+
      ```
 1. **Core Systems Invariants**:
-   - Backing container retention invariant: As long as a `slice_t` object is reachable from a root, `slice->source` is reachable and marked.
-   - Bounds invariant: Accessing elements through the slice strictly enforces `index < length`, mapping to `offset + index` on the underlying source.
-   - Reallocation resilience: Storing an `offset` instead of a raw interior pointer prevents pointer invalidation if `byte_buffer_t` resizes via `realloc()`.
-1. **Architectural Trade-offs**: Slices enable zero-copy reads without duplicating buffer memory, but hold the entire backing buffer alive, potentially causing large memory retention for small sub-views.
+   - Backing container retention: While a `slice_t` is reachable, its `source` container is guaranteed to remain valid and alive in memory. Dropping the variable holding the source does not cause a use-after-free in the slice.
+   - Read-only zero-copy: Creating a slice performs zero element copies, requiring only $O(1)$ time and memory.
+   - Bounds mapping invariant: For any $0 \\le i < \\text{length}$, the mapped offset $\\text{start} + i \\times \\text{step}$ is guaranteed to fall strictly within the bounds of `source`.
+1. **Architectural Trade-offs**: Slices provide instant sub-view operations without duplicating huge buffers, but can cause retained memory leaks if a small 1-element slice keeps a 100 MB byte buffer or list alive in the GC.
 
 ______________________________________________________________________
 
 ## 3. Systems Concepts & Guiding Questions
 
-1. **Underlying Theory**: Non-owning borrowed references; interior pointer safety; buffer over-allocation and geometric growth amortized complexity.
+1. **Underlying Theory**: Non-owning views and borrowed references in systems programming (Rust `&[T]`, C++ `std::string_view`, Python memoryview/slice); interior offset mapping; object retention graphs in tracing collectors.
 1. **Socratic Inquiries**:
-   - What is the difference between an offset-based slice and a raw interior pointer in C? Why are true interior pointers much harder for GCs?
-   - What happens to slices if the underlying `byte_buffer_t` reallocates?
-   - What memory retention hazard exists when a small 10-byte slice references a 100MB buffer?
-1. **Failure Modes & Pitfalls**: Out-of-bounds reads; dangling buffer pointers after reallocations; silent retention of massive backing buffers.
+   - Why does Python's `list[1:4]` copy elements into a new list, while Python's `memoryview` creates a non-owning zero-copy view? What are the safety trade-offs of both approaches?
+   - How can you safely normalize negative indices and bounds when `step < 0` (reverse slicing)?
+   - What happens during GC mark phase if `slice->source` is not traced?
+1. **Failure Modes & Pitfalls**: Dangling pointer if `source` is freed while the slice survives; integer division by zero if `step == 0`; subtle off-by-one errors when computing slice lengths.
 
 ______________________________________________________________________
 
 ## 4. Implementation Steps & Touchpoints
 
 1. **Step-by-Step Execution Sequence**:
-   - Define `byte_buffer_t` and `slice_t` in `src/object.h`.
-   - Implement `new_byte_buffer()` and `new_slice()` in `src/new.c` and `src/new.h`.
-   - Implement `slice_get()` and `byte_buffer_append()` in `src/object.c`.
-   - Integrate `SLICE` and `BYTE_BUFFER` into `trace_blacken_object()` in `src/vm.c`.
-   - Integrate decref and payload reclamation in `src/object.c`.
-   - Write unit tests in `tests/test_slice.c`.
+   - Define `slice_t` in `src/object.h`.
+   - Add `SLICE` to `object_kind_t` and `slice_t v_slice;` to `object_data_t` in `src/object.h`.
+   - Implement slice length and index normalization helpers in `src/object.c`.
+   - Implement `new_slice()` in `src/new.c`.
+   - Implement `slice_get()` in `src/object.c`.
+   - Update `object_decref_children` and `object_free_payload` in `src/object.c` to decref `slice->source`.
+   - Update `trace_blacken_object` in `src/vm.c` to trace `slice->source`.
+   - Add comprehensive unit tests in `tests/test_slice.c`.
 1. **File Touchpoints**:
    - `src/object.h`, `src/object.c`
    - `src/new.h`, `src/new.c`
@@ -70,6 +91,18 @@ ______________________________________________________________________
 
 ## 5. Verification & Acceptance Criteria
 
-1. **Unit & Adversarial Tests**: Verify zero-copy slicing over lists, tuples, and byte buffers with boundary edge tests.
-1. **Zero-Leak Guarantee**: Retention test confirms backing buffer survives while slice is rooted, and is fully reclaimed when slice is unrooted with `assert(boot_all_freed())`.
-1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly.
+1. **Unit & Adversarial Tests**: Verify slice creation over lists, tuples, and byte buffers; test forward and step > 1 slicing; test dropped source retaining memory safely under GC cycles; test out-of-bounds index rejection.
+1. **Zero-Leak Guarantee**: Verify full cleanup without memory leaks via `assert(boot_all_freed())`.
+1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
+1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Python Slice Objects and Indices Resolution](https://docs.python.org/3/c-api/slice.html): The C-API specification for evaluating `[start:stop:step]` slice parameters.
+   - [Non-Owning String Views and Buffer Windows](https://en.wikipedia.org/wiki/String_view): Borrowed references, interior offset calculations, and lifetime bounds in systems languages.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [PEP 3118 – Revising the Buffer Protocol](https://peps.python.org/pep-3118/): How Python standardizes zero-copy buffer sharing between strings, bytes, and external views.
+   - [CPython Objects/sliceobject.c Implementation](https://github.com/python/cpython/blob/main/Objects/sliceobject.c): Production mechanics of slice instantiation, bounds clamping, and length evaluation.

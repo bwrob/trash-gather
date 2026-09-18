@@ -1,31 +1,31 @@
-# Milestone: Fixed-Size Object Slab Allocator
+# Milestone: Single-Arena Object Slab Allocator
 
 **ID:** `e10d642`\
 **Status:** Planned\
 **Difficulty:** 2 / 5\
-**Focus:** Implement a high-throughput fixed-size slab allocator for `object_t` instances, eliminating `malloc` header overhead and heap fragmentation via contiguous 64 KB arenas and intrusive free-list threading.\
-**Prerequisites:** [Comprehensive Runtime Source Documentation & Doxygen Annotations](f06ad6f_document_entire_source.md)
+**Focus:** Build a standalone, fixed 64 KB slab arena with intrusive free-list slot threading for `object_t` allocations, eliminating `malloc` header overhead and mastering memory slot reuse without system deallocations.\
+**Prerequisites:** [Object Header Bitflags & Memory Layout](c87f151_object_header_bitflags.md)
 
 ______________________________________________________________________
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**:
-   1. Build a specialized slab allocator for uniform `object_t` instances (`sizeof(object_t)`), bypassing libc `malloc()` per object creation.
-   1. Organize memory into contiguous 64 KB Arenas (`slab_arena_t`) allocated from the OS/heap via a single `malloc()` call per arena.
-   1. Implement an intrusive singly-linked free list: when an `object_t` slot is freed, cast its memory to store a pointer to the next free slot (`void *next_free`), eliminating per-block metadata overhead.
-   1. Support dynamic arena expansion: when an arena's capacity is exhausted, link a new 64 KB arena to the arena chain.
-   1. Integrate with the VM lifecycle: `vm_new()` initializes the slab allocator, and `vm_free()` tears down all arenas in a single pass without individual block deallocation overhead.
+   - Define a fixed 64 KB slab arena structure (`slab_arena_t`) and slot union (`union Slot { object_t object; union Slot *next_free; }`).
+   - Implement standalone arena initialization: allocate a single 64 KB memory block from `boot_malloc()` and thread an intrusive singly-linked free list through all slots.
+   - Implement `slab_alloc(slab_arena_t *arena)` yielding a recycled `object_t*` in $O(1)$ time by popping the free list head.
+   - Implement `slab_free(slab_arena_t *arena, object_t *obj)` returning a slot to the free list in $O(1)$ time by pushing to the free list head.
+   - Implement arena teardown (`slab_arena_free(slab_arena_t *arena)`), deallocating the entire 64 KB arena in a single `boot_free()` call.
 1. **Scope Boundaries**:
-   1. Variable-sized allocations (tuples, strings, list arrays, matrix buffers) continue to use standard `malloc()` in this milestone; multi-size-class pools are deferred to Milestone `7ebcf1a`.
-   1. Returning empty arenas back to the OS during runtime is deferred; arenas persist for the duration of the VM process and are freed at shutdown.
+   - Multi-arena dynamic expansion on exhaustion is deferred to Milestone `f682854_multi_arena_slab_chaining.md`.
+   - Global VM allocator redirection (`new_object()` integration) is deferred to Milestone `f682854_multi_arena_slab_chaining.md`.
 
 ______________________________________________________________________
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
-   - `slab_arena_t` and `object_slab_t` structures:
+   - Slot union and Single Slab Arena:
      ```c
      typedef union Slot {
          object_t object;
@@ -33,93 +33,66 @@ ______________________________________________________________________
      } slot_t;
 
      typedef struct SlabArena {
-         struct SlabArena *next;
-         size_t capacity;
-         size_t allocated_count;
-         slot_t slots[]; // C99 flexible array member
+         size_t capacity;       // Total slots in 64 KB buffer
+         size_t allocated_count; // Currently leased active objects
+         slot_t *free_list;     // Head of singly-linked free slots
+         slot_t slots[];        // C99 flexible array member
      } slab_arena_t;
-
-     typedef struct {
-         slab_arena_t *arenas;
-         slot_t *free_list;
-         size_t total_objects;
-         size_t peak_objects;
-     } object_slab_t;
      ```
-   - Intrusive Free-List Diagram:
+   - Intrusive free-list reuse diagram:
      ```
-     Arena Memory (64 KB Slabs)
-     +---------------------------------------------------------------+
-     | Header: next arena*, capacity, allocated_count                |
-     +---------------------------------------------------------------+
-     | Slot 0: [ ACTIVE object_t (is_marked, refcount, kind, data) ] |
-     +---------------------------------------------------------------+
-     | Slot 1: [ FREE: *next_free --------------------------------+  |
-     +------------------------------------------------------------|--+
-     | Slot 2: [ ACTIVE object_t ]                                |  |
-     +------------------------------------------------------------|--+
-     | Slot 3: [ FREE: *next_free <-------------------------------+  |
-     +---------------------------------------------------------------+
+     Arena: [Header: free_list -> Slot 1]
+     Slot 0: [ ACTIVE object_t ]
+     Slot 1: [ FREE: next_free -> Slot 3 ]
+     Slot 2: [ ACTIVE object_t ]
+     Slot 3: [ FREE: next_free -> NULL ]
      ```
 1. **Core Systems Invariants**:
-   1. **Intrusive Pointer Alignment & Sizing Invariant**: `sizeof(slot_t) == sizeof(object_t)`, and `sizeof(object_t) >= sizeof(void *)` is verified via `_Static_assert` at compile time.
-   1. **Zero Metadata Overhead Invariant**: Every allocated block has 0 bytes of header overhead; its pointer is returned directly to the runtime.
-   1. **O(1) Allocation/Free Invariant**: `slab_alloc()` pops the head of `free_list` in $O(1)$; `slab_free()` pushes the returned slot onto the head of `free_list` in $O(1)$.
-   1. **Total Arena Teardown Invariant**: Upon `vm_free()`, iterating through `arenas` list and freeing each arena frees all active and inactive `object_t` instances with zero memory leaks (`boot_all_freed()`).
-1. **Architectural Trade-offs**:
-   1. **Fast Allocation vs. Coarse Reclamation**: Individual objects are recycled immediately via the free list, but whole arena pages are not returned to the OS until the VM exits.
-   1. **Single-Purpose vs. General Purpose**: Only handles `object_t`, making it exceptionally simple, fast, and cache-friendly, leaving variable payloads for subsequent tiers.
+   - Zero-metadata free slot invariant: When a slot is inactive, its memory stores exclusively `next_free` pointer bytes. Active objects never contain intrusive pointers.
+   - Capacity bounds: Leased slots must satisfy $0 \\le \\text{allocated_count} \\le \\text{capacity}$. When $\\text{allocated_count} == \\text{capacity}$, `free_list == NULL` and `slab_alloc` returns `NULL`.
+   - Single-allocation arena invariant: All slots reside contiguously within the 64 KB arena memory block, requiring zero per-slot `malloc` or `free` calls.
+1. **Architectural Trade-offs**: Fixed-size slabs eliminate the 8-to-16 byte glibc malloc header overhead per object and eliminate external heap fragmentation, at the cost of supporting only uniform fixed-size allocations (`sizeof(object_t)`).
 
 ______________________________________________________________________
 
 ## 3. Systems Concepts & Guiding Questions
 
-1. **Underlying Theory**:
-   - Slab Allocation (Bonwick slab allocator): Dedicating contiguous memory slabs to uniform object types to avoid external fragmentation and metadata tax.
-   - Intrusive Data Structures: Embedding list pointers directly inside unused payload memory to achieve zero space overhead for tracking free elements.
-   - Cache Locality & Spatial Prefetching: Contiguous object placement ensures sequential scans (e.g. GC sweep and mark) hit warm cache lines.
+1. **Underlying Theory**: Intrusive data structures; free-list threading through dead memory; memory fragmentation (internal vs external); fixed-size block allocation ($O(1)$ time).
 1. **Socratic Inquiries**:
-   - Why is `sizeof(object_t) >= sizeof(void *)` a strict requirement for intrusive free lists? What would happen on a 64-bit architecture if `object_t` were only 4 bytes?
-   - In standard `malloc`, freeing an object updates chunk boundary tags. How does our slab allocator know the size of a freed block without any headers?
-   - How does contiguous arena storage affect GC mark and sweep throughput compared to pointers scattered randomly across the glibc heap?
-1. **Failure Modes & Pitfalls**:
-   - Double-free corruption: Freeing the same `object_t` pointer twice introduces a cycle in the `free_list`, causing subsequent allocations to hand out aliased pointers.
-   - Pointer provenance violations: Passing a pointer that was not allocated from the slab into `slab_free()`.
-   - Dangling pointer dereference: Accessing an object after pushing its slot onto the `free_list`.
+   - Why can an inactive `object_t` slot safely store a `next_free` pointer inside its own memory without allocating extra metadata?
+   - What is the memory footprint of an intrusive free list when all objects are currently in use?
+   - What happens if a caller calls `slab_free` with a pointer that does not belong to the arena's memory bounds?
+1. **Failure Modes & Pitfalls**: Double-freeing a slot corrupting the intrusive free-list into a circular loop; dereferencing `free_list` when the arena is exhausted; buffer overruns if `sizeof(slot_t)` is calculated incorrectly.
 
 ______________________________________________________________________
 
 ## 4. Implementation Steps & Touchpoints
 
 1. **Step-by-Step Execution Sequence**:
-   1. Create `src/slab.h` and `src/slab.c` declaring `object_slab_t` and functions `slab_init()`, `slab_alloc()`, `slab_free()`, `slab_destroy()`.
-   1. Implement arena allocation (`malloc(sizeof(slab_arena_t) + capacity * sizeof(slot_t))`) and carve unallocated slots into the initial intrusive free list.
-   1. Replace `malloc(sizeof(object_t))` in `src/new.c` with `slab_alloc()`.
-   1. Replace `free(obj)` in `src/object.c` (`object_free`) with `slab_free(obj)`.
-   1. Hook `slab_init()` into `vm_new()` and `slab_destroy()` into `vm_free()` in `src/vm.c`.
+   - Create `src/slab.h` declaring `slot_t`, `slab_arena_t`, `slab_arena_new`, `slab_arena_free`, `slab_alloc`, and `slab_free`.
+   - Create `src/slab.c` implementing arena initialization, intrusive free-list linking, allocation, and deallocation.
+   - Implement pointer boundary validation helper `static inline bool arena_contains(slab_arena_t *arena, void *ptr)`.
+   - Write comprehensive unit tests in `tests/test_slab.c` verifying sequential allocations, free-list recycling, and exhaustion handling.
 1. **File Touchpoints**:
-   - `src/slab.h`: Declare slab types and API.
-   - `src/slab.c`: Slab implementation.
-   - `src/vm.h`, `src/vm.c`: VM integration.
-   - `src/new.c`: Object allocation route.
-   - `src/object.c`: Object deallocation route.
-   - `tests/test_slab.c`: Adversarial tests for slab capacity, reuse, and leak tracking.
+   - `src/slab.h`, `src/slab.c`
+   - `tests/test_slab.c`
 
 ______________________________________________________________________
 
 ## 5. Verification & Acceptance Criteria
 
-1. **Unit & Adversarial Tests**:
-   1. Allocate $N$ objects, free all of them, verify that re-allocating $N$ objects reuses the exact same pointers in reverse or LIFO order.
-   1. Allocate across multiple arena boundaries (e.g. allocating 2,000 objects when an arena holds 1,000) and verify seamless expansion.
-   1. Verification under GC cycle collection: ensure `vm_collect_garbage()` recycles unreferenced objects back into the slab's `free_list`.
-   1. Allocation failure injection: verify graceful cleanup when `malloc` fails during arena expansion.
-1. **Zero-Leak Guarantee**:
-   1. Complete teardown via `slab_destroy()` leaves zero bytes allocated, verified by `assert(boot_all_freed())`.
-1. **Tooling Quality Gates**:
-   1. 100% pass in `just test` with ASan/UBSan.
-   1. 100.00% line coverage across `src/slab.c` in `just coverage`.
-   1. `just lint` clean.
-1. **Milestone Completion & Lesson Extraction**:
-   1. Update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`.
-   1. Document educational takeaways on slab allocation and intrusive free lists in `lessons/` per the `lesson-extraction` skill.
+1. **Unit & Adversarial Tests**: Verify allocating all slots until exhaustion; verify free-list recycling by allocating, freeing, and re-allocating; verify out-of-bounds pointer rejection in debug builds.
+1. **Zero-Leak Guarantee**: Full teardown via `slab_arena_free()` leaves zero memory leaks under `assert(boot_all_freed())`.
+1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
+1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [The Slab Allocator: An Object-Caching Kernel Memory Allocator (Bonwick)](https://people.eecs.berkeley.edu/~kubitron/cs262/handouts/papers/bonwick.pdf): The seminal paper introducing fixed-size slab memory caching and eliminating malloc fragmentation.
+   - [Intrusive Data Structures and Embedded Free Lists](https://www.data-structures-in-practice.com/intrusive-linked-lists/): Threading singly-linked free pointers through inactive memory blocks without metadata overhead.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [Linux Kernel SLAB/SLUB Memory Allocator](https://www.kernel.org/doc/gorman/html/understand/understand011.html): How the Linux kernel implements slab caches for uniform kernel objects.
+   - [CPython Objects/obmalloc.c Pool Architecture](https://github.com/python/cpython/blob/main/Objects/obmalloc.c): How Python manages fixed-size allocation pools and intrusive free-list slot recycling.

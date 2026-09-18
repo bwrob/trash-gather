@@ -66,3 +66,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify valid negative access (`seq[-1]`, `seq[-size]`), edge bounds (`seq[-size - 1]` rejected), and positive bounds (`seq[size]` rejected) across both lists and tuples.
 1. **Zero-Leak Guarantee**: Negative index mutation (`list_set(list, -1, val)`) properly manages reference counts without leaks via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Two's Complement Integer Representation in C](https://en.wikipedia.org/wiki/Two%27s_complement): Binary representation of signed negative integers and behavior of sign extension.
+   - [SEI CERT C INT31-C: Signed to Unsigned Conversion](https://wiki.sei.cmu.edu/confluence/display/c/INT31-C.+Ensure+that+unsigned+integer+operations+do+not+wrap): Preventing subtle security vulnerabilities when converting negative signed offsets to unsigned size_t.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython listobject.c Index Normalization](https://github.com/python/cpython/blob/main/Objects/listobject.c): Exact production logic used by CPython to validate and normalize positive and negative offsets.
+   - [PySequence_GetItem API Reference](https://docs.python.org/3/c-api/sequence.html#c.PySequence_GetItem): Official C-API specifications for sequence index resolution, bounds checking, and IndexError emission.

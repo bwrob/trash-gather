@@ -73,3 +73,14 @@ ______________________________________________________________________
 1. **Unit & Adversarial Tests**: Verify that creating a weakref does not prevent immediate refcount deallocation when the target's only strong reference is dropped; verify that `weakref_deref()` returns `None` after the target is collected; verify that weak references break cycles between two objects.
 1. **Zero-Leak Guarantee**: All weak reference instances, targets, and registry entries are cleanly tracked and freed with zero memory leaks via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings under ASan/UBSan.
+
+______________________________________________________________________
+
+## 6. Recommended Reading & External References
+
+1. **Before Implementation (Conceptual Foundations)**:
+   - [Weak Reference Semantics in Managed Runtimes](https://en.wikipedia.org/wiki/Weak_reference): Non-owning pointer handles observing target objects without prolonging lifetime.
+   - [Python weakref Module Specification](https://docs.python.org/3/library/weakref.html): Language specification for dead referee notifications and weak reference dereferencing.
+1. **After Implementation (Deep Dives & Systems Context)**:
+   - [CPython Objects/weakrefobject.c Source Walkthrough](https://github.com/python/cpython/blob/main/Objects/weakrefobject.c): How CPython maintains a doubly-linked list of weak references inside referee headers.
+   - [Weak Reference Lifecycles in Tracing Collectors](https://gchandbook.org/): Ordering phases between reachability analysis, weak reference clearing, and finalizer execution.
