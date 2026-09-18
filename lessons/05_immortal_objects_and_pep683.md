@@ -3,7 +3,7 @@
 **Branch:** `none-immortal-singleton` (Merged in PR #5)\
 **Focus:** Implementing zero-allocation immortal singletons (`None` and `()`) via PEP 683 refcount immunity, C17 linkage semantics, and cyclic GC bypass.
 
-______________________________________________________________________
+______
 
 ## 1. System Engineering & Core Concepts
 
@@ -50,7 +50,7 @@ void refcount_dec(object_t *obj) {
 
 Because the refcount is pinned to `SIZE_MAX`, it is never modified. Immortals achieve complete immunity from destruction without requiring special-case branching at the call site.
 
-______________________________________________________________________
+______
 
 ## 2. Pitfalls, Failure Modes & Diagnosis
 
@@ -65,7 +65,7 @@ const size_t OBJECT_IMMORTAL_REFCOUNT = SIZE_MAX;
 
 While this compiles cleanly in C++, it triggers fatal link-time failures under ISO C17:
 
-```
+```text
 duplicate symbol '_OBJECT_IMMORTAL_REFCOUNT' in:
     bin/new.o
     bin/object.o
@@ -110,12 +110,14 @@ for (size_t i = 0; i < vm->objects->count; i++) {
 Because `None` and `()` are housed in `vm->immortals` and excluded from `vm->objects`, if the GC marking or tracing phase sets `obj->is_marked = true` on singletons, `sweep()` never clears the flag! The singletons remain permanently marked across all future GC cycles.
 
 - **Architectural Solution**: Immortal objects must **bypass cyclic GC marking entirely**:
+
   ```c
   if (obj_ == NULL || object_is_immortal(obj_)) continue;
   ```
+
   Immortals never enter the `gray_objects` stack, never have their `is_marked` bit written to, and never consume GC traversal cycles.
 
-______________________________________________________________________
+______
 
 ## 3. Architectural Solutions & Mental Models
 
@@ -157,17 +159,19 @@ refcount_dec(lst);
 assert_true(boot_checkpoint_all_freed(cp));
 ```
 
-______________________________________________________________________
+______
 
 ## 4. Tooling Insights & Workflow Takeaways
 
 1. **Empirical Zero-Allocation Verification**:
    Using `boot_total_alloc_count()`, unit tests now mathematically prove that accessing `new_none()` or `new_tuple_0()` does not allocate:
+
    ```c
    size_t allocs_before = boot_total_alloc_count();
    object_t *n = new_none();
    assert_size(boot_total_alloc_count(), ==, allocs_before);
    ```
+
 1. **Verified Fault Injection**:
    Using `boot_fail_alloc_triggered()`, every allocation failure test verifies that `bootlib` actually intercepted and rejected an allocation, preventing silent false-positive tests.
 1. **Persistent OOM Simulation**:

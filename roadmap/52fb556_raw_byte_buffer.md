@@ -6,7 +6,7 @@
 **Focus:** Implement a Python `bytes`/`bytearray` inspired flat contiguous `uint8_t` byte buffer object (`bytes_t`) supporting geometric buffer growth, byte-level mutation, and hexadecimal serialization.\
 **Prerequisites:** [Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -21,13 +21,14 @@ ______________________________________________________________________
    - Non-owning slice views over byte buffers are deferred to Milestone `c44db02_dynamic_slices_and_byte_buffers.md`.
    - File stream I/O using byte buffers is handled in Milestone `402c62c_binary_heap_serialization.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Contiguous byte buffer layout:
-     ```
+
+     ```text
      object_t
        [kind = BYTES]
        [data.v_bytes]
@@ -35,13 +36,14 @@ ______________________________________________________________________
           capacity: 8
           data: -------------> uint8_t[8]: [0xDE, 0xAD, 0xBE, 0xEF, x, x, x, x]
      ```
+
 1. **Core Systems Invariants**:
    - Capacity bounds: $0 \\le \\text{size} \\le \\text{capacity}$ must hold after every write or append operation.
    - Reallocation safety: Reallocation must never leak the existing buffer if memory allocation fails.
    - Exclusive payload ownership: `bytes->data` is owned exclusively by the `BYTES` object and deallocated via `boot_free()` in `object_free_payload()`.
 1. **Architectural Trade-offs**: Storing raw unboxed `uint8_t` bytes avoids the 40-byte overhead of wrapping each individual byte into an `INTEGER` object, achieving optimal density for binary data.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -52,7 +54,7 @@ ______________________________________________________________________
    - Why is memory density so critical when processing binary network streams or image buffers?
 1. **Failure Modes & Pitfalls**: Signedness bugs when casting between `char` and `uint8_t`; integer overflow on capacity calculation; buffer overruns on negative index write operations.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -68,7 +70,7 @@ ______________________________________________________________________
    - `src/new.h`, `src/new.c`
    - `tests/test_bytes.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -77,7 +79,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

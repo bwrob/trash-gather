@@ -6,19 +6,20 @@
 **Focus:** Eliminate the tagged union by adopting offset-0 base header embedding (`PyObject` style), achieving single-allocation objects and eliminating union memory bloat.\
 **Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Replace the tagged union architecture with CPython-style offset-0 struct inheritance, unifying headers and flexible item payloads into a single contiguous allocation per object.
 1. **Scope Boundaries**: Associative containers and hash tables are deferred to Milestone 09.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Base header struct:
+
      ```c
      typedef struct Object {
        object_kind_t kind;
@@ -27,7 +28,9 @@ ______________________________________________________________________
        size_t refcount;
      } object_t;
      ```
+
    - Concrete variable-sized tuple struct:
+
      ```c
      typedef struct {
        object_t base;
@@ -35,12 +38,13 @@ ______________________________________________________________________
        object_t *items[];
      } tuple_object_t;
      ```
+
 1. **Core Systems Invariants**:
    - Offset-0 guarantee (C99 §6.7.2.1): A pointer to any concrete object (`tuple_object_t *`, `int_object_t *`) can be safely cast to `object_t *` without pointer arithmetic.
    - Internal bloat elimination: Primitive objects allocate only their required fields (~32 bytes for integers vs ~96 bytes in tagged unions).
 1. **Architectural Trade-offs**: Variable allocation sizes complicate memory management and can induce heap fragmentation, but reduce total heap memory consumption by 60–70% for primitive-dense workloads.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -50,7 +54,7 @@ ______________________________________________________________________
    - What allocator strategy (e.g. CPython's `obmalloc` size-class pools) is needed when objects vary in size?
 1. **Failure Modes & Pitfalls**: Unaligned struct accesses; incorrect pointer casts; allocator external fragmentation.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -66,7 +70,7 @@ ______________________________________________________________________
    - `src/vm.h`, `src/vm.c`
    - `tests/`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -74,7 +78,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: `assert(boot_all_freed())` verifies zero leaks with single-allocation objects.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

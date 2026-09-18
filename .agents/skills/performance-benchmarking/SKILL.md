@@ -12,7 +12,7 @@ This skill defines the methodology, workload profiles, and best practices for cr
 
 As an AI agent, you are explicitly authorized to create and maintain benchmarks in `bench/` (Role 3 in `AGENTS.md`) to provide empirical data on architectural trade-offs.
 
-______________________________________________________________________
+______
 
 ## 🎯 Core Objectives
 
@@ -21,7 +21,7 @@ ______________________________________________________________________
 1. **Realistic Workloads**: Design benchmarks reflecting real-world access patterns (transient churn, deep trees, cyclic clusters, varying retention ratios).
 1. **Zero Compiler Tricks**: Prevent dead-code elimination using `benchmark::DoNotOptimize`.
 
-______________________________________________________________________
+______
 
 ## 📐 Benchmark Architecture & C/C++ Integration
 
@@ -29,39 +29,15 @@ Benchmarks are written in C++17 utilizing Google Benchmark, linking against the 
 
 ### Structure of a Benchmark File (`bench/bench_gc.cpp`)
 
-```cpp
-#include <benchmark/benchmark.h>
+Benchmark suites must follow the standard Google Benchmark structure defined in the external template:
 
-extern "C" {
-#include "new.h"
-#include "object.h"
-#include "stack.h"
-#include "vm.h"
-}
+- **Template Path**: [resources/benchmark_template.cpp](./resources/benchmark_template.cpp)
+- **Key Constraints**:
+  - Encapsulate C headers within `extern "C" { ... }`.
+  - Use `state.PauseTiming()` and `state.ResumeTiming()` to isolate setup (`vm_new()`) and teardown (`vm_free()`) from measured operations.
+  - Register benchmarks using the `BENCHMARK(...)` macro and conclude with `BENCHMARK_MAIN()`.
 
-static void BM_Example(benchmark::State &state) {
-  for (auto _ : state) {
-    // 1. Setup phase (paused timing)
-    state.PauseTiming();
-    vm_new();
-    // ... setup data structures ...
-    state.ResumeTiming();
-
-    // 2. Measured phase (active timing)
-    vm_collect_garbage();
-
-    // 3. Teardown phase (paused timing)
-    state.PauseTiming();
-    vm_free();
-    state.ResumeTiming();
-  }
-}
-BENCHMARK(BM_Example);
-
-BENCHMARK_MAIN();
-```
-
-______________________________________________________________________
+______
 
 ## 🔬 Standard Benchmark Workload Profiles
 
@@ -93,7 +69,7 @@ When benchmarking the runtime or evaluating new data structures, implement acros
 - **Goal**: Quantifies cycle collector pause latency when resolving isolated multi-node cyclic meshes vs. linear objects.
 - **Pattern**: Construct rings of arrays ($A \\rightarrow B \\rightarrow C \\rightarrow A$) unrooted, measure cycle detection and sweep latency.
 
-______________________________________________________________________
+______
 
 ## 🛠️ Execution & Profiling Workflow
 
@@ -107,7 +83,7 @@ All benchmarks are orchestrated via `just`:
 | `./bin/bench_runner --benchmark_repetitions=5`    | Run multiple iterations for statistical significance                |
 | `./bin/bench_runner --benchmark_out=results.json` | Export results to JSON for comparison                               |
 
-______________________________________________________________________
+______
 
 ## 📊 Analyzing Benchmark Results
 

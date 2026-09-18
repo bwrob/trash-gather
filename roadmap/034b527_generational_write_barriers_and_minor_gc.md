@@ -6,7 +6,7 @@
 **Focus:** Implement the remembered set for old-to-young cross-generational pointers, instrument container mutations with write barriers, and execute lightning-fast minor garbage collections (`vm_collect_minor`) targeting only the young nursery.\
 **Prerequisites:** [Dual-Generation Tracking & Survivor Promotion](01be152_generational_garbage_collection.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -20,13 +20,14 @@ ______________________________________________________________________
    - Card table bit arrays (for large heap page boundaries) are deferred to advanced generational tuning.
    - Multi-threaded concurrent write barriers are an explicit non-goal.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Old-to-Young Pointer and Remembered Set:
-     ```
+
+     ```text
      Gen 1 (Mature)                  Gen 0 (Nursery)
      +-------------------+           +-------------------+
      | Mature Dict (A)   | --------> | Young String (B)  |
@@ -38,6 +39,7 @@ ______________________________________________________________________
      | [ Dict A, ... ]   |
      +-------------------+
      ```
+
    - Minor Collection Root Set:
      $$\\text{Minor Roots} = \\text{Active Stack Frame Roots} \\cup \\text{Remembered Set (Gen 1 } \\rightarrow \\text{ Gen 0)}$$
 1. **Core Systems Invariants**:
@@ -46,7 +48,7 @@ ______________________________________________________________________
    - Deduplication invariant: An object in the remembered set must not be processed multiple times in the same minor GC pass.
 1. **Architectural Trade-offs**: Minor collections reduce GC pause times from linear in total heap size ($O(N\_{\\text{heap}})$) to linear in nursery size ($O(N\_{\\text{nursery}})$), at the expense of a slight CPU branch penalty on every container pointer mutation.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -57,7 +59,7 @@ ______________________________________________________________________
    - When can an object be safely removed from the remembered set?
 1. **Failure Modes & Pitfalls**: Missing a write barrier on an obscure mutation path (e.g. `list_insert` or `dict_set`) leading to catastrophic premature collection of live young objects; remembered set bloat if objects are not cleared when references are overwritten.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -73,7 +75,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_generational.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -82,7 +84,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

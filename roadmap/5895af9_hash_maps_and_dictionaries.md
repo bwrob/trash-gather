@@ -6,7 +6,7 @@
 **Focus:** Implement an associative key-value dictionary (`dict_t`) using open addressing with linear probing, key hash caching, equality verification, and bidirectional GC key/value marking on fixed-capacity tables.\
 **Prerequisites:** [Object Hashing Protocol & Bitwise Hash Mixing](8782a4d_object_hashing_protocol.md), [Rich Comparisons & In-Place List Sorting](3f1132d_rich_comparisons_and_sorting.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -21,13 +21,14 @@ ______________________________________________________________________
    - Tombstone-based deletion and dynamic table growth/rehashing are deferred to Milestone `e883213_dict_tombstone_deletion_and_rehashing.md`.
    - CPython-style split table compact dictionaries are deferred to advanced optimization milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Fixed-capacity open addressing hash table:
-     ```
+
+     ```text
      dict_t
        capacity: 8 (power of two)
        count: 2
@@ -39,6 +40,7 @@ ______________________________________________________________________
      [3] OCCUPIED: key="age", val=30, hash=0x19B2...
      [4..7] EMPTY
      ```
+
    - Bitwise index masking:
      $$\\text{slot} = \\text{hash} \\ & \\ (\\text{capacity} - 1)$$
 1. **Core Systems Invariants**:
@@ -47,7 +49,7 @@ ______________________________________________________________________
    - Ownership transfer: Setting a key/value increments reference counts (`refcount_inc(key)` and `refcount_inc(val)`). Replacing an existing key's value decrements the old value's reference count.
 1. **Architectural Trade-offs**: Open addressing with linear probing has superior CPU cache locality compared to separate chaining (linked lists per bucket), but requires keeping load factors moderate ($\\le 0.70$) to prevent clustering.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -58,7 +60,7 @@ ______________________________________________________________________
    - How does reference cycle detection behave when a dictionary contains a self-referential cycle?
 1. **Failure Modes & Pitfalls**: Infinite loops during probe search if the table becomes completely full without resizing; failing to decref old values on key overwrite; forgetting to trace keys in GC marking.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -76,7 +78,7 @@ ______________________________________________________________________
    - `src/vm.c`
    - `tests/test_dict.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -85,7 +87,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

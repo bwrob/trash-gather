@@ -6,14 +6,14 @@
 **Focus:** Establish professional C development, sanitizers, leak tracking, formatting, and pre-commit tooling from day one.\
 **Prerequisites:** None
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Establish a modern C systems programming environment with `just`, AddressSanitizer (ASan), UndefinedBehaviorSanitizer (UBSan), `bootlib` leak tracking, `clang-format`, `clang-tidy`, `uv`, `ruff`, `pyrefly`, and pre-commit hooks.
 1. **Scope Boundaries**: Runtime feature implementation (garbage collection algorithms and object types) is deferred to subsequent milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
@@ -23,7 +23,7 @@ ______________________________________________________________________
    - Strict agent boundary invariant: AI assistants must never create, modify, or delete files within `src/`.
 1. **Architectural Trade-offs**: Adopting rigorous CI and static analysis from day one introduces initial configuration overhead, but eliminates entire classes of subtle memory corruption bugs before they compound.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -33,7 +33,7 @@ ______________________________________________________________________
    - How does `bootlib` programmatic verification (`assert(boot_all_freed())`) differ from post-process leak checking?
 1. **Failure Modes & Pitfalls**: Uncaught use-after-free, buffer overflows, memory leaks, and POSIX symbol collisions.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -50,7 +50,7 @@ ______________________________________________________________________
    - `scripts/lint_docstrings.py`
    - `.github/workflows/ci.yml`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -58,7 +58,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Test cases conclude with `assert(boot_all_freed())` confirming 100% reclamation.
 1. **Tooling Quality Gates**: `just check`, `just lint`, and `just test` pass cleanly on macOS and CI.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

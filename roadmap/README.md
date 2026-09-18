@@ -6,7 +6,7 @@ Rather than scattered, parallel tracks, the learning journey is modeled as **one
 
 Every milestone is identified by a **stable 7-character hexadecimal hash ID** (`<hash>_<slug>.md`) and calibrated with a **Difficulty Level from 1 (entry) to 5 (expert)**.
 
-______________________________________________________________________
+______
 
 ## 🗺️ Unified Pedagogical Dependency Graph
 
@@ -185,7 +185,7 @@ flowchart TD
   Tier4 ~~~ Tier5
 ```
 
-______________________________________________________________________
+______
 
 ## 📚 Milestone Progression Index
 
@@ -231,7 +231,7 @@ ______________________________________________________________________
    - **Prerequisites:** [`f9c475f`](f9c475f_heap_allocated_variable_length_tuple.md)
    - **Focus:** Implement the `None` singleton object, protect it against GC sweep deallocation (immortality), and use it for uninitialized slots and default returns.
 
-______________________________________________________________________
+______
 
 ### Tier 1: Foundational Ergonomics & Singletons (Difficulty 1)
 
@@ -275,7 +275,7 @@ ______________________________________________________________________
    - **Prerequisites:** [`f9c475f`](f9c475f_heap_allocated_variable_length_tuple.md)
    - **Focus:** Introduce variadic constructors (`new_tuple_pack`, `new_list_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors and mastering variadic unpacking and cleanup safety.
 
-______________________________________________________________________
+______
 
 ### Tier 2: Intermediate Arithmetic, Telemetry & Slabs (Difficulty 2)
 
@@ -375,7 +375,7 @@ ______________________________________________________________________
    - **Prerequisites:** [`330a2b1`](330a2b1_gc_telemetry_and_metrics.md)
    - **Focus:** Build an ASCII pointer graph visualizer that renders live root frames, object topologies, reachable structures, and unreachable cyclic islands in the terminal.
 
-______________________________________________________________________
+______
 
 ### Tier 3: Advanced Views, Iterators, Pacing & Pools (Difficulty 3)
 
@@ -459,7 +459,7 @@ ______________________________________________________________________
    - **Prerequisites:** [`4911b8b`](4911b8b_dynamic_string_builder.md), [`bf0a981`](bf0a981_cycle_safe_string_repr.md)
    - **Focus:** Serialize and deserialize heap object graphs to and from binary files using standard C streams (`FILE*`, `fwrite`, `fread`), mastering binary file format layouts, magic headers, endianness awareness, and stream error handling.
 
-______________________________________________________________________
+______
 
 ### Tier 4: CPython Hierarchy, Collections & PyMalloc (Difficulty 4)
 
@@ -503,7 +503,7 @@ ______________________________________________________________________
    - **Prerequisites:** [`7ebcf1a`](7ebcf1a_size_class_pool_allocator.md)
    - **Focus:** Implement a full CPython-style PyMalloc allocator featuring 4 KB page alignment, $O(1)$ pool header recovery via address bitmasking (`ptr & ~0xFFF`), and arena address boundary verification.
 
-______________________________________________________________________
+______
 
 ### Tier 5: Expert Closures, Generational GC & Tooling (Difficulty 4-5)
 

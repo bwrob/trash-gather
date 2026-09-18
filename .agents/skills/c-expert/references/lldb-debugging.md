@@ -2,7 +2,7 @@
 
 This guide provides a runbook for debugging the C runtime, memory corruption, and AddressSanitizer (ASan) errors using LLDB and the project's test runner.
 
-______________________________________________________________________
+______
 
 ## 1. Quickstart & Launching LLDB
 
@@ -20,7 +20,7 @@ just debug test_alloc_fail
 
 LLDB will load the test binary and pause at the prompt `(lldb)`. Type `r` (or `run`) to execute.
 
-______________________________________________________________________
+______
 
 ## 2. Essential LLDB Commands for C Runtimes
 
@@ -131,7 +131,7 @@ Watchpoints halt execution the **exact instant** a variable or memory address is
 (lldb) p local_ptr
 ```
 
-______________________________________________________________________
+______
 
 ## 3. Diagnosing AddressSanitizer (ASan) Reports
 
@@ -166,7 +166,7 @@ When ASan traps an error under `just test`, run `just debug <filter>` to pinpoin
   1. Run `(lldb) bt 20` to see if the stack repeats the same 2-3 functions.
   1. Inspect the cycle: `p obj`, `p obj->v_tuple->items[0]`.
 
-______________________________________________________________________
+______
 
 ## 4. Leak Hunting with `bootlib`
 

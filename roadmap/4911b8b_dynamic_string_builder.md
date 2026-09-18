@@ -6,7 +6,7 @@
 **Focus:** Build an amortized dynamic byte/string buffer (`string_builder_t`) supporting `sb_append()`, `sb_append_format()`, and `sb_build()`, mastering `snprintf` sizing semantics, geometric buffer growth, and safe null-termination guarantees.\
 **Prerequisites:** [Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -20,13 +20,14 @@ ______________________________________________________________________
    - Cycle-safe recursive object representation is deferred to Milestone `bf0a981_cycle_safe_string_repr.md`.
    - Dynamic slicing and views are handled in Milestone `c44db02_dynamic_slices_and_byte_buffers.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - String builder heap layout:
-     ```
+
+     ```text
      +-------------------------------------------------+
      | string_builder_t                                |
      |  size_t length    (e.g., 5)                     |
@@ -40,13 +41,14 @@ ______________________________________________________________________
      | H | e | l | l | o | \0 | x | x | x | x | x | x | x | x | x | x |
      +---+---+---+---+---+----+---+---+---+---+---+---+---+---+---+---+
      ```
+
 1. **Core Systems Invariants**:
    - Null-termination invariant: `buffer[length] == '\0'` must hold at all times, and `capacity > length` (capacity must always include room for the trailing null byte).
    - `snprintf` sizing invariant: Use the return value of `vsnprintf` (which returns the number of characters that would have been written, excluding `\0`) to detect truncation and resize the buffer to exact required capacity.
    - Ownership handover: Calling `sb_build()` moves the underlying `char *buffer` out of the builder or allocates a compact copy, ensuring no double-free or dangling references when `sb` is discarded.
 1. **Architectural Trade-offs**: Dynamic growth amortizes reallocation cost across many small string concatenations, eliminating the quadratic copy overhead ($O(N^2)$) of naive repeated `strcat` / `strdup`.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -57,7 +59,7 @@ ______________________________________________________________________
    - Why must you use `va_copy` if you need to run `vsnprintf` twice (once to measure length, once to format into the resized buffer)?
 1. **Failure Modes & Pitfalls**: Off-by-one errors forgetting space for the terminating null character (`capacity < length + 1`); failing to call `va_end` on copies made with `va_copy`; passing an un-reallocated buffer when `vsnprintf` indicates truncation.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -70,7 +72,7 @@ ______________________________________________________________________
    - `src/string_builder.h`, `src/string_builder.c`
    - `tests/test_string_builder.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -79,7 +81,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

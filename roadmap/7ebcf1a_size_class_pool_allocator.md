@@ -6,7 +6,7 @@
 **Focus:** Implement a multi-size-class pool allocator (PyMalloc Lite) that categorizes small allocations (16–256 bytes) into discrete size classes and dedicated 4 KB pools, falling back to system malloc for larger requests.\
 **Prerequisites:** [Multi-Arena Dynamic Chaining & VM Runtime Integration](f682854_multi_arena_slab_chaining.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -20,12 +20,13 @@ ______________________________________________________________________
    1. Address-based bitmask pool header recovery without passing size to `free()` is deferred to Milestone `a929415`. Sized deallocation `pool_free(ptr, size)` is explicitly used in this step.
    1. Cross-arena pool migration and memory compaction are non-goals.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Data structures:
+
      ```c
      #define POOL_SIZE 4096
      #define ARENA_SIZE 65536
@@ -46,8 +47,10 @@ ______________________________________________________________________
          slab_arena_t *arenas;
      } pool_allocator_t;
      ```
+
    - Pool Hierarchy Diagram:
-     ```
+
+     ```text
      Arena (64 KB)
      +---------------------------------------------------------------+
      | Pool 0 (4 KB)  | Dedicated to 32-byte blocks                  |
@@ -56,6 +59,7 @@ ______________________________________________________________________
      | ...            | Unassigned / free pools                      |
      +---------------------------------------------------------------+
      ```
+
 1. **Core Systems Invariants**:
    1. **Size-Class Rounding Invariant**: Any requested size $S \\le 256$ is deterministically mapped to the smallest size class $C \\ge S$.
    1. **Intrusive Block Invariant**: Free blocks within a pool store a pointer to the next free block in their own unallocated memory (`*(void **)block = pool->free_list`).
@@ -65,7 +69,7 @@ ______________________________________________________________________
    1. **Internal Fragmentation vs. Memory Efficiency**: Small objects round up to the nearest size class (e.g. 18 bytes uses a 32-byte block), but completely eliminate the 16-byte `malloc` header tax and external fragmentation.
    1. **Sized Deallocation**: Requiring `size` on `pool_free(ptr, size)` avoids complex alignment logic in this intermediate step while delivering full multi-pool performance.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -81,7 +85,7 @@ ______________________________________________________________________
    - Size mismatch on free: Passing the wrong size to `pool_free(ptr, size)`, causing the block to be inserted into the free list of the wrong size class.
    - Pool exhaustion without arena expansion: Failing to allocate a new arena when all current pools are occupied.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -96,7 +100,7 @@ ______________________________________________________________________
    - `src/new.c`, `src/object.c`: Variable payload allocation routing.
    - `tests/test_pool.c`: Unit and stress tests across all size classes.
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -114,7 +118,7 @@ ______________________________________________________________________
    1. Update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`.
    1. Document educational takeaways on segregated size-class pool design in `lessons/` per the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

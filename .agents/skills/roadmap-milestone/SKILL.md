@@ -12,7 +12,7 @@ This skill defines the process, structure, and quality standards for creating, u
 
 In this learning project, complex systems engineering challenges (like moving to variable-sized objects, generational collection, or Python-style tuples) must be decomposed into small, incremental, verifiable milestones. Every milestone must be self-contained, testable, and preserve a passing test suite at every step.
 
-______________________________________________________________________
+______
 
 ## 🎯 Milestone Creation Triggers
 
@@ -22,7 +22,7 @@ Activate this skill and create or update roadmap milestones when:
 1. **Planning Architectural Refactors**: Structuring breaking changes into non-breaking, intermediate phases.
 1. **Milestone Progression**: Marking completed milestones, refining upcoming steps based on lessons learned, or adjusting future milestones.
 
-______________________________________________________________________
+______
 
 ## 🧭 Guiding Philosophy: Single Tiered DAG & Incrementalism
 
@@ -39,7 +39,7 @@ ______________________________________________________________________
 1. **Zero-Regression Invariant**: Every milestone must keep existing tests passing (`just test`, `boot_all_freed()`, `just lint`, `just check`).
 1. **Socratic Integration**: Milestones provide guiding questions, invariant checklists, and architectural boundaries rather than handing over ready-made snippets for `src/`.
 
-______________________________________________________________________
+______
 
 ## 📁 File Naming & Indexing
 
@@ -57,35 +57,25 @@ ______________________________________________________________________
    - **Scaffolding**: Run `just new-milestone <slug> "[Title]" [difficulty]` to automatically compute the deterministic 7-character sha256 hash ID and instantiate the template in `roadmap/<hash>_<slug>.md`.
    - **Linting**: Run `just lint-roadmap` to validate hash integrity, metadata presence (including difficulty), 5-section schema compliance, link validity, and Mermaid DAG representation. This check runs automatically in `just lint` and `just check`.
 
-______________________________________________________________________
+______
 
 ## 📄 Standalone Template Reference
 
-The reference template file is stored at:
+The authoritative reference template file is stored at:
 
-- `resources/template.md`
+- **Template Path**: [resources/template.md](./resources/template.md)
 
 All milestone writeups must be strictly aligned with this template schema.
 
-______________________________________________________________________
+______
 
 ## 📝 Detailed Goal Writeup Format Specification
 
-Every milestone file in `roadmap/` must follow this exact 5-section schema:
+Every milestone file in `roadmap/` must follow the 6-section schema defined in [resources/template.md](./resources/template.md):
 
 ### Header & Metadata Block
 
-```markdown
-# Milestone: <Milestone Title>
-
-**ID:** `<hash_id>`
-**Status:** Planned | In Progress | Completed
-**Difficulty:** <1-5> / 5
-**Focus:** <1-2 sentence core technical objective summarizing the engineering goal>
-**Prerequisites:** [<Milestone Title>](<hash_id>_<slug>.md) | None
-
-______________________________________________________________________
-```
+Milestone metadata (ID, Status, Difficulty, Focus, Prerequisites) must strictly adhere to the layout in [resources/template.md](./resources/template.md).
 
 ### Section 1: Objective & Technical Scope
 
@@ -133,7 +123,7 @@ Provides curated online literature recommended before and after the goal:
 1. **Before Implementation (Conceptual Foundations)**: Authoritative ISO C standards (cppreference), CPython internal documentation (devguide, PEPs), SEI CERT C coding standards, and computer science foundations that the developer must review to understand required data structures, pointer semantics, and memory safety rules before writing code.
 1. **After Implementation (Deep Dives & Systems Context)**: Production runtime source files (CPython, Lua, Linux kernel), systems engineering papers, historical design retrospectives, or comparative VM analyses that contextualize how production systems scale the implemented pattern.
 
-______________________________________________________________________
+______
 
 ## ✅ Quality Rubric
 

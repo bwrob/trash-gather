@@ -3,7 +3,7 @@
 **Branch:** `polymorphic-sequence-length`
 **Focus:** Implementing the polymorphic sequence protocol (`object_len`), understanding C `const` qualifiers and pointer contracts, avoiding preprocessor macro comma pitfalls in unit tests, and unifying runtime API namespacing.
 
-______________________________________________________________________
+______
 
 ## 1. System Engineering: The Polymorphic Sequence Protocol
 
@@ -13,7 +13,7 @@ In dynamically typed languages like Python, built-in functions such as `len()` e
 
 In pure ISO C17 without runtime virtual method tables (vtables), this runtime polymorphism is modeled via **tagged union discriminator matching**:
 
-```
+```text
 object_len(const object_t *obj)
         │
         ├── obj == NULL   ───────► -2 (NULL pointer error)
@@ -37,7 +37,7 @@ To provide fine-grained diagnostics and defensive safety across platforms, `obje
 - **`-2`**: `NULL` object pointer argument error.
 - **`-3`**: Corrupted or unrecognized object kind discriminator.
 
-______________________________________________________________________
+______
 
 ## 2. Deep Dive: `const` Qualifiers and Pointer Contracts
 
@@ -45,7 +45,7 @@ ______________________________________________________________________
 
 In C, `const` is a type qualifier that establishes compiler-checked read-only contracts. When applied to pointers, its meaning depends strictly on its position relative to the asterisk (`*`):
 
-```
+```text
       const object_t        *        const        obj
       ──────────────        ─        ─────        ───
       Pointee Data          *       Pointer    Identifier
@@ -72,7 +72,7 @@ In C's type system:
 
 Declaring `int64_t object_len(const object_t *obj)` guarantees that both mutable and immutable objects can have their lengths queried without compiler warnings.
 
-______________________________________________________________________
+______
 
 ## 3. Pitfalls & Preprocessor Traps
 
@@ -93,12 +93,15 @@ Because the C preprocessor expands macros before lexical analysis, any comma out
 **Solutions:**
 
 1. **Explicit Index Assignment**:
+
    ```c
    object_t *items[6];
    items[0] = i; items[1] = f; items[2] = s;
    items[3] = i; items[4] = f; items[5] = s;
    ```
+
 1. **Parenthesized Compound Literals**:
+
    ```c
    object_t *items[] = {(i), (f), (s), (i), (f), (s)};
    ```
@@ -110,7 +113,7 @@ In ISO C17 (§6.9.1 ¶12), reaching the closing brace of a value-returning funct
 - Always include an explicit `default: return -1;` or place `return -1;` after the switch block.
 - This guarantees defense against corrupt or out-of-range discriminator values (e.g. `(object_kind_t)999`).
 
-______________________________________________________________________
+______
 
 ## 4. Architectural Cohesion: API Namespacing
 
@@ -126,7 +129,7 @@ int64_t   object_len(const object_t *obj);
 
 In C libraries without C++ namespaces or language-level modules, prefixing public API functions with their domain struct name (`object_*`, `list_*`, `vm_*`) prevents symbol collisions when linking against third-party libraries or the standard library.
 
-______________________________________________________________________
+______
 
 ## 5. Tooling Takeaways & Verification
 

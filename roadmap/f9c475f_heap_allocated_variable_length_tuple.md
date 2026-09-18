@@ -6,25 +6,27 @@
 **Focus:** Implement Python-style arbitrary-length immutable tuples via heap-allocated `tuple_t` with a C99 flexible array member, contiguous allocation math, and GC lifecycle integration.\
 **Prerequisites:** [Hybrid Reference Counting & Cycle Collection Runtime](393f420_hybrid_gc_runtime.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Replace the fixed 3-element tuple representation with an arbitrary-capacity, heap-allocated `tuple_t` payload using a C99 flexible array member (struct hack), implement `new_tuple(size_t size)`, and integrate into GC tracing and sweeping.
 1. **Scope Boundaries**: Eliminating the tagged union and unifying `object_t` with the tuple payload into a single allocation is deferred to Milestone 04.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Contiguous payload structure:
+
      ```c
      typedef struct {
        size_t size;
        object_t *items[];
      } tuple_t;
      ```
+
    - In `object_data_t`, `v_tuple` is stored as a pointer (`tuple_t *v_tuple`), preserving uniform `sizeof(object_t)`.
 1. **Core Systems Invariants**:
    - Allocation math invariant: Payload size is computed as $\\text{sizeof(tuple_t)} + \\text{size} \\times \\text{sizeof(object_t\*)}$.
@@ -32,7 +34,7 @@ ______________________________________________________________________
    - Reclamation invariant: Sweeping a dead `TUPLE` must invoke `free(obj->data.v_tuple)` inside `object_free_payload()` prior to deallocating the parent `object_t`.
 1. **Architectural Trade-offs**: Storing `tuple_t *` as a pointer in `object_data_t` requires two allocations per tuple, but avoids altering the uniform `object_t` size and tracking infrastructure.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -43,7 +45,7 @@ ______________________________________________________________________
    - How does the runtime handle allocation failure rollback if `new_object` succeeds but `malloc(payload)` fails?
 1. **Failure Modes & Pitfalls**: Uninitialized slot dereferences during GC tracing; memory leaks on failed allocation paths; integer overflow during size multiplication.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -61,7 +63,7 @@ ______________________________________________________________________
    - `src/vm.c`
    - `tests/test_new.c`, `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -69,7 +71,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Confirm `assert(boot_all_freed())` passes at the end of all test cases.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass with zero errors.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

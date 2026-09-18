@@ -6,7 +6,7 @@
 **Focus:** Introduce variadic constructors (`new_tuple_pack`, `new_list_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors (`new_tuple_1`, `new_tuple_2`, `new_tuple_3`) and mastering variadic unpacking and cleanup safety.\
 **Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -18,13 +18,14 @@ ______________________________________________________________________
    - Keyword argument packing (dictionaries) is deferred to Milestone `5895af9_hash_maps_and_dictionaries.md`.
    - Formatted string packing is handled in Milestone `4911b8b_dynamic_string_builder.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Variadic argument stack traversal:
-     ```
+
+     ```text
      Caller Frame:
        [count = 3]  [ptr_arg1]  [ptr_arg2]  [ptr_arg3]
            |             |           |           |
@@ -32,13 +33,14 @@ ______________________________________________________________________
            v                         v
      new_tuple_pack:             va_arg(args, object_t*) -> element slots
      ```
+
 1. **Core Systems Invariants**:
    - Argument type safety: Every variadic argument passed up to `count` must be an `object_t*`.
    - Cleanup invariant on allocation failure: If tuple allocation or element tracking fails midway through unpacking, already unpacked elements must have their reference counts decremented to avoid leaks before returning `NULL`.
    - `va_end` pairing: Every `va_start` invocation must be strictly paired with a corresponding `va_end` before the function returns on all control flow branches.
 1. **Architectural Trade-offs**: Variadic functions in C sacrifice compile-time argument type checking in exchange for flexible, ergonomic constructors. Strict count parameters and defensive NULL assertions mitigate runtime type mismatches.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -49,7 +51,7 @@ ______________________________________________________________________
    - How does Python's `(*args)` unpacking compare to C's `va_list`?
 1. **Failure Modes & Pitfalls**: Passing an incorrect argument count leading to stack reads of garbage memory; omitting `va_end` on early error exits; failing to clean up reference counts if an allocation fails mid-construction.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -64,7 +66,7 @@ ______________________________________________________________________
    - `src/new.h`, `src/new.c`
    - `tests/test_tuple.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -73,7 +75,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

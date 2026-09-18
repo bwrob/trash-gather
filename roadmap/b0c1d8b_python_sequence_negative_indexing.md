@@ -6,24 +6,26 @@
 **Focus:** Support signed integer offsets (`int64_t`) across list and tuple accessors, enabling Python-style negative indexing with robust bounds validation.\
 **Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Update `list_get()`, `list_set()`, and `tuple_get()` to accept signed integer indices (`int64_t`), allowing negative indices where `-1` maps to the last element, `-2` to the second-to-last, etc.
 1. **Scope Boundaries**: Full slice syntax (`seq[start:stop:step]`) is deferred to Milestone 11 (Dynamic Slices).
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Index translation logic:
-     ```
+
+     ```text
      For a sequence of length N:
        Index:   0    1    2   ...   N-1
        Negative: -N -(N-1) ...   -2    -1
      ```
+
    - Normalization formula:
      $$\\text{normalized} = \\begin{cases} \\text{idx} & \\text{if } \\text{idx} \\ge 0 \\ \\text{size} + \\text{idx} & \\text{if } \\text{idx} < 0 \\end{cases}$$
 1. **Core Systems Invariants**:
@@ -32,7 +34,7 @@ ______________________________________________________________________
    - Const-correctness: Negative index reading does not mutate the sequence header or element pointers.
 1. **Architectural Trade-offs**: Switching accessor signatures from unsigned `size_t` to signed `int64_t` simplifies user ergonomics and mirrors Python, while requiring explicit underflow checks to guard against sign-conversion bugs.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -43,7 +45,7 @@ ______________________________________________________________________
    - Why do Python programmers consider `seq[-1]` an essential language idiom?
 1. **Failure Modes & Pitfalls**: Implicit unsigned conversion causing wild out-of-bounds heap reads; buffer overruns on negative write operations; off-by-one errors on boundary indices `0` and `-size`.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -59,7 +61,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -67,7 +69,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Negative index mutation (`list_set(list, -1, val)`) properly manages reference counts without leaks via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

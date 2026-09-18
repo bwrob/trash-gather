@@ -12,7 +12,7 @@ This skill defines the methodology, patterns, and verification requirements for 
 
 The goal of adversarial testing is not merely to confirm happy paths, but to actively probe edge cases, break assumptions, expose use-after-free bugs, and guarantee 100% leak-free execution.
 
-______________________________________________________________________
+______
 
 ## 🤝 Symbiosis with the `c-expert` Skill
 
@@ -26,7 +26,7 @@ Adversarial testing does not operate in a vacuum. Every test pattern in this ski
 
 Whenever designing tests, review the corresponding domain section in `c-expert` to identify every memory invariant and formulate tests that attempt to violate it.
 
-______________________________________________________________________
+______
 
 ## 🎯 Core Principles
 
@@ -36,7 +36,7 @@ ______________________________________________________________________
 1. **Atomic Micro-Loop Delivery**: When collaborating on multi-operation milestones (e.g. `append` $\\to$ `insert` $\\to$ `pop`), tests must be written and delivered incrementally in lockstep with the active micro-loop. Generate tests strictly targeting the currently implemented function $A$ rather than dumping tests for future functions $B$ or $C$.
 1. **Mandate 100.00% Line Coverage**: Adversarial testing is not complete until every file in `src/` achieves **100.00% line coverage** (`just coverage`). Every defensive guard, NULL check, allocation rollback, and error path must be actively stimulated and verified by a test in `tests/`. No uncovered lines are permitted.
 
-______________________________________________________________________
+______
 
 ## 🔬 Adversarial Test Categories & Patterns
 
@@ -51,16 +51,7 @@ ______________________________________________________________________
 `bootlib` provides an allocation failure injector: `boot_set_fail_alloc_after(N)`.
 
 - Use this to simulate heap exhaustion during VM initialization, stack frame expansion, or object constructors.
-- **Pattern**:
-  ```c
-  for (int i = 0; i <= 4; i++) {
-    boot_set_fail_alloc_after(i);
-    vm_new();
-    assert_null(vm_get_current());
-  }
-  // Always verify that aborted allocations do not leak memory:
-  assert(boot_all_freed());
-  ```
+- **Implementation Pattern**: Iterate through allocation thresholds and assert zero heap leaks upon failure (see runnable probe in [resources/test_template.c](./resources/test_template.c)).
 
 ### 3. Reference Counting & Cycles
 
@@ -88,7 +79,20 @@ Whenever code allocates or transforms a sequence of $N$ objects in a loop:
 - **Arbitrary Creation Order**: Allocate children before containers and containers before children. Ensure `vm_free()` and `sweep()` do not suffer from order-of-destruction `heap-use-after-free` (the Single-Pass Deallocation Trap).
 - **Tracker ID Invariant**: After `vm_collect_garbage()`, verify that surviving objects in `CURRENT_VM->objects` have their `obj->tracker_id` re-synchronized to their new array index following compaction.
 
-______________________________________________________________________
+______
+
+## 📝 Adversarial Test Suite Template
+
+When creating a new test file in `tests/` (e.g. `tests/test_<module>.c`), use the external test skeleton:
+
+- **Template Path**: [resources/test_template.c](./resources/test_template.c)
+- **Included Scaffolding**:
+  - Standard µnit headers and Doxygen file metadata.
+  - Lifecycle reference count parity probes (`refcount_dec` followed by `assert(boot_all_freed())`).
+  - Allocation failure injection loop with `boot_set_fail_alloc_after()`.
+  - Munit test array registration (`MunitTest example_tests[]`).
+
+______
 
 ## 🛠️ Test Execution & Tooling Workflow
 

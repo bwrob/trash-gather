@@ -13,7 +13,7 @@ paths: "**/*.c,**/*.h"
 
 Covers ISO C17 systems programming, language runtimes, virtual machines, garbage collectors, memory safety, and code reviews.
 
-______________________________________________________________________
+______
 
 ## 1. Working Rules & Principles
 
@@ -28,7 +28,7 @@ ______________________________________________________________________
 - **Portability First**: Target ISO C17 (`-std=c17`). Post-C99 syntax (such as anonymous structs/unions or `_Static_assert`) must be conscious, intentional, and portable across GCC, Clang, and MSVC.
 - **Verify Rebuilt Artifacts**: Use instrumented builds (`-fsanitize=address,undefined`) and leak-tracking harnesses (`bootlib`) to guarantee zero memory leaks and zero undefined behavior.
 
-______________________________________________________________________
+______
 
 ## 2. Repo Conventions Outrank This Skill
 
@@ -38,7 +38,7 @@ Always read the repository's `AGENTS.md`, its public headers, and adjacent `.c` 
 - **Socratic Tutoring & Review**: Reviews must use Archimedean inquiries and probing questions to guide the developer to uncover pointer traps, allocation leaks, and GC invariants rather than spoiling the solution with ready-made runtime code.
 - **Project Idioms**: Where repo conventions sanction specific patterns (e.g. `goto cleanup`, custom allocation interceptors, tagged unions), preserve them rather than introducing external restyling.
 
-______________________________________________________________________
+______
 
 ## 3. Core Systems Competencies
 
@@ -64,7 +64,7 @@ ______________________________________________________________________
 - **Bounds Checking**: Always validate container indices against `size` before reading or writing.
 - **No VLAs**: Prohibit Variable-Length Arrays; they are optional in C11/C17 and introduce unbounded stack overflow hazards.
 
-______________________________________________________________________
+______
 
 ## 4. Verification Standard
 
@@ -75,9 +75,17 @@ Every C systems change or review must satisfy:
 1. **Zero-Leak Guarantee**: Memory leak tracking asserts `assert(boot_all_freed())` at the end of all test runs.
 1. **Clang-Tidy & Docs**: Passes static analysis (`just lint-c`) and Doxygen docstring validation (`just lint-docs`).
 
-______________________________________________________________________
+______
 
-## 5. Reference Manuals
+## 5. Structured Review Template
+
+When conducting Post-Green Retrospectives and C Systems Code Reviews (Step 5 of the interactive development loop), format evaluations using the external template:
+
+- **Review Template Path**: [resources/review_response_template.md](./resources/review_response_template.md)
+
+______
+
+## 6. Reference Manuals
 
 Consult these comprehensive guides in [references/](./references/) when writing, auditing, or reviewing:
 

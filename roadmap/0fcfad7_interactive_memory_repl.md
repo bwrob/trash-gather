@@ -6,20 +6,21 @@
 **Focus:** Build an interactive command-line interface (`just run`) for allocating objects, pushing/popping frames, triggering garbage collection passes, and inspecting runtime telemetry in real time.\
 **Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md), [Function Objects & Closures (closure_t)](a0c00e1_closures_and_lexical_environments.md), [Remembered Sets, Write Barriers & Minor Generational GC](034b527_generational_write_barriers_and_minor_gc.md), [Page-Aligned PyMalloc with Bitmask Pool Recovery](a929415_page_aligned_pymalloc.md), [ASCII Heap Visualizer](81a16cb_ascii_heap_visualizer.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Transform the sandbox executable (`src/main.c`, `just run`) into an interactive terminal REPL capable of parsing commands to declare variables (`let x = [1, 2]`), push and pop call frames (`frame push`, `frame pop`), mutate references, invoke garbage collector passes (`gc minor`, `gc major`), display memory telemetry, and render ASCII heap graphs (`graph`, `dump`).
 1. **Scope Boundaries**: Integrates the ASCII pointer graph visualizer from `81a16cb`. Complex scripting grammars, arbitrary expression evaluators, and graphical UIs are intentionally out of scope.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - The REPL maintains a session environment wrapping active stack frames, bound variable symbols, and command buffers:
-     ```
+
+     ```text
      [REPL Command Loop (stdin)]
               │
               ▼
@@ -33,13 +34,14 @@ ______________________________________________________________________
        └── Frame #1 (Local Frame)
              └── var "c" ──> [Dict Obj #3 (rc=1)]
      ```
+
 1. **Core Systems Invariants**:
    - Error recovery invariant: Invalid commands, malformed syntax, or unresolvable variable names must output friendly diagnostics and cleanly abort without corrupting VM state or leaking temporary allocations.
    - Clean exit invariant: Exiting the REPL session (`exit`, `quit`, or EOF) must pop all active stack frames, trigger final deallocations, and cleanly release all command buffers and token records.
    - Root anchoring invariant: Any object instantiated via a REPL command must be registered on an active root frame before subsequent allocations occur, preventing premature cycle sweeps during complex commands.
 1. **Architectural Trade-offs**: Adopting a lightweight line-buffered command parser (`fgets` with deterministic token scanning) avoids heavy parser dependencies while offering immediate, intuitive interactive control over VM internals.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -50,7 +52,7 @@ ______________________________________________________________________
    - Why is registering named variables within a dedicated REPL root table safer than maintaining raw C pointers across user input prompts?
 1. **Failure Modes & Pitfalls**: Unbounded buffer overflows when reading terminal input; memory leaks on aborted commands; dangling object references after popping a frame if the local symbol table is not invalidated.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -66,7 +68,7 @@ ______________________________________________________________________
    1. `src/vm.h`, `src/vm.c`
    1. `tests/test_repl.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -74,7 +76,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Exiting a REPL session after arbitrary valid and invalid commands guarantees zero memory leaks via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings under ASan/UBSan.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

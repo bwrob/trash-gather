@@ -6,7 +6,7 @@
 **Focus:** Transform `list_t` from a fixed-size buffer into a dynamically resizable sequence supporting `list_append()`, `list_insert()`, and `list_pop()` with amortized $O(1)$ geometric growth and overlapping memory shifts via `memmove`.\
 **Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -19,13 +19,14 @@ ______________________________________________________________________
    - Dynamic slicing and sub-views are deferred to `c44db02_dynamic_slices_and_byte_buffers.md`.
    - In-place sorting is deferred to `3f1132d_rich_comparisons_and_sorting.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Resizable `list_t` memory structure:
-     ```
+
+     ```text
      +-----------------------------------------------+
      | list_t                                        |
      |  size_t size        (e.g., 3)                 |
@@ -42,6 +43,7 @@ ______________________________________________________________________
        v   v   v
       [objects]
      ```
+
 1. **Core Systems Invariants**:
    - Capacity invariant: $0 \\le \\text{size} \\le \\text{capacity}$ must hold after every mutation.
    - Pointer safety: Reallocation must use `boot_realloc` (or `boot_malloc` + `memcpy` + `boot_free`). If allocation fails, the original elements buffer must remain untouched and un-leaked.
@@ -49,7 +51,7 @@ ______________________________________________________________________
    - Overlap safety: Element shifting on insertion and deletion must strictly use `memmove()`, never `memcpy()`, because source and destination ranges overlap.
 1. **Architectural Trade-offs**: Pre-allocating capacity trades a small amount of memory overhead for $O(1)$ amortized append performance, avoiding costly heap reallocation on every single insertion.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -60,7 +62,7 @@ ______________________________________________________________________
    - If `realloc()` fails and returns `NULL`, what happens to the existing pointer if you write `list->elements = realloc(list->elements, new_cap)`?
 1. **Failure Modes & Pitfalls**: Storing `realloc` result directly into `list->elements` causing instant memory leaks on allocation failure; off-by-one errors in `memmove` byte count calculations (`count * sizeof(object_t*)`); forgetting `refcount_inc` on appended items leading to premature reclamation.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -77,7 +79,7 @@ ______________________________________________________________________
    - `src/new.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -86,7 +88,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

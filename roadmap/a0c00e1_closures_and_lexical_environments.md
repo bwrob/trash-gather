@@ -6,19 +6,20 @@
 **Focus:** Implement first-class function objects that capture lexical environment scopes, holding references to parent frames and variables beyond their stack lifetimes.\
 **Prerequisites:** [Dictionary Tombstone Deletion & Dynamic Rehashing](e883213_dict_tombstone_deletion_and_rehashing.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Implement first-class callable `closure_t` objects capturing lexical environments (upvalues), transitioning frame lifetime management so captured frames outlive stack popping.
 1. **Scope Boundaries**: Full bytecode virtual machine interpreters are deferred to bytecode engine milestones; closures invoke C function pointers with environment dictionaries.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Closure structure:
+
      ```c
      typedef object_t *(*native_fn_t)(object_t *args);
 
@@ -28,13 +29,14 @@ ______________________________________________________________________
        object_t *env; // Points to an environment dict or captured frame
      } closure_t;
      ```
+
 1. **Core Systems Invariants**:
    - Upvalue retention invariant: Popping a call frame (`vm_frame_pop()`) must not free captured variables if a live closure holds a reference to that scope.
    - Invocation invariant: Calling a closure binds its captured `env` as the parent scope for the newly pushed execution frame.
    - Tracing invariant: The GC mark phase must blacken the closure's captured `env` and all reachable bound variables.
 1. **Architectural Trade-offs**: Hoisting captured stack variables to the heap allows flexible functional programming patterns, but shifts allocation cost from zero-overhead stack frames to garbage-collected heap blocks.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -45,7 +47,7 @@ ______________________________________________________________________
    - What reference cycles can arise between closures and environments (e.g. recursive closures)?
 1. **Failure Modes & Pitfalls**: Dangling pointer access to popped stack frames; cyclic memory retention in recursive closures; incorrect lexical scope resolution.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -63,7 +65,7 @@ ______________________________________________________________________
    - `src/vm.h`, `src/vm.c`
    - `tests/test_closure.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -71,7 +73,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Escaped closure test verifies variables survive frame popping and are 100% reclaimed when closure root is dropped via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

@@ -6,20 +6,21 @@
 **Focus:** Serialize arbitrary objects to human-readable strings (`object_to_string()`), detecting and suppressing recursive loops for cyclic structures (`[...]`), paving the way for the interactive REPL.\
 **Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md), [Cycle Iterator Object](586680e_cycle_iterator_object.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [NumPy-Style Raw Float Matrix & Strided Views](e67df2f_raw_float_matrix.md), [Dynamic String Builder & Safe Formatting](4911b8b_dynamic_string_builder.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Implement `object_to_string(object_t *obj)` returning a dynamically allocated `char *` containing human-readable representations for all object types (`123`, `3.14`, `(1+2j)`, `"hello"`, `None`, `True`, `False`, `[1, 2, 3]`, `(1, "a")`, `<cycle_iterator at 0x...>`, `[[1.0, 2.0], [3.0, 4.0]]`).
 1. **Scope Boundaries**: Terminal colorization and ANSI syntax highlighting are deferred to Milestone 14 (Interactive REPL).
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Recursive formatter using a dynamic string builder buffer:
-     ```
+
+     ```text
      Integer:  "42"
      Float:    "3.14"
      Complex:  "(1+2j)"
@@ -29,13 +30,14 @@ ______________________________________________________________________
      Cycle:    "<cycle_iterator at 0x...>"
      Cyclic:   "[1, 2, [...]]"
      ```
+
 1. **Core Systems Invariants**:
    - Cycle suppression invariant: If a container object is already being visited along the current print callstack, recursion must terminate immediately and emit a cycle indicator (`[...]` for lists, `(...)` for tuples) instead of recursing infinitely.
    - Memory management invariant: The returned string is a standard heap buffer (`malloc`) owned by the caller, who is responsible for calling `free()`.
    - Const-safety invariant: Serializing an object to a string must not mutate its internal data or alter its reference counts.
 1. **Architectural Trade-offs**: Detecting cycles during printing requires tracking an active visitation stack (e.g. a small dynamic pointer array), adding minor tracking overhead during printing while guaranteeing immunity against stack overflow crashes.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -46,7 +48,7 @@ ______________________________________________________________________
    - How can you implement a dynamic string buffer in C using `snprintf` and geometric doubling without buffer overflows?
 1. **Failure Modes & Pitfalls**: Infinite recursion on cyclic structures; buffer overflow on formatting large strings or deep sequences; memory leaks from untracked intermediate string fragments.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -60,7 +62,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -68,7 +70,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Formatted strings freed by tests leave zero leaked bytes confirmed via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

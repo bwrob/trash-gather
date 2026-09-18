@@ -3,7 +3,7 @@
 **Branch:** `original-bootdev-course` (Merged in PR #1)
 **Focus:** Core mechanics of stop-the-world tracing collectors, tri-color reachability invariants, call stack safety via explicit worklists, and precise root management.
 
-______________________________________________________________________
+______
 
 ## 1. System Engineering & Core Concepts
 
@@ -55,7 +55,7 @@ Tracing algorithms categorize all heap objects into three conceptual colors:
 
 In a **Stop-the-World (STW)** collector, mutator (application) execution is completely paused during GC. This guarantees that user code cannot modify pointers behind the collector's back, preserving the Tri-Color Invariant throughout the trace phase without requiring expensive read or write barriers.
 
-______________________________________________________________________
+______
 
 ## 2. Pitfalls, Failure Modes & Diagnosis
 
@@ -89,7 +89,7 @@ void trace_mark_object_recursive(object_t *obj) {
 - **The Failure Mode:** If the sweep phase begins while the gray worklist is non-empty, reachable objects downstream of the remaining gray frontier will still be marked White.
 - **The Result:** The sweep phase frees reachable objects, corrupting active program memory into immediate `heap-use-after-free` crashes.
 
-______________________________________________________________________
+______
 
 ## 3. Architectural Solutions & Mental Models
 
@@ -138,7 +138,7 @@ In pure Mark-and-Sweep, memory management ownership is completely centralized:
 - The VM's global allocation list (`CURRENT_VM->objects`) acts as the single source of truth for all heap memory.
 - Sweeping frees unreachable objects individually via the system allocator (`free()`). While tracking registry slots are compacted via `stack_remove_nulls()`, the underlying heap space is subject to memory fragmentation over time.
 
-______________________________________________________________________
+______
 
 ## 4. Performance & Systems Optimization
 
@@ -157,7 +157,7 @@ ______________________________________________________________________
 - In an iterative gray worklist, popping from the top of the stack results in **Depth-First Search (DFS)** traversal, keeping recently visited parent/child clusters hot in the CPU L1/L2 data cache.
 - Queuing objects into a FIFO worklist would result in **Breadth-First Search (BFS)** traversal, causing wide pointer hops across disjoint heap pages that increase CPU cache misses.
 
-______________________________________________________________________
+______
 
 ## 5. Tooling Insights & Workflow Takeaways
 

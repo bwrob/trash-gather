@@ -6,20 +6,21 @@
 **Focus:** Pre-allocate an immortal static cache of small integer objects (`[-128, 127]`), eliminating heap allocation churn for common numbers and introducing pointer identity semantics.\
 **Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Initialize a lookup table of 256 pre-allocated, immortal `object_t` integer instances spanning `[-128, 127]` during VM initialization; route `new_integer(n)` to return cached pointers when within range; guarantee that garbage collection sweeps never deallocate cached integers; introduce pointer identity testing (`object_is(a, b)`).
 1. **Scope Boundaries**: Arbitrary-precision integers (`bignum`) and floating-point flyweights are explicitly deferred to future numeric milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Array of 256 immortal integer object pointers embedded in `vm_t`:
-     ```
+
+     ```text
      [VM Runtime State]
        └── small_ints[-128..127]
              ├── [-128] ──> [Object: INT -128 (rc=IMMORTAL, marked=1)]
@@ -32,13 +33,14 @@ ______________________________________________________________________
                        ├───> Same Pointer (Pointer Identity: x is y == true)
        var 'y' = 1  ───┘
      ```
+
 1. **Core Systems Invariants**:
    - Immortality invariant: Small integer objects are marked as immortal (`is_immortal = true`), ensuring neither immediate `dec_refcount()` nor `gc_sweep()` can ever free them during program execution.
    - Immutability invariant: Integer payload values within the cache table are strictly read-only and must never be modified after VM boot.
    - Identity consistency invariant: For any two integer allocations `a` and `b` with identical values within `[-128, 127]`, `new_integer(val)` must always return the exact same memory address (`a == b`).
 1. **Architectural Trade-offs**: Static memory footprint (256 objects $\\approx$ 6-8 KB) vs heap allocation churn; because small integers dominate loops, sequence indexing, and arithmetic counters, pre-allocating them eliminates thousands of `malloc`/`free` calls per second.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -49,7 +51,7 @@ ______________________________________________________________________
    - If an immortal integer is placed inside a dead cyclic structure, how should the cycle collector handle it during the mark and sweep phases?
 1. **Failure Modes & Pitfalls**: Forgetting to check the immortal flag during `gc_sweep()`, causing double-free crashes; modifying an integer's value in-place, which silently corrupts all other variables in the runtime sharing that cached pointer.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -67,7 +69,7 @@ ______________________________________________________________________
    1. `src/new.c`
    1. `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -75,7 +77,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Shutting down the VM releases all cached integer objects cleanly with zero remaining allocations, verified via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings under ASan/UBSan.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

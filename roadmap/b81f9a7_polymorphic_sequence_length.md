@@ -6,7 +6,7 @@
 **Focus:** Implement a polymorphic sequence length protocol (`object_len`) unifying length queries across Strings, Lists, and Tuples with $O(1)$ complexity.\
 **Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -19,13 +19,14 @@ ______________________________________________________________________
    - Dynamic user-defined `__len__()` method dispatch on user-defined classes is deferred to object-oriented method lookup milestones.
    - Sequence slicing and index mutation operations are deferred to negative indexing and dynamic slices milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Polymorphic dispatch inspects the discriminator `kind` and accesses container length fields directly without indirection:
-     ```
+
+     ```text
      object_len(const object_t *obj)
              |
              +---> OBJ_STRING -> obj->as.string.length
@@ -36,6 +37,7 @@ ______________________________________________________________________
              |
              +---> Otherwise  -> -1 (type error / non-sequence)
      ```
+
 1. **Core Systems Invariants**:
    - **$O(1)$ Constant-Time Retrieval**: Sequence length must be read directly from pre-computed header fields; strings must never traverse characters with `strlen()`.
    - **NULL Safety**: Passing `NULL` must return `-1` safely without dereferencing invalid memory.
@@ -44,7 +46,7 @@ ______________________________________________________________________
 1. **Architectural Trade-offs**:
    - Tagged union switch dispatch vs vtable indirection: Direct switch dispatch keeps memory overhead to zero bytes per object, optimizes branch prediction for a closed set of primitive types, and avoids function pointer indirection cache misses.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -61,7 +63,7 @@ ______________________________________________________________________
    - Returning `0` on invalid types, causing non-sequences to falsely appear as empty containers to callers.
    - Signed integer overflow if casting an unsigned container size (`size_t`) to `int64_t` without upper-bound validation.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -74,7 +76,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -92,7 +94,7 @@ ______________________________________________________________________
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

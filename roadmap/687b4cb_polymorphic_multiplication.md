@@ -6,7 +6,7 @@
 **Focus:** Implement polymorphic binary multiplication (`multiply`) supporting numeric arithmetic (integer and float) and Python-style sequence repetition (string, list, tuple) with commutative operand ordering.\
 **Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -29,13 +29,14 @@ ______________________________________________________________________
    - Arbitrary-precision bignum arithmetic is deferred to advanced numeric runtime milestones.
    - User-defined class operator overloading (`__mul__` / `__rmul__`) is deferred to object-oriented method lookup milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Polymorphic dispatch branching:
-     ```
+
+     ```text
      multiply(a, b)
        |
        +--> (INTEGER, INTEGER)  -> new_integer(a * b)
@@ -50,8 +51,10 @@ ______________________________________________________________________
        +--> (INTEGER, TUPLE)    -> _repeat_tuple(b, a->data.v_int)
        +--> Otherwise           -> NULL (unsupported operand types)
      ```
+
    - Shallow copy reference sharing in repeated lists (`L = [A, B]`, `L * 2 -> [A, B, A, B]`):
-     ```
+
+     ```text
      Original List:
        elements[0] ----> [ Object A ] (refcount: 1)
        elements[1] ----> [ Object B ] (refcount: 1)
@@ -62,6 +65,7 @@ ______________________________________________________________________
        elements[2] ----> [ Object A ] (refcount: 3)
        elements[3] ----> [ Object B ] (refcount: 3)
      ```
+
 1. **Core Systems Invariants**:
    - **Integer Overflow Protection**: Before computing buffer sizes or allocating payloads (`size_t total = len * count`), callers must verify against multiplication overflow:
      $$\\text{count} > 0 \\land \\text{len} > \\frac{\\text{SIZE_MAX}}{\\text{count}} \\implies \\text{abort / return NULL}$$
@@ -74,7 +78,7 @@ ______________________________________________________________________
    - Shallow copying vs deep copying: Shallow copying matches Python's language semantics and eliminates recursive allocation overhead, but creates shared reference aliasing where mutating an element inside one position is visible at repeated positions.
    - Contiguous tuple sizing: Repeating a variable-length tuple requires computing the exact total size upfront ($\\text{sizeof}(\\text{tuple_t}) + N \\times \\text{count} \\times \\text{sizeof}(\\text{object_t}\*)$) for a single contiguous allocation.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -93,7 +97,7 @@ ______________________________________________________________________
    - Memory leaks on partial allocation failure due to forgotten rollback loops.
    - Missing `refcount_inc()` on repeated items causing double-free and use-after-free bugs when either container is collected.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -116,7 +120,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -137,7 +141,7 @@ ______________________________________________________________________
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

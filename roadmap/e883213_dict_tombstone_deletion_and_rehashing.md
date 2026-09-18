@@ -6,7 +6,7 @@
 **Focus:** Extend the dictionary with tombstone markers for safe key deletion (`dict_del`) without breaking probe sequences, and implement dynamic table growth and full rehashing when load factor $\\alpha > 2/3$.\
 **Prerequisites:** [Fixed-Capacity Hash Table with Linear Probing](5895af9_hash_maps_and_dictionaries.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -19,13 +19,14 @@ ______________________________________________________________________
    - Table shrinking (reducing capacity on massive deletions) is deferred to advanced dictionary optimizations.
    - Ordered dictionaries maintaining insertion order (PEP 468) are deferred to Python collection parity milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Tombstone probe sequence preservation:
-     ```
+
+     ```text
      Before Deletion:
        Slot 1 [Hash A -> "foo"] -> Slot 2 [Collided Hash A -> "bar"] -> Slot 3 [EMPTY]
      Naive Deletion (Broken!):
@@ -33,8 +34,10 @@ ______________________________________________________________________
      Tombstone Deletion (Correct):
        Slot 1 [TOMBSTONE]       -> Slot 2 [Collided Hash A -> "bar"] (Lookup skips Slot 1, finds "bar"!)
      ```
+
    - Dynamic table expansion:
-     ```
+
+     ```text
      Old Table (Cap: 8, Load > 66%):
        [0: Empty] [1: "foo"] [2: Tombstone] [3: "bar"] [4: "baz"] [5: "qux"] ...
                                |
@@ -42,13 +45,14 @@ ______________________________________________________________________
      New Table (Cap: 16):
        [0: Empty] [3: "foo"] [7: "bar"] [11: "baz"] [14: "qux"] ... (Zero tombstones!)
      ```
+
 1. **Core Systems Invariants**:
    - Probe chain continuity: An empty slot (`ENTRY_EMPTY`) terminates a probe sequence, but a tombstone (`ENTRY_TOMBSTONE`) must never terminate a lookup probe sequence.
    - Load factor invariant: The table must resize before the load factor reaches $100%$ ($\\alpha < 0.67$), guaranteeing that an empty slot is always reached to terminate failed lookups in finite steps.
    - Rollback safety on resize failure: If allocating the expanded table buffer fails, the existing table and its contents must remain completely intact and uncorrupted.
 1. **Architectural Trade-offs**: Tombstones solve the probe-chain interruption problem, but accumulate over time, degrading search performance until cleaned up by a rehashing pass.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -59,7 +63,7 @@ ______________________________________________________________________
    - Why do tombstones disappear entirely during dynamic rehashing?
 1. **Failure Modes & Pitfalls**: Inserting duplicate keys by reusing a tombstone slot before finishing the probe check for existing key; infinite loop on lookup if all slots become tombstones; memory leaks during failed rehash allocation.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -74,7 +78,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_dict.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -83,7 +87,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

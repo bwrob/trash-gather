@@ -6,7 +6,7 @@
 **Focus:** Implement a flat row-major 2D float matrix object (`matrix_t`), 2D elementwise get/set accessors with dimension validation, and polymorphic elementwise arithmetic operations.\
 **Prerequisites:** [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -21,13 +21,14 @@ ______________________________________________________________________
    - Strided access, zero-copy transpose (`A.T`), and base buffer retention are deferred to Milestone `eb930e7_strided_matrix_views.md`.
    - Full matrix multiplication ($O(N^3)$ `matmul`) is deferred to Milestone `eb930e7_strided_matrix_views.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Contiguous 2D row-major matrix layout:
-     ```
+
+     ```text
      object_t
        [kind = MATRIX]
        [data.v_matrix]
@@ -35,6 +36,7 @@ ______________________________________________________________________
           cols: 3
           data: -------------> float[6]: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
      ```
+
    - Row-major linear index translation:
      $$\\text{index}(r, c) = r \\times \\text{cols} + c$$
 1. **Core Systems Invariants**:
@@ -43,7 +45,7 @@ ______________________________________________________________________
    - Dimension matching: Binary elementwise addition requires `a->rows == b->rows` and `a->cols == b->cols`. Mismatched dimensions fail safely without memory corruption.
 1. **Architectural Trade-offs**: Flat 1D arrays are cache-friendly and contiguous compared to arrays of pointers (`float**`), eliminating pointer chasing and extra allocations.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -54,7 +56,7 @@ ______________________________________________________________________
    - What happens if `rows * cols` overflows `size_t` during allocation?
 1. **Failure Modes & Pitfalls**: Integer multiplication overflow when computing `rows * cols * sizeof(float)`; 2D indexing off-by-one errors; forgetting to free `data` in `object_free_payload`.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -71,7 +73,7 @@ ______________________________________________________________________
    - `src/new.h`, `src/new.c`
    - `tests/test_matrix.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -80,7 +82,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

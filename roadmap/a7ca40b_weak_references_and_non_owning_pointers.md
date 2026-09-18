@@ -6,20 +6,21 @@
 **Focus:** Implement non-owning pointer handles (`weakref_t`) that observe target objects without preventing GC reclamation, automatically clearing to NULL when the referee is collected.\
 **Prerequisites:** [Full CPython-Style Offset-0 Hierarchy](222f6ce_cpython_offset0_hierarchy.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Introduce the `weakref_t` object type, allowing users to create weak reference handles (`new_weakref(target)`); ensure weak references do not increment the referee's `refcount` or keep it alive during GC mark phase; implement an active weak reference registry in `vm_t`; during `gc_sweep()`, automatically clear (`ref = NULL`) all weak references whose targets are condemned before memory deallocation.
 1. **Scope Boundaries**: Dead-notification callbacks and weak-key/weak-value dictionary collections are deferred to future extensions.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Weak reference wrapper holding a non-owning raw pointer to the target object:
-     ```
+
+     ```text
      [Stack Root]
        ├── var 'wr' ──> [Object: WEAKREF #1] ──(non-owning)──┐
        │                                                     ▼
@@ -30,13 +31,14 @@ ______________________________________________________________________
        [WEAKREF #1] target pointer automatically nulled:
        [Object: WEAKREF #1] ──> target: NULL (returns None on deref)
      ```
+
 1. **Core Systems Invariants**:
    - Non-owning reference invariant: Creating, holding, or copying a `weakref_t` must never increment the referee's `refcount` or mark it as reachable during the mark phase.
    - Safe clearing before deallocation invariant: The GC sweep phase must inspect all registered weak references and clear unmarked targets to `NULL` *before* the target object's memory is released, preventing use-after-free hazards.
    - Registry cleanup invariant: When a `weakref_t` instance itself is deallocated, it must unregister itself from the VM's active weak reference table.
 1. **Architectural Trade-offs**: Maintaining a central registry of active weak references introduces small linear scanning overhead during GC sweep, but provides a 100% safe, dangling-pointer-free non-owning reference abstraction.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -47,7 +49,7 @@ ______________________________________________________________________
    - What happens if user code calls `weakref_deref(wr)` on a weak reference whose target was collected? How does returning `None` prevent undefined behavior?
 1. **Failure Modes & Pitfalls**: Dereferencing a dangling pointer if the weakref is not cleared before target deallocation; marking weakref targets as roots during cycle tracing, which would accidentally resurrect or keep them alive forever.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -66,7 +68,7 @@ ______________________________________________________________________
    1. `src/vm.c`
    1. `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -74,7 +76,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: All weak reference instances, targets, and registry entries are cleanly tracked and freed with zero memory leaks via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero warnings under ASan/UBSan.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 
