@@ -159,13 +159,17 @@ format-c:
 format-c-check:
     find src tests bench include -type f \( -name '*.[ch]' -o -name '*.cpp' \) | xargs uv run clang-format --dry-run --Werror
 
-# Format Markdown documentation and skills with mdformat
+# Format Markdown documentation and skills with rumdl
 format-md:
-    uv run mdformat README.md AGENTS.md lessons roadmap .agents
+    uv run rumdl fmt
 
 # Check Markdown formatting without modifying files
 format-md-check:
-    uv run mdformat --check README.md AGENTS.md lessons roadmap .agents
+    uv run rumdl fmt --check
+
+# Lint Markdown files with rumdl
+lint-md:
+    uv run rumdl check
 
 # Format TOML configuration files using taplo
 format-toml:
@@ -210,8 +214,12 @@ lint-roadmap:
 new-milestone slug title="" difficulty="3":
     uv run python scripts/new_milestone.py {{slug}} "{{title}}" --difficulty {{difficulty}}
 
-# Run static analysis using clang-tidy, docstring linter, roadmap linter, and Python checks
-lint: lint-c lint-docs lint-roadmap lint-py
+# Scaffold a new workspace agent skill with templates and subdirectories
+new-skill name desc="":
+    uv run python .agents/skills/skill-creator/scripts/scaffold_skill.py {{name}} {{ if desc != "" { "--description \"" + desc + "\"" } else { "" } }}
+
+# Run static analysis using clang-tidy, docstring linter, roadmap linter, Python checks, and Markdown linter
+lint: lint-c lint-docs lint-roadmap lint-py lint-md
 
 
 # Install development dependencies via Homebrew Brewfile (macOS)

@@ -6,7 +6,7 @@
 **Focus:** Introduce multi-generation object tracking (Gen 0 Nursery, Gen 1 Mature), survivor age counters on object headers, and automated survivor promotion during full garbage collection sweeps.\
 **Prerequisites:** [Automatic GC Pacing & Allocation Thresholds](eaa403e_automatic_gc_pacing_and_thresholds.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -20,13 +20,14 @@ ______________________________________________________________________
    - Write barriers and minor nursery-only collections are deferred to Milestone `034b527_generational_write_barriers_and_minor_gc.md`.
    - Compacting memory moves are an explicit non-goal.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Segregated generation lists in `vm_t`:
-     ```
+
+     ```text
      vm_t
        +---> gen0_objects: [Newly allocated transient objects]
        |       (Refreshed frequently; high mortality rate)
@@ -34,6 +35,7 @@ ______________________________________________________________________
        +---> gen1_objects: [Long-lived objects & Singletons]
                (Accumulates promoted survivors)
      ```
+
    - Survivor promotion lifecycle:
      $$\\text{Alloc} \\rightarrow (\\text{gen} = 0, \\text{surv} = 0) \\xrightarrow{\\text{Sweep 1}} (\\text{gen} = 0, \\text{surv} = 1) \\xrightarrow{\\text{Sweep 2}} (\\text{gen} = 1, \\text{surv} = 2)$$
 1. **Core Systems Invariants**:
@@ -42,7 +44,7 @@ ______________________________________________________________________
    - Sweep completeness: In this milestone, full collections continue to trace all roots across both generations, guaranteeing no live object is prematurely collected.
 1. **Architectural Trade-offs**: Adding generation and survival counters to headers slightly increases object state, but provides the empirical foundation for generational GC without yet adding the runtime overhead of write barriers.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -53,7 +55,7 @@ ______________________________________________________________________
    - How does segregated list tracking simplify moving objects between generations compared to physical memory compaction?
 1. **Failure Modes & Pitfalls**: Losing an object from tracking during promotion unlinking/re-linking; double counting objects in telemetry; failing to untrack promoted objects when freed.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -69,7 +71,7 @@ ______________________________________________________________________
    - `src/vm.h`, `src/vm.c`
    - `tests/test_generational.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -78,7 +80,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

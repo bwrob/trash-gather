@@ -6,7 +6,7 @@
 **Focus:** Implement an `itertools.cycle`-style circular iterator object that holds a reference to an underlying sequence, cycles through elements indefinitely via modular arithmetic, and integrates with the cycle collector.\
 **Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -23,20 +23,23 @@ ______________________________________________________________________
    - User-defined iterable class protocols (`__iter__` and `__next__` method dispatch) are deferred to object-oriented method lookup milestones.
    - Bounded or step-limited iteration wrappers for infinite streams are deferred to higher-level tooling and REPL evaluation.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Payload definition embedded directly inside `object_data_t`:
+
      ```c
      typedef struct {
        object_t *sequence; /* Owning pointer to target sequence (List or Tuple) */
        size_t index;       /* Current cursor position */
      } cycle_iter_t;
      ```
+
    - Memory layout of `object_t` with `OBJ_CYCLE_ITER`:
-     ```
+
+     ```text
      +-------------------------------------------------------+
      |                       object_t                        |
      +-----------------+-------------------+-----------------+
@@ -55,14 +58,17 @@ ______________________________________________________________________
                               |  (kind: OBJ_LIST/OBJ_TUPLE) |
                               +-----------------------------+
      ```
+
    - Mutual reference cycle topology:
-     ```
+
+     ```text
      +---------------------+           +---------------------+
      |   List Object       |  owns [0] |   Cycle Iterator    |
      |  refcount: 1        | --------> |  refcount: 1        |
      |  elements[0]        | <-------- |  sequence           |
      +---------------------+ owns seq  +---------------------+
      ```
+
 1. **Core Systems Invariants**:
    - **Ownership Balance**: Creating a cycle iterator increments the sequence refcount (`refcount_inc(sequence)`). Freeing the iterator payload releases that reference (`refcount_dec(sequence)`).
    - **Zero Secondary Allocations**: Because `sizeof(cycle_iter_t)` is 16 bytes (identical to `sizeof(list_t)`), it resides by value inside the tagged union `object_data_t`, requiring zero auxiliary heap blocks beyond the `object_t` container itself.
@@ -74,7 +80,7 @@ ______________________________________________________________________
    - Live sequence reference vs snapshot buffer: Capturing a reference to the live container reflects dynamic mutations immediately and requires zero allocation overhead. In contrast, copying elements into an internal buffer would snapshot state but incur $O(N)$ allocation churn and duplicate memory.
    - Inline tagged union storage vs pointer indirection: Storing `cycle_iter_t` inline in `object_data_t` exploits existing union padding, avoids extra `malloc`/`free` calls, and maximizes CPU cache locality during iteration steps.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -92,7 +98,7 @@ ______________________________________________________________________
    - Memory leak if `object_free_payload()` fails to call `refcount_dec(sequence)`.
    - Infinite loops if calling code expects every iterator to eventually return a terminating sentinel.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -112,7 +118,7 @@ ______________________________________________________________________
    - `src/gc.c`
    - `tests/test_object.c`, `tests/test_gc.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -133,7 +139,7 @@ ______________________________________________________________________
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

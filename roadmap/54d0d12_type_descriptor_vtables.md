@@ -6,7 +6,7 @@
 **Focus:** Replace monolithic `switch (obj->kind)` control flow with static type descriptor vtables (`type_spec_t`) holding function pointers for operations (`tp_add`, `tp_len`, `tp_dealloc`), mastering function pointer syntax, callback signatures, and open/closed dispatch tables in C.\
 **Prerequisites:** [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -22,13 +22,14 @@ ______________________________________________________________________
    - Dynamic user-defined classes are deferred to Tier 5.
    - Offset-0 base struct embedding is handled in Milestone `222f6ce_cpython_offset0_hierarchy.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Type descriptor dispatch table:
-     ```
+
+     ```text
      object_t
        [kind = TUPLE] ------------\
                                   v
@@ -41,13 +42,14 @@ ______________________________________________________________________
                         | destructor_t  tp_dealloc = tuple_free |
                         +---------------------------------------+
      ```
+
 1. **Core Systems Invariants**:
    - NULL-slot safety: If a type does not implement an operation (e.g. `FLOAT` has no `tp_len`), the slot is `NULL`. Callers must assert or return a type error before invoking a NULL function pointer.
    - Signature consistency: All implementation functions must strictly match the declared function pointer signatures without requiring unsafe casts.
    - Const-correctness: Type descriptors are static, read-only structures stored in the program text/data segment (`const type_spec_t type_specs[]`).
 1. **Architectural Trade-offs**: Vtable dispatch adds an extra pointer dereference compared to a direct function call, but decouples type implementations into modular, single-responsibility files and eliminates $O(N)$ code sprawl in central switch blocks.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -58,7 +60,7 @@ ______________________________________________________________________
    - What happens if code attempts to jump to a `NULL` function pointer (e.g. `type->tp_len(obj)` when `tp_len == NULL`)?
 1. **Failure Modes & Pitfalls**: Calling a NULL function pointer slot leading to immediate segmentation faults; signature mismatches causing subtle stack corruption on return; compiler warnings from missing `const` qualifiers.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -74,7 +76,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_type.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -83,7 +85,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

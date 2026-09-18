@@ -6,7 +6,7 @@
 **Focus:** Implement a full CPython-style PyMalloc allocator featuring 4 KB page alignment, $O(1)$ pool header recovery via address bitmasking (`ptr & ~0xFFF`), and arena address boundary verification.\
 **Prerequisites:** [Multi-Size-Class Pool Allocator](7ebcf1a_size_class_pool_allocator.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -21,13 +21,14 @@ ______________________________________________________________________
    1. OS-level virtual memory mapping via POSIX `mmap()` or Windows `VirtualAlloc` is deferred to advanced platform modules; portable `malloc()` with alignment offsets is used.
    1. Thread safety and multi-threading locks are non-goals (the VM runtime is single-threaded).
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - 4 KB Aligned Pool Layout:
-     ```
+
+     ```text
      4 KB Boundary (Address: 0x...000)
      +---------------------------------------------------------------+
      | pool_header_t (at exact page base address)                    |
@@ -41,6 +42,7 @@ ______________________________________________________________________
      +---------------------------------------------------------------+
      4 KB Boundary (Address: 0x...000 + 4096)
      ```
+
    - Bitmask Address Lookup:
      Given any pointer `ptr = 0x104000840`:
      $$\\text{pool} = \\text{ptr} \\ & \\ \\sim\\text{0xFFF} = \\text{0x104000000}$$
@@ -53,7 +55,7 @@ ______________________________________________________________________
 1. **Architectural Trade-offs**:
    1. **Alignment Padding vs. Fast Lookup**: Over-allocating arenas by 4 KB wastes a small amount of memory per arena (at most 4095 bytes), but unlocks instantaneous $O(1)$ pool header recovery without any hash table or tree lookups.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -69,7 +71,7 @@ ______________________________________________________________________
    - Misaligned arena base: If an arena is not aligned properly, `ptr & ~0xFFF` will point to the wrong memory, causing catastrophic header corruption.
    - Header clobbering: Carving blocks too close to `pool_header_t` and overwriting header fields when the first block is allocated.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -85,7 +87,7 @@ ______________________________________________________________________
    - `src/vm.h`, `src/vm.c`: Integration with virtual machine.
    - `tests/test_pymalloc.c`: Exhaustive alignment, bitmask recovery, and address boundary tests.
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -104,7 +106,7 @@ ______________________________________________________________________
    1. Update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`.
    1. Document the 4 KB bitmask trick and CPython obmalloc architecture in `lessons/` per the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

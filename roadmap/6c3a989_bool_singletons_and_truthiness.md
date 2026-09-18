@@ -6,7 +6,7 @@
 **Focus:** Implement immortal boolean singleton objects (`True` and `False`), protect them from GC deallocation, introduce polymorphic truthiness evaluation (`object_is_truthy`, `object_to_bool`), and implement short-circuiting iteration predicates (`object_all`, `object_any`).\
 **Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -23,12 +23,13 @@ ______________________________________________________________________
    - Custom user-defined class truthiness hooks (e.g. `__bool__` or `__len__`) are deferred to the object-oriented protocol milestone.
    - Dynamic generator function iteration protocols are deferred to generator runtime milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Object kind discriminator in `object_kind_t`:
+
      ```c
      typedef enum {
        OBJ_INT,
@@ -40,8 +41,10 @@ ______________________________________________________________________
        OBJ_BOOLEAN,
      } object_kind_t;
      ```
+
    - Singleton storage anchored directly in `vm_t`:
-     ```
+
+     ```text
      +-------------------------------------------------------+
      |                         vm_t                          |
      |  +----------------+  +----------------+  +---------+  |
@@ -55,8 +58,10 @@ ______________________________________________________________________
          | refcount: SAT|    | immortal: 1  |  | immortal: 1  |
          +--------------+    +--------------+  +--------------+
      ```
+
    - Predicate short-circuiting control flow:
-     ```
+
+     ```text
      object_all(iterable):
        For each element in iterable:
          if !object_is_truthy(elem) -> RETURN false (short-circuit immediately)
@@ -67,6 +72,7 @@ ______________________________________________________________________
          if object_is_truthy(elem)  -> RETURN true  (short-circuit immediately)
        RETURN false (empty collections return false)
      ```
+
 1. **Core Systems Invariants**:
    - **Singleton Identity**: There exist exactly two boolean instances per VM. `new_bool(vm, true) == new_bool(vm, true)` and `new_bool(vm, false) == new_bool(vm, false)` must hold true via pointer equality (`==`).
    - **GC Sweep Immunity**: Boolean singletons must never be swept or freed by `vm_collect_garbage()`. They are allocated once at VM initialization and released exclusively at `vm_free()`.
@@ -84,7 +90,7 @@ ______________________________________________________________________
    - Interned singletons vs transient heap objects: Allocating dynamic boolean objects per comparison expression causes extreme heap churn and fragmentation. Immortal singletons incur an initial fixed memory footprint but provide zero-allocation boolean creation, cache permanence, and $O(1)$ pointer-identity comparisons.
    - Dedicated C predicates vs higher-order callback functions: Hardcoding `object_all` and `object_any` directly with polymorphic truthiness checks avoids function pointer dispatch overhead, inline loop unrolling hazards, and indirect branching latency in hot loops.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -104,7 +110,7 @@ ______________________________________________________________________
    - Failing to short-circuit in `object_all()` / `object_any()`, causing unnecessary CPU latency or reading through corrupted trailing elements.
    - Misclassifying an empty sequence or empty string as truthy because the pointer itself is non-NULL.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -126,7 +132,7 @@ ______________________________________________________________________
    - `src/gc.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -147,7 +153,7 @@ ______________________________________________________________________
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

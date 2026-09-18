@@ -2,7 +2,7 @@
 
 Explorations in automatic memory management and virtual machine runtime implementation in C.
 
-______________________________________________________________________
+______
 
 ## 💡 Overview
 
@@ -11,9 +11,9 @@ ______________________________________________________________________
 - **Immediate Reference Counting**: Fast, deterministic deallocation for acyclic objects.
 - **Mark-and-Sweep Cycle Collector**: Periodic detection and reclamation of cyclic pointer graphs.
 - **Zero-Leak Guarantee**: Enforced across every test with AddressSanitizer (ASan), UndefinedBehaviorSanitizer (UBSan), and `bootlib` heap tracking.
-- **Modern Tooling from Day One**: Automated linting (`clang-tidy`, `ruff`, `pyrefly`), strict formatting (`clang-format`, `mdformat`), and pre-commit checks.
+- **Modern Tooling from Day One**: Automated linting (`clang-tidy`, `ruff`, `pyrefly`), strict formatting (`clang-format`, `rumdl`), and pre-commit checks.
 
-______________________________________________________________________
+______
 
 ## 🚀 Quickstart
 
@@ -30,7 +30,7 @@ just run
 
 For the complete developer command reference, test filters, benchmarking, and AI pair-programming directives, see **[`AGENTS.md`](AGENTS.md)**.
 
-______________________________________________________________________
+______
 
 ## 🎯 Architecture & Roadmap
 
@@ -38,7 +38,7 @@ The runtime feature progression and systems milestones are organized as a pedago
 
 👉 **[Explore the Roadmap & Dependency Graph (`roadmap/README.md`)](roadmap/README.md)**
 
-______________________________________________________________________
+______
 
 ## 🎓 Origin
 

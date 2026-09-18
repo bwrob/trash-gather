@@ -6,14 +6,14 @@
 **Focus:** Implement immediate Reference Counting alongside Mark-and-Sweep cycle collection, resolving the single-pass deallocation trap and POSIX header collisions.\
 **Prerequisites:** [Learning-Friendly Modern Tooling & Safety Infrastructure](d9c6780_learning_friendly_setup.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Upgrade the Mark-and-Sweep VM to a CPython-style hybrid memory management model, resolve POSIX namespace collisions (de-sneking), and implement a two-phase sweep reclamation pipeline.
 1. **Scope Boundaries**: Arbitrary-length sequence containers are deferred to subsequent milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
@@ -23,7 +23,7 @@ ______________________________________________________________________
    - Namespace hygiene invariant: Avoid leading underscores on non-static functions in C headers to prevent collisions with POSIX/ISO C system headers.
 1. **Architectural Trade-offs**: Hybrid GC adds runtime cost on pointer mutation (`refcount_inc`/`dec`) but enables immediate zero-pause deallocation for acyclic objects, reserving tracing sweeps for cycles.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -33,7 +33,7 @@ ______________________________________________________________________
    - Why is pure reference counting insufficient for self-referencing cycles ($A \\to B \\to A$)?
 1. **Failure Modes & Pitfalls**: Cyclic memory leaks, double-frees during cascading decrefs, and symbol collisions with `<stdio.h>`.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -49,7 +49,7 @@ ______________________________________________________________________
    - `src/stack.h`, `src/stack.c`
    - `tests/test_refcount.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -57,7 +57,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Confirm 100% reclamation via `assert(boot_all_freed())`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass with zero sanitizer warnings.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

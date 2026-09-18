@@ -6,7 +6,7 @@
 **Focus:** Implement non-owning container sub-views (`slice_t`) over lists, tuples, and byte buffers, mastering zero-copy sub-windowing, offset translation, and garbage collection base reference retention.\
 **Prerequisites:** [Raw Byte Buffer Object (bytes_t)](52fb556_raw_byte_buffer.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -20,12 +20,13 @@ ______________________________________________________________________
    - In-place slice assignments (`seq[a:b] = replacement`) with buffer shifts are deferred to advanced container milestones.
    - Multidimensional tensor slicing is deferred to numerical computing milestones.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Non-owning slice structure:
+
      ```c
      typedef struct {
          object_t *source; // Underlying sequence container (LIST, TUPLE, BYTES)
@@ -35,8 +36,10 @@ ______________________________________________________________________
          size_t length;    // Precomputed element count
      } slice_t;
      ```
+
    - Slice Reference Retention Graph:
-     ```
+
+     ```text
      Root Variable: my_slice
      +-----------------------------------------+
      | object_t                                |
@@ -51,13 +54,14 @@ ______________________________________________________________________
      | object_t (LIST: [0, 1, 2, 3, 4, 5, 6])  | (Kept alive by slice!)
      +-----------------------------------------+
      ```
+
 1. **Core Systems Invariants**:
    - Backing container retention: While a `slice_t` is reachable, its `source` container is guaranteed to remain valid and alive in memory. Dropping the variable holding the source does not cause a use-after-free in the slice.
    - Read-only zero-copy: Creating a slice performs zero element copies, requiring only $O(1)$ time and memory.
    - Bounds mapping invariant: For any $0 \\le i < \\text{length}$, the mapped offset $\\text{start} + i \\times \\text{step}$ is guaranteed to fall strictly within the bounds of `source`.
 1. **Architectural Trade-offs**: Slices provide instant sub-view operations without duplicating huge buffers, but can cause retained memory leaks if a small 1-element slice keeps a 100 MB byte buffer or list alive in the GC.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -68,7 +72,7 @@ ______________________________________________________________________
    - What happens during GC mark phase if `slice->source` is not traced?
 1. **Failure Modes & Pitfalls**: Dangling pointer if `source` is freed while the slice survives; integer division by zero if `step == 0`; subtle off-by-one errors when computing slice lengths.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -87,7 +91,7 @@ ______________________________________________________________________
    - `src/vm.c`
    - `tests/test_slice.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -96,7 +100,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

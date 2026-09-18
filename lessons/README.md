@@ -4,7 +4,7 @@ This directory documents the core engineering concepts, architectural trade-offs
 
 As a solo learning project, the primary deliverable is **deep understanding**. Each lesson records what went right, what went wrong, and why certain architectural decisions were made.
 
-______________________________________________________________________
+______
 
 ## Index of Lessons
 

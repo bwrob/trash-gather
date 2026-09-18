@@ -3,7 +3,7 @@
 **Branch:** `tuples-arbitrary-length`
 **Focus:** Memory representation of variable-length composite objects, two-phase allocation rollback, container reference count parity, `realloc` pointer traps, and adversarial test heuristics.
 
-______________________________________________________________________
+______
 
 ## 1. System Engineering: Variable-Length Composite Layouts
 
@@ -24,7 +24,7 @@ While straightforward, fixed structures fail to generalize to language construct
 
 ### Memory Layout: Double Indirection vs. Contiguous Flexible Buffers
 
-```
+```text
 Approach 1: Double Indirection (Separate Buffer)
 +-------------+      +-------------------+
 | tuple_t     | ---> | object_t *elem[N] |
@@ -43,23 +43,27 @@ Approach 2: Contiguous Flexible Buffer (Single Allocation)
    - **Trade-off:** Requires two heap allocations (`malloc` for struct + `malloc` for buffer), introduces pointer chasing and cache misses during iteration, and requires multiple `free` calls during teardown.
 1. **Contiguous Layout (C99 Flexible Array Member):**
    - The struct tail contains an unsized array:
+
      ```c
      typedef struct tuple {
          size_t size;
          object_t *elements[]; // C99 Flexible Array Member
      } tuple_t;
      ```
+
    - Allocated with a single contiguous allocation:
+
      ```c
      tuple_t *t = malloc(sizeof(*t) + (size * sizeof(t->elements[0])));
      ```
+
    - **Trade-off:** Eliminates pointer indirection between the header and elements, guarantees spatial cache locality, and a single `free(tuple)` releases both the header and all element slots.
 
 > [!IMPORTANT]
 > **Allocation Sizing Arithmetic:**
 > When allocating flexible array members, always size element slots using `sizeof(t->elements[0])` (pointer size, typically 8 bytes) rather than `sizeof(object_t)` (struct size, 48 bytes). Sizing against the struct type instead of the pointer element wastes up to $6\\times$ more memory per slot.
 
-______________________________________________________________________
+______
 
 ## 2. The Two-Phase Construction & Allocation Rollback Trap
 
@@ -70,7 +74,7 @@ In a runtime where the VM tracks all allocated objects in an internal registry, 
 1. Allocating the generic object envelope (`object_t`) and registering it with the VM's active object tracker (`vm_track_object(obj)`).
 1. Allocating the specific payload data (e.g., `tuple_t` buffer).
 
-#### The Naive Failure Flow:
+#### The Naive Failure Flow
 
 ```c
 // ANTI-PATTERN: Registration before payload verification
@@ -135,7 +139,7 @@ return obj;
 > **Transactional Construction Rule:**
 > An object must only be registered with the garbage collector's tracking structures once all requisite sub-allocations have succeeded and the object is structurally sound.
 
-______________________________________________________________________
+______
 
 ## 3. Container Ownership, Reference Parity & The `vm_free()` Masking Trap
 
@@ -190,7 +194,7 @@ vm_cleanup_after_refcount(); // Clears tracking array so only refcount drops fre
 assert(boot_all_freed());    // Fails if any child refcount was 2 instead of 1!
 ```
 
-______________________________________________________________________
+______
 
 ## 4. The Classic `realloc` Pointer Overwrite and Double-Free Traps
 
@@ -244,7 +248,7 @@ stack->data[stack->count++] = obj;
 return true;
 ```
 
-______________________________________________________________________
+______
 
 ## 5. Mid-Loop Rollback ($K$-of-$N$) vs. Uninitialized Pointer Traps
 
@@ -288,7 +292,7 @@ if (failure_index < a_len) {
 }
 ```
 
-______________________________________________________________________
+______
 
 ## 6. Defensive Pointer Validation: Containers vs. Elements
 
@@ -300,7 +304,7 @@ When constructing containers from variable-length pointer arrays, API functions 
 object_t *new_tuple(object_t **objects, size_t size);
 ```
 
-#### The Naive Implementation:
+#### The Naive Implementation
 
 ```c
 // BUGGY: Assumes `objects` is non-NULL if size > 0
@@ -323,7 +327,7 @@ Validation must occur in strict logical hierarchy:
 1. If `size > 0 && objects == NULL`, reject immediately (`return NULL;`).
 1. Only once the array pointer is verified valid may individual slots (`objects[i]`) be probed.
 
-______________________________________________________________________
+______
 
 ## 7. Tooling & Testing Heuristics: Beyond the Line Coverage Illusion
 
@@ -338,7 +342,7 @@ A single happy-path test executed every line in the function sequentially (`mall
 
 ### The Obligatory Adversarial Heuristics
 
-To prevent coverage illusions, test generation is governed by three non-negotiable heuristics derived from [`c-expert`](.agents/skills/c-expert/SKILL.md):
+To prevent coverage illusions, test generation is governed by three non-negotiable heuristics derived from [`c-expert`](../.agents/skills/c-expert/SKILL.md):
 
 1. **The Container Lifecycle Probe:** Always test container destruction via `refcount_dec()` with `vm_cleanup_after_refcount(); assert(boot_all_freed())`. Never rely solely on `vm_free()`.
 1. **The $K$-of-$N$ Mid-Loop Probe:** Always construct inputs where element $0$ succeeds and element $1$ fails, verifying early abort and clean unwinding.

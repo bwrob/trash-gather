@@ -1,0 +1,83 @@
+# rumdl configuration file (.rumdl.toml)
+# Strict Markdown linter and formatter configuration for trash-gather.
+
+[global]
+flavor = "gfm"
+respect-gitignore = true
+
+# Files and directories to exclude
+exclude = [
+    ".git",
+    ".github",
+    ".sources",
+    ".temp",
+    ".vscode",
+    ".failures",
+    ".complexipy_cache",
+    ".ruff_cache",
+    ".rumdl_cache",
+    ".venv",
+    "bin",
+    "vendor",
+]
+
+# Files and directories to check
+include = ["README.md", "AGENTS.md", "lessons/**/*.md", "roadmap/**/*.md", ".agents/**/*.md"]
+
+# Rules to disable globally
+# MD013 (line-length): Disabled to support wide ASCII memory diagrams, math formulas, and tables
+disable = ["MD013"]
+
+# Additional opt-in rules to enable
+extend-enable = [
+    "MD055", # Table pipe style
+    "MD056", # Table column count
+    "MD057", # Relative links point to existing files
+    "MD058", # Tables surrounded by blank lines
+    "MD060", # Table columns aligned
+]
+
+# Per-file rule ignores
+[per-file-ignores]
+# Template resources contain placeholder links like [Title](url)
+"**/.agents/**/resources/**" = ["MD057"]
+
+# Rule-specific configurations
+
+[MD003]
+style = "atx"
+
+[MD004]
+style = "dash"
+
+[MD007]
+indent = 2
+
+[MD029]
+style = "one-or-ordered"
+
+[MD033]
+# Allow safe HTML elements used in GitHub Flavored Markdown
+allowed-elements = ["br", "details", "summary", "sub", "sup", "span"]
+
+[MD035]
+# Standardize horizontal rule divider
+style = "______"
+
+[MD046]
+style = "fenced"
+
+[MD048]
+style = "backtick"
+
+[MD049]
+style = "asterisk"
+
+[MD050]
+style = "asterisk"
+
+[MD055]
+style = "leading-and-trailing"
+
+[MD060]
+column-align = "left"

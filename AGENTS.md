@@ -2,7 +2,7 @@
 
 This document defines the strict rules of engagement, operational boundaries, and workflows for any AI coding assistants working in this repository.
 
-______________________________________________________________________
+______
 
 ## 🧭 0. Project Philosophy: Learn with Modern Tooling from Day One
 
@@ -17,14 +17,14 @@ This is a **solo learning project** — not a production codebase or team effort
 - **Safety nets, not bureaucracy**: ASan, UBSan, `bootlib` leak tracking, and adversarial tests catch subtle memory bugs at the moment of creation.
 - **No convenience shortcuts in `src/`**: AI agents write tests, benchmarks, and infrastructure. The human writes the runtime.
 
-______________________________________________________________________
+______
 
 ## 🚫 1. Strict Boundary: NEVER TOUCH `src/`
 
 - **Rule**: AI Agents must **NEVER** create, modify, edit, refactor, or delete any file inside the `src/` directory.
 - **Rationale**: All runtime code, object definitions, container implementations, and garbage collection algorithms in `src/` are written exclusively by the human developer.
 
-______________________________________________________________________
+______
 
 ## 🤖 2. AI Agent Core Roles
 
@@ -63,25 +63,26 @@ ______________________________________________________________________
 
 ### 2.6 Role 6: Milestone Initialization & Readiness (`initialize`)
 
-- **Pre-Flight Readiness Pipeline**: Orchestrates starting a milestone by validating DAG topological fit and prerequisites, framing the concise logic and mathematical inductive invariants ($\\mathcal{I}\_0, \\mathcal{I}_k, \\mathcal{I}_{\\text{rollback}}$), and conducting an interactive systems knowledge pre-check **one question at a time**.
-- **Follow the Skill**: All initialization steps, DAG verification rules, and pre-check protocols are defined in the **`initialize`** skill: \[.agents/skills/initialize/SKILL.md\](file:///Users/bwrob/dev/trash-gather/.agents/skills/initialize/SKILL.md).
+- **Pre-Flight Readiness Pipeline**: Orchestrates starting a milestone by assuring the feature branch, setting milestone status to in progress, presenting the point of the goal and pedagogical learning aims first alongside concise scope, byte-offset memory diagrams, physical silicon mechanics, mathematical inductive invariants ($\\mathcal{I}\_0, \\mathcal{I}_k, \\mathcal{I}_{\\text{rollback}}$), and before-goal foundation references, **unconditionally stopping** to allow developer review, and only conducting the systems pre-check inquiry **one question at a time** in a subsequent turn upon developer response.
+- **Pre-Flight Readiness Pipeline**: Orchestrates starting a milestone by assuring the feature branch, setting milestone status to in progress, presenting the point of the goal and pedagogical learning aims first alongside concise scope, byte-offset memory diagrams, physical silicon mechanics, mathematical inductive invariants ($\mathcal{I}_0, \mathcal{I}_k, \mathcal{I}_{\text{rollback}}$), and before-goal foundation references, **unconditionally stopping** to allow developer review, and only conducting the systems pre-check inquiry **one question at a time** in a subsequent turn upon developer response.
+- **Follow the Skill**: All initialization steps, DAG verification rules, and pre-check protocols are defined in the **`initialize`** skill: [.agents/skills/initialize/SKILL.md](file:///Users/bwrob/dev/trash-gather/.agents/skills/initialize/SKILL.md).
 
 ### 2.7 The Interactive Development & Testing Loop
 
 When pairing on new features or milestones, the collaboration strictly follows this 6-step loop:
 
-0. **Milestone Initialization (`initialize`)**: The AI agent verifies DAG prerequisites, provides a concise logic description with mathematical inductive invariants ($\\mathcal{I}\_0, \\mathcal{I}_k, \\mathcal{I}_{\\text{rollback}}$), explains **what the physical hardware is doing** (CPU word alignment, cache line chunking, bus fetching, MMU page boundaries, memory controllers), and conducts a knowledge pre-check **one question at a time** using `ask_question`. For multi-operation milestones, the work is structured into **Incremental Micro-Loops**.
-1. **Code Must Compile (Incremental Micro-Loops)**: For multi-operation milestones (e.g. `append` $\\to$ `insert` $\\to$ `pop`), development proceeds in incremental micro-loops: implement operation $A$ in `src/` $\\to$ test $A$ $\\to$ achieve green $\\to$ proceed to operation $B$. This avoids large architectural rewrites and allows early insights to inform subsequent functions.
-1. **Adversarial Test Generation (No Clues)**: Once compiling, the AI agent generates unit and adversarial tests in `tests/` without giving reviews, hints, or clues about potential implementation bugs. Test suites MUST actively probe container reference count parity (releasing via `refcount_dec` rather than masking with `vm_free`), mid-loop failure rollbacks ($0 < k < N$), and heap allocation failure sweeps (`boot_set_fail_alloc_after`).
-1. **Developer Debugging & Socratic Triage (LLDB Guidance)**: The human runs the test suite (`just test`), explores test failures, and refines the runtime in `src/` independently. If stuck on ASan/UBSan failures or cryptic memory corruption, the agent assists with Socratic triage and targeted LLDB commands (`just debug`, `watchpoint`, `memory read / x`) per `c-expert/references/lldb-debugging.md` without revealing solutions or touching `src/`.
-1. **Iterative Regeneration to 100% Coverage**: The AI agent writes further stress tests, allocation failure injections, and edge cases until **100.00% line coverage** is achieved across all files in `src/` (`just coverage`).
-1. **Post-Green Retrospective & Code Review**: Only once **all tests pass cleanly** (100% pass rate) AND **100.00% line coverage** is reached under ASan/UBSan and `boot_all_freed()`, agent and developer engage in a structured code review covering:
+0. **Milestone Initialization (`initialize`)**: The AI agent verifies DAG prerequisites and assures the working branch (`milestone/<hash>-<slug>`), updates milestone status to in progress, presents the point of the goal and learning aims, concise scope, byte-offset memory layout, physical hardware mechanics, inductive invariants ($\mathcal{I}_0, \mathcal{I}_k, \mathcal{I}_{\text{rollback}}$), and before-goal references. The agent **unconditionally stops** so the developer can absorb the mental model. Only after the developer responds does the agent conduct the open-ended systems pre-check **one question at a time** without multiple-choice answers (or skip directly to coding if requested).
+1. **Code Must Compile (Incremental Micro-Loops)**: For multi-operation milestones (e.g. `append` $\to$ `insert` $\to$ `pop`), development proceeds in incremental micro-loops: implement operation $A$ in `src/` $\to$ test $A$ $\to$ achieve green $\to$ proceed to operation $B$. This avoids large architectural rewrites and allows early insights to inform subsequent functions.
+2. **Adversarial Test Generation (No Clues)**: Once compiling, the AI agent generates unit and adversarial tests in `tests/` without giving reviews, hints, or clues about potential implementation bugs. Test suites MUST actively probe container reference count parity (releasing via `refcount_dec` rather than masking with `vm_free`), mid-loop failure rollbacks ($0 < k < N$), and heap allocation failure sweeps (`boot_set_fail_alloc_after`).
+3. **Developer Debugging & Socratic Triage (LLDB Guidance)**: The human runs the test suite (`just test`), explores test failures, and refines the runtime in `src/` independently. If stuck on ASan/UBSan failures or cryptic memory corruption, the agent assists with Socratic triage and targeted LLDB commands (`just debug`, `watchpoint`, `memory read / x`) per `c-expert/references/lldb-debugging.md` without revealing solutions or touching `src/`.
+4. **Iterative Regeneration to 100% Coverage**: The AI agent writes further stress tests, allocation failure injections, and edge cases until **100.00% line coverage** is achieved across all files in `src/` (`just coverage`).
+5. **Post-Green Retrospective & Code Review**: Only once **all tests pass cleanly** (100% pass rate) AND **100.00% line coverage** is reached under ASan/UBSan and `boot_all_freed()`, agent and developer engage in a structured code review covering:
    - **Style & Idiomatic C**: Naming consistency, DRY patterns, and formatting clarity.
    - **Memory & Allocation Efficiency**: Correct `sizeof` calculations, cache locality, and buffer sizing.
    - **Simplifications & Robustness**: Eliminating boilerplate, defensive guards, and systems best practices.
    - **Lesson Extraction**: Creating or updating the educational milestone writeup in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 🔧 3. Tooling & Development Workflows
 
@@ -108,14 +109,16 @@ ______________________________________________________________________
 | `just format`                | Format all C/C++ files in-place using `clang-format`                         |
 | `just format-check`          | Check C/C++ formatting compliance without mutating files                     |
 | `just format-py`             | Format Python scripts in-place (`ruff format`)                               |
-| `just format-md`             | Format all markdown files in-place (`mdformat`)                              |
-| `just lint`                  | Run `clang-tidy` static analysis + docstring lint + Python checks            |
+| `just format-md`             | Format all markdown files in-place (`rumdl fmt`)                             |
+| `just lint-md`               | Lint all markdown files (`rumdl check`)                                      |
+| `just lint`                  | Run `clang-tidy` static analysis + docstring lint + Python + Markdown checks |
 | `just lint-c`                | Run `clang-tidy` static analysis on C source files                           |
 | `just lint-py`               | Check Python scripts (`ruff` + `pyrefly`)                                    |
 | `just lint-docs`             | Check Doxygen docstrings across configured dirs                              |
 | `just lint-roadmap`          | Validate roadmap milestone hash IDs, DAG consistency, and markdown links     |
 | `just update-dag`            | Synchronize Mermaid DAG with transitive reduction in `roadmap/README.md`     |
 | `just new-milestone <slug>`  | Scaffold a new roadmap milestone writeup from template                       |
+| `just new-skill <name>`      | Scaffold a new workspace agent skill with templates and subdirectories       |
 | `just check`                 | Run all pre-commit hooks across the entire repo                              |
 | `just build`                 | Compile the main sandbox application binary                                  |
 | `just run`                   | Build and execute the sandbox app                                            |
@@ -134,13 +137,13 @@ ______________________________________________________________________
 
 All commits and pull requests automatically trigger GitHub Actions (`.github/workflows/ci.yml`):
 
-1. **pre-commit** — `ruff`, `pyrefly`, `clang-format`, `mdformat`, Doxygen docstring lint, and unit tests
+1. **pre-commit** — `ruff`, `pyrefly`, `clang-format`, `rumdl`, Doxygen docstring lint, and unit tests
 1. **clang-tidy** — deep static analysis on `src/*.c` (`just lint-c`)
 1. **build** — compile the main sandbox binary (`just build`)
 1. **benchmark build** — verify benchmark compilation (`just bench-build`)
 1. **coverage** — line coverage via `gcov` (`just coverage`)
 
-______________________________________________________________________
+______
 
 ## 🔗 4. Codebase Linking Convention
 
@@ -151,7 +154,7 @@ When referencing files and specific line numbers in agent responses:
   *Example*: `[src/vm.c:134](file:///Users/bwrob/dev/trash-gather/src/vm.c#134)`
 - **Rationale**: In the user's editor environment, `#L<line>` anchors open the file at line 1, whereas numeric `#<line>` anchors jump directly to the target line.
 
-______________________________________________________________________
+______
 
 ## 📜 5. C Language Standard & Code Review Guidelines
 

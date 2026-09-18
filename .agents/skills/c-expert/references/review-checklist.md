@@ -2,7 +2,7 @@
 
 This guide defines the code review checklist and Socratic feedback protocol for C systems code, virtual machines, and garbage-collected runtimes.
 
-______________________________________________________________________
+______
 
 ## 1. The Archimedean / Socratic Review Model
 
@@ -23,7 +23,7 @@ When reviewing code written by the human developer:
 | **Refcount Symmetry**       | *"When `tuple_set()` replaces an existing element at index $I$, does it adjust the refcount of the incoming object? What happens to the refcount of the old object?"* |
 | **Tracing Completeness**    | *"Does `trace_blacken_object()` account for the new object variant? What happens if a cycle is formed through this new type?"*                                        |
 
-______________________________________________________________________
+______
 
 ## 2. 5-Phase Systems Review Checklist
 

@@ -2,7 +2,7 @@
 
 This reference guides the design, implementation, and code review of runtime environments, object models, and garbage collection systems in C.
 
-______________________________________________________________________
+______
 
 ## 1. Object Models & Memory Layout
 
@@ -28,7 +28,7 @@ In managed runtimes (like Python, Lua, or custom VMs), objects typically fall in
    - *Advantages*: Eliminates pointer chasing and cuts allocation count in half.
    - *Trade-off*: Requires size-segregated memory pools or dynamic allocators aware of varying object sizes.
 
-______________________________________________________________________
+______
 
 ## 2. Flexible Array Members (C99 §6.7.2.1)
 
@@ -52,15 +52,17 @@ $$\\text{allocation_size} = \\text{sizeof}(\\text{tuple_t}) + N \\times \\text{s
 ### Correctness Rules
 
 1. **Overflow Safety**: Always check for integer overflow before multiplication:
+
    ```c
    if (size > (SIZE_MAX - sizeof(tuple_t)) / sizeof(object_t *)) {
      return NULL; /* Overflow hazard prevented */
    }
    ```
+
 1. **Slot Safety (Zero Initialization)**: All elements `items[0 .. size-1]` must be explicitly initialized to `NULL` (via `memset`, `calloc`, or explicit loop) immediately upon allocation. Leaving uninitialized pointers causes undefined behavior if GC tracing runs before population.
 1. **Union Invariant**: A struct containing a flexible array member **cannot** appear directly by value inside a `union`. It must be referenced via pointer (`tuple_t *v_tuple`).
 
-______________________________________________________________________
+______
 
 ## 3. Reference Counting & Ownership Contracts
 
@@ -83,7 +85,7 @@ Every function accepting or returning an `object_t*` must declare ownership sema
 
 Reference counting alone **cannot** reclaim cyclic reference graphs (e.g., $A \\to B \\to A$). Any object holding reference cycles will leak unless an auxiliary tracing collector (or cycle detector) breaks or sweeps the cycle.
 
-______________________________________________________________________
+______
 
 ## 4. Tracing & Mark-and-Sweep Integration
 
@@ -115,7 +117,7 @@ During the sweep phase:
 - `free(obj)` releases the object envelope.
 - Marked objects have their mark bit reset to unmarked (white) for the next cycle.
 
-______________________________________________________________________
+______
 
 ## 5. Allocation Failure Rollback (`goto cleanup`)
 

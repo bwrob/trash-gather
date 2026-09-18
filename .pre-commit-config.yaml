@@ -42,9 +42,16 @@ repos:
         pass_filenames: false
         files: \.(c|h|cpp)$
 
-      - id: mdformat
-        name: mdformat
-        entry: uv run mdformat --check README.md AGENTS.md lessons roadmap .agents
+      - id: rumdl-fmt
+        name: rumdl fmt
+        entry: uv run rumdl fmt --check
+        language: system
+        pass_filenames: false
+        files: \.md$
+
+      - id: rumdl-check
+        name: rumdl check
+        entry: uv run rumdl check
         language: system
         pass_filenames: false
         files: \.md$

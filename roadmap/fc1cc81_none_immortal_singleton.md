@@ -6,33 +6,35 @@
 **Focus:** Implement the `None` singleton object, protect it against GC sweep deallocation (immortality), and use it for uninitialized slots and default returns.\
 **Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Implement a singleton object kind `NONE` accessible via `new_none()` (or `vm_get_none()`), mirroring Python's `None` (`Py_None`).
 1. **Scope Boundaries**: Other singleton constants (such as `True` and `False` booleans) are optional extensions following the same pattern.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - New object kind: `NONE` added to `object_kind_t`.
    - Global singleton instance housed in `vm_t`:
+
      ```c
      struct VM {
        ...
        object_t *none_object;
      };
      ```
+
 1. **Core Systems Invariants**:
    - Identity invariant: There exists exactly one `None` object in the runtime; `new_none() == new_none()` always evaluates to `true` (pointer equality).
    - Immortality invariant: The `None` singleton must never be swept or deallocated by `vm_collect_garbage()`. It is created at `vm_new()` and freed only at `vm_free()`.
    - Refcount immunity: Decrefing `None` must never trigger `object_free()`.
 1. **Architectural Trade-offs**: Using a real `None` object rather than raw C `NULL` enables consistent object semantics and method dispatch across all types, but requires special-case immunity in the GC sweep loop.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -43,7 +45,7 @@ ______________________________________________________________________
    - What happens if a user stores `None` inside a list or tuple that is later freed? Should `_refcount_dec(none)` be a no-op?
 1. **Failure Modes & Pitfalls**: The GC sweep loop inadvertently freeing `none_object`, causing a dangling pointer; `new_none()` returning multiple distinct allocations; memory leaks if `none_object` is tracked incorrectly in the VM object array.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -62,7 +64,7 @@ ______________________________________________________________________
    - `src/vm.h`, `src/vm.c`
    - `tests/test_new.c`, `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -70,7 +72,7 @@ ______________________________________________________________________
 1. **Zero-Leak Guarantee**: Running repeated GC collection passes with rooted and unrooted `None` references confirms `assert(boot_all_freed())` upon `vm_free()`.
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero errors.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

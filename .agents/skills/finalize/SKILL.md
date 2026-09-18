@@ -14,7 +14,7 @@ This skill defines the rigorous, automated multi-stage pipeline for finalizing, 
 
 The goal of this skill is to ensure that no code is ever committed, pushed, or opened for review without passing every compiler check, achieving 100.00% line coverage, satisfying memory safety invariants, leaving behind durable educational documentation, and verifying continuous integration pipelines.
 
-______________________________________________________________________
+______
 
 ## 🛑 Strict Operational Invariants
 
@@ -22,7 +22,7 @@ ______________________________________________________________________
 1. **Never Merge Without Explicit Agreement**: The AI agent must **NEVER** merge, squash-merge, or fast-forward a Pull Request / Merge Request into `main` without explicit, unambiguous confirmation from the human developer. Opening the PR and confirming all CI checks pass is the terminal boundary of this skill.
 1. **Never Touch `src/`**: In accordance with project directives (`AGENTS.md`), the agent audits, tests, and documents runtime code, but all edits to files within `src/` are written exclusively by the human developer.
 
-______________________________________________________________________
+______
 
 ## 🔄 The 9-Stage Finalization Pipeline
 
@@ -41,7 +41,7 @@ flowchart TD
   S9 --> S10["🛑 Explicit Stop: Await User Confirmation to Merge"]
 ```
 
-______________________________________________________________________
+______
 
 ### Stage 1: Clean Build Verification (`just build`)
 
@@ -49,7 +49,7 @@ ______________________________________________________________________
 - **Target Invariant**: Compiles cleanly with zero compiler warnings and zero errors under ISO C17 (`-std=c17`, `-Wall`, `-Wextra`, `-Wswitch`) with AddressSanitizer and UndefinedBehaviorSanitizer active.
 - **Halt Action**: If compilation fails or emits compiler diagnostics, halt immediately and present the compiler diagnostics.
 
-______________________________________________________________________
+______
 
 ### Stage 2: Unit & Adversarial Test Suite (`just test`)
 
@@ -58,7 +58,7 @@ ______________________________________________________________________
 - **Memory Invariant**: Every test must verify zero memory leaks via `assert(boot_all_freed())`.
 - **Halt Action**: If any test fails or triggers an ASan/UBSan report or memory leak, halt immediately and inspect `.failures/` log files.
 
-______________________________________________________________________
+______
 
 ### Stage 3: Adversarial Coverage Audit & Invariant Verification (`just coverage` / `adversarial-testing` Skill)
 
@@ -73,7 +73,7 @@ ______________________________________________________________________
   - [ ] **Boundary Conditions**: Empty containers (`0` length/capacity), sparse containers (NULL slots), and large sequences verified.
 - **Halt Action**: If any line in `src/` is uncovered (< 100.00%) or any adversarial invariant from the `adversarial-testing` skill is unverified, halt immediately and write missing test probes in `tests/`.
 
-______________________________________________________________________
+______
 
 ### Stage 4: Code Review for Style, Idiomatic C & Maintainability
 
@@ -85,7 +85,7 @@ ______________________________________________________________________
   1. **`const` Correctness**: Inspection-only parameters are qualified with `const` to provide compiler-checked read-only guarantees.
 - **Halt Action**: If structural defects or style anti-patterns are discovered, provide actionable Socratic guidance and pause for developer refinement before proceeding to commit.
 
-______________________________________________________________________
+______
 
 ### Stage 5: Educational Lesson Extraction & Roadmap Synchronization
 
@@ -97,7 +97,7 @@ ______________________________________________________________________
   1. **Validate Roadmap**: Run `just lint-roadmap` to confirm 100% DAG synchronization and schema compliance.
 - **Halt Action**: If the roadmap linter or link checks fail, halt immediately.
 
-______________________________________________________________________
+______
 
 ### Stage 6: Pre-Commit Quality Gate & Formatting (`just check`)
 
@@ -109,53 +109,47 @@ ______________________________________________________________________
   - `just lint-roadmap`
 - **Halt Action**: If any pre-commit hook reports a failure or diff, halt immediately.
 
-______________________________________________________________________
+______
 
 ### Stage 7: Atomic Conventional Commit & Push
 
 - Inspect git status: `git status`.
-- Stage changes and craft a descriptive, conventional commit message:
-  ```bash
-  git add ...
-  git commit -m "feat(<scope>): <concise description>
-
-  - Architectural improvements and memory invariants
-  - 100.00% line coverage and adversarial verification
-  - Extracted Lesson NN (<lesson title>)
-  - Completes Roadmap Milestone <hash_id> (<slug>)
-  "
-  ```
+- Stage changes and craft a descriptive, conventional commit message following the external template:
+  - **Template Path**: [resources/commit_template.txt](./resources/commit_template.txt)
+  - Execute `git commit` adhering to Conventional Commits with scope, bulleted improvements, coverage confirmation, lesson extraction link, and milestone completion hash.
 - Push to remote tracking branch:
+
   ```bash
   git push -u origin <branch-name>
   ```
+
 - **Halt Action**: If the commit or push fails, halt immediately and report the git error.
 
-______________________________________________________________________
+______
 
 ### Stage 8: Pull Request / Merge Request Setup
 
 - Verify whether an open PR exists:
+
   ```bash
   gh pr view 2>/dev/null || gh pr list --head $(git branch --show-current)
   ```
+
 - If no PR exists, open one using GitHub CLI (`gh pr create`):
   - **Title**: Conventional commit style (e.g. `feat: polymorphic sequence length protocol and const invariants`).
-  - **Body**: Structured according to project standards:
-    - `## Summary`: Milestone reference and technical scope.
-    - `### Architectural Changes`: Memory layout, data structures, and runtime mechanics.
-    - `### Verification & Quality Gates`: Pass rate, coverage percentage, sanitizer status, leak tracking.
-    - `### Educational Lesson`: Link to `lessons/NN_*.md`.
+  - **Body**: Strictly adhere to the external template in [resources/pr_template.md](./resources/pr_template.md), documenting technical scope, architectural changes, quality gate verifications, and links to the extracted educational lesson.
 - **Halt Action**: If PR creation fails, halt immediately.
 
-______________________________________________________________________
+______
 
 ### Stage 9: CI Pipeline Verification & Monitoring
 
 - Monitor triggered GitHub Actions workflow runs:
+
   ```bash
   gh pr checks --watch
   ```
+
 - Verify that all CI jobs pass:
   1. `pre-commit` (formatting, linting, docstrings, unit tests)
   1. `clang-tidy` (deep static analysis on `src/*.c`)
@@ -164,7 +158,7 @@ ______________________________________________________________________
   1. `coverage` (100.00% gcov line coverage verification)
 - **Halt Action**: If any CI check fails, fetch the failed run logs (`gh run view --log-failed`), report the failure, and halt immediately.
 
-______________________________________________________________________
+______
 
 ## 🛑 The Terminal Boundary: Await Explicit Merge Agreement
 

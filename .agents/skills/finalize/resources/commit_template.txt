@@ -1,0 +1,6 @@
+feat(<scope>): <concise description>
+
+- Architectural improvements and memory invariants
+- 100.00% line coverage and adversarial verification
+- Extracted Lesson NN (<lesson title>)
+- Completes Roadmap Milestone <hash_id> (<slug>)

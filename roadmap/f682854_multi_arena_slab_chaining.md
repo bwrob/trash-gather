@@ -6,7 +6,7 @@
 **Focus:** Expand the single-arena slab allocator into a dynamic multi-arena chain (`object_slab_t`), integrate it directly into `vm_new()` / `vm_free()`, and redirect runtime object allocations away from libc `malloc`.\
 **Prerequisites:** [Single-Arena Object Slab Allocator](e10d642_object_slab_allocator.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -21,13 +21,14 @@ ______________________________________________________________________
    - Multi-size-class pools for variable-sized payloads (strings, tuples, lists) are deferred to Milestone `7ebcf1a_size_class_pool_allocator.md`.
    - Returning empty arenas to the OS during process execution is deferred to advanced allocator optimizations.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Multi-Arena Chained Layout:
-     ```
+
+     ```text
      vm_t -> object_slab_t
                |
                +---> arena_head ---> arena_2 ---> arena_1 ---> NULL
@@ -35,13 +36,14 @@ ______________________________________________________________________
                        v               v            v
                      [slots]         [slots]      [slots]
      ```
+
 1. **Core Systems Invariants**:
    - Global arena ownership invariant: All active and inactive arenas belong to `vm->slab`. No individual object slot calls `boot_free()`.
    - Fast-path allocation: If the current free list is non-empty, allocation takes $O(1)$ time without system calls. New arena allocation only occurs on exhaustion.
    - Teardown safety: Calling `vm_free()` frees all chained arenas in order without leaving dangling pointers or memory leaks.
 1. **Architectural Trade-offs**: Dynamic arena chaining provides virtually unlimited object capacity without preallocating the entire heap upfront, trading a tiny metadata pointer (`next_arena`) per 64 KB block.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -52,7 +54,7 @@ ______________________________________________________________________
    - How can you determine which arena an object slot belongs to when freeing?
 1. **Failure Modes & Pitfalls**: Forgetting to free payloads (`object_free_payload`) before returning an `object_t` to the slab free-list; memory leaks when unlinking arenas; use-after-free if an arena is destroyed while objects are still referenced.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -70,7 +72,7 @@ ______________________________________________________________________
    - `src/new.c`
    - `tests/test_slab.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -79,7 +81,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

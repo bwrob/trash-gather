@@ -6,7 +6,7 @@
 **Focus:** Implement the three-way comparison protocol (`object_compare`), rich boolean comparisons (`object_equal`, `object_less_than`), and in-place list sorting (`list_sort()`) using comparator callback function pointers and standard library `qsort`.\
 **Prerequisites:** [Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -19,13 +19,14 @@ ______________________________________________________________________
    - Timsort implementation is deferred to advanced optimization milestones.
    - Key-function extraction (`sort(key=...)`) is deferred to Milestone `a0c00e1_closures_and_lexical_environments.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Three-way comparison dispatch:
-     ```
+
+     ```text
      object_compare(a, b)
        |
        +---> Fast path: if (a == b) return 0 (pointer identity)
@@ -35,13 +36,14 @@ ______________________________________________________________________
                STRING vs STRING:  strcmp(a->v_string, b->v_string)
                TUPLE vs TUPLE:    element-by-element lexicographical recursion
      ```
+
 1. **Core Systems Invariants**:
    - Reflexivity, symmetry, and transitivity: If `cmp(a, b) < 0`, then `cmp(b, a) > 0`. If `cmp(a, b) == 0` and `cmp(b, c) == 0`, then `cmp(a, c) == 0`.
    - Float NaN handling: Comparison with IEEE 754 NaN values must not produce undefined behavior; define total ordering where NaN is considered less or greater than numbers.
    - In-place mutation invariant: `list_sort` reorders existing `object_t*` pointers within `list->elements` without altering reference counts or leaking elements.
 1. **Architectural Trade-offs**: Using C standard library `qsort` provides quick, zero-allocation sorting, but is not guaranteed to be stable (equal elements may swap order).
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -52,7 +54,7 @@ ______________________________________________________________________
    - How does Python's `sort()` handle sorting a list containing incomparable types (e.g. integer vs list)?
 1. **Failure Modes & Pitfalls**: Integer subtraction overflow in comparators (`a - b` wrapping to positive); dereferencing the wrong pointer indirection level in `qsort` comparator; infinitely recursing on circular lists.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -66,7 +68,7 @@ ______________________________________________________________________
    - `src/object.h`, `src/object.c`
    - `tests/test_compare.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -75,7 +77,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

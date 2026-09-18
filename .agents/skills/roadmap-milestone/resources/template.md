@@ -6,14 +6,14 @@
 **Focus:** \<1-2 sentence core technical objective summarizing the engineering goal>\
 **Prerequisites:** \[<Milestone Title>\](\<hash_id>\_<slug>.md) | None
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**: Clear, concrete enumerated statements of what this milestone builds or solves.
 1. **Scope Boundaries**: Explicit non-goals (what is intentionally deferred to future milestones).
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
@@ -21,7 +21,7 @@ ______________________________________________________________________
 1. **Core Systems Invariants**: Rules that must never be violated (e.g. NULL safety, lifecycle ownership, allocation boundaries, tracking registration).
 1. **Architectural Trade-offs**: Analysis of design trade-offs (e.g. CPU vs memory, cache locality vs indirection, complexity vs safety).
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -29,14 +29,14 @@ ______________________________________________________________________
 1. **Socratic Inquiries**: Guiding questions to prompt self-discovery on failure modes, undefined behavior, and edge cases.
 1. **Failure Modes & Pitfalls**: Common traps (e.g. use-after-free, memory fragmentation, uninitialized slots).
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
 1. **Step-by-Step Execution Sequence**: Ordered, incremental tasks to implement the milestone.
 1. **File Touchpoints**: Exact file paths affected across `src/`, `include/`, `tests/`, and `bench/`.
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -45,7 +45,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test` (100% pass with ASan/UBSan), `just lint` (`clang-tidy` + docstrings), `just check` (all pre-commit hooks).
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

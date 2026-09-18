@@ -6,7 +6,7 @@
 **Focus:** Introduce Python-style complex numbers (`COMPLEX`) with 64-bit IEEE 754 components, integrating into polymorphic arithmetic (`add`, `multiply`), truthiness evaluation, and lifecycle tracking without compiler-specific extensions.\
 **Prerequisites:** [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -30,20 +30,23 @@ ______________________________________________________________________
    - Transcendental elementary complex functions (`cmath`: `exp`, `log`, `sin`, `sqrt`) are deferred to standard math library milestones.
    - Non-standard or optional C compiler extensions (such as `<complex.h>` or `_Complex` which are optional in ISO C11/C17 via `__STDC_NO_COMPLEX__`) are strictly avoided.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Complex number struct layout stored inline inside `object_data_t`:
+
      ```c
      typedef struct {
        double real; /* Real component */
        double imag; /* Imaginary component */
      } complex_t;
      ```
+
    - Inline memory layout of `object_t` with `COMPLEX`:
-     ```
+
+     ```text
      +-------------------------------------------------------+
      |                       object_t                        |
      +-----------------+-------------------+-----------------+
@@ -56,11 +59,14 @@ ______________________________________________________________________
      |    double imag (8 bytes)                              |
      +-------------------------------------------------------+
      ```
+
    - Numeric promotion ladder:
-     ```
+
+     ```text
      INTEGER  --->  FLOAT  --->  COMPLEX
        (int)        (double)     (double real, double imag)
      ```
+
 1. **Core Systems Invariants**:
    - **Zero Auxiliary Heap Allocations**: Since `sizeof(complex_t)` is 16 bytes (two 64-bit IEEE 754 doubles), it fits by value inside `object_data_t`, requiring zero extra heap allocations beyond the `object_t` header.
    - **Strict ISO C17 Portability**: Never include `<complex.h>` or use the `_Complex` keyword. The runtime must compile cleanly and identically across GCC, Clang, and MSVC without depending on optional C11/C17 features.
@@ -71,7 +77,7 @@ ______________________________________________________________________
    - Double-precision (`double`) vs single-precision (`float`): Using `double` provides 53 bits of mantissa precision matching standard Python `complex` semantics, prevents precision truncation when 32-bit integers are promoted, and fits within existing 16-byte union slots without increasing `sizeof(object_t)`.
    - Portable struct vs compiler complex extensions: Using an explicit C struct guarantees portability to platforms where `__STDC_NO_COMPLEX__` is defined, eliminating vendor compiler lock-in.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -90,7 +96,7 @@ ______________________________________________________________________
    - Misaligning union fields or introducing platform-specific padding when adding `double` fields to `object_data_t`.
    - Memory leaks if arithmetic failure paths fail to untrack and free intermediate objects.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -110,7 +116,7 @@ ______________________________________________________________________
    - `src/new.h`, `src/new.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -130,7 +136,7 @@ ______________________________________________________________________
 1. **Milestone Completion & Lesson Extraction**:
    - Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson file in `lessons/` following the `lesson-extraction` skill.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

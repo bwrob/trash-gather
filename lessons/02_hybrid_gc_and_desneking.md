@@ -3,7 +3,7 @@
 **Branch:** `hybrid-gc` (Merged in PR #2)
 **Focus:** Architectural foundations of hybrid memory management, reference graph invariants, solving the Single-Pass Deallocation Trap, and platform-level C systems pitfalls.
 
-______________________________________________________________________
+______
 
 ## 1. System Engineering: C Namespaces & OS Header Collisions
 
@@ -11,12 +11,14 @@ ______________________________________________________________________
 
 - **The Pitfall:** Renaming types to concise generic names (e.g., `stack_t`, `list_t`, `node_t`) frequently breaks on Unix-like operating systems.
 - **The Mechanism:** On POSIX / macOS Darwin systems, `<signal.h>` (often pulled in transitively by `<stdlib.h>` or test frameworks) defines:
+
   ```c
   typedef struct sigaltstack stack_t;
   ```
+
 - **Transferable Principle:** C has a single global namespace for type identifiers. Library and runtime data structures must **always** carry a subsystem prefix (e.g., `vm_stack_t`, `gc_node_t`, `py_tuple_t`). Never assume short, common words are available in C headers.
 
-______________________________________________________________________
+______
 
 ## 2. Hybrid Memory Architecture: Throughput vs. Completeness
 
@@ -39,7 +41,7 @@ Automatic memory management generally falls into two paradigms, each with fundam
    - Primitives (integers, floats, strings) have no outgoing reference pointers and **can never participate in cycles**.
    - A high-performance cyclic collector should only register and track **container types** (arrays, tuples, dicts, instances). Untracking primitives keeps GC pause times minimal by dramatically shrinking the active graph.
 
-______________________________________________________________________
+______
 
 ## 3. The Single-Pass Deallocation Trap
 
@@ -64,7 +66,7 @@ When a runtime iterates over a collection of objects (during full VM shutdown or
 > **Fundamental Theorem of Graph Teardown**:
 > No single linear pass over an arbitrary graph can safely interleave object destruction with cascading reference decrements.
 
-______________________________________________________________________
+______
 
 ## 4. Architectural Solutions & Invariants
 
@@ -93,6 +95,7 @@ When the cycle collector sweeps unreachable (unmarked) objects:
 - **If a child is unmarked (dead):** The child is part of the dead cycle being collected in this same sweep. Cascading a decref to it is redundant and triggers use-after-free if the child was already visited.
 - **If a child is marked (live):** The child is rooted in an active call stack. Because the dead container is being destroyed, the container **must** release its reference to the surviving child (`refcount_dec(live_child)`).
 - **The Invariant:**
+
   ```c
   if (obj == NULL) return;
   if (!live_only || obj->is_marked) {
@@ -108,7 +111,7 @@ When the cycle collector sweeps unreachable (unmarked) objects:
   1. **Phase 2:** Deallocate dead headers, and unmark surviving objects (`obj->is_marked = false`) for the next GC generation.
   1. **Phase 3:** Compact the surviving object registry and re-index tracker IDs.
 
-______________________________________________________________________
+______
 
 ## 5. Performance Engineering: Hot vs. Cold Path Optimization
 
@@ -116,16 +119,18 @@ ______________________________________________________________________
 
 - **The Hot Path (Inline aggressively):**
   - `refcount_inc()` and the non-zero branch of `refcount_dec()`:
+
     ```c
     obj->refcount--;
     if (obj->refcount > 0) return;
     ```
+
   - In a production VM, this executes billions of times. Inlining it (as a macro or `static inline` header function) eliminates function call overhead and branch prediction penalties.
 - **The Cold Path (Keep out-of-line):**
   - The zero branch (`object_free(obj)`):
   - Object deallocation happens only once per object lifecycle. It performs system allocator calls (`free()`) and graph traversal. The function call overhead is completely unmeasurable against `free()`, while keeping it out-of-line keeps the instruction cache (I-cache) compact for hot application code.
 
-______________________________________________________________________
+______
 
 ## 6. Systems Programming & Tooling Insights
 

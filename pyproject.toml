@@ -32,11 +32,9 @@ paths = ["scripts"]
 dev = [
     "clang-format>=23.0.0",
     "complexipy>=8.0.1",
-    "mdformat>=1.0.0",
-    "mdformat-frontmatter>=2.1.2",
-    "mdformat-gfm>=1.0.0",
     "pre-commit>=4.6.2",
     "pyrefly>=1.2.0",
     "ruff>=0.16.6",
+    "rumdl>=0.2.73",
     "taplo>=0.9.3",
 ]

@@ -6,7 +6,7 @@
 **Focus:** Replace separate boolean fields in `object_t` with a packed bitflags field (`uint16_t flags`), mastering bitwise operations (`&`, `|`, `^`, `~`, `<<`), bitmasks, struct alignment boundaries, and padding reduction.\
 **Prerequisites:** [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -19,13 +19,14 @@ ______________________________________________________________________
    - Tagged pointers (storing data in unused pointer address bits) are deferred to advanced optimization milestones.
    - Slab allocator integration is handled in Milestone `e10d642_object_slab_allocator.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Bitfield layout inside `uint16_t flags`:
-     ```
+
+     ```text
      Bit:   15 ... 3      2            1            0
           +----------+----------+------------+------------+
           | Reserved | TRACKED  |  IMMORTAL  |   MARKED   |
@@ -33,18 +34,21 @@ ______________________________________________________________________
           Mask:        (1 << 2)    (1 << 1)     (1 << 0)
                          0x04        0x02         0x01
      ```
+
    - Struct padding comparison:
-     ```
+
+     ```text
      Before: [bool 1B][pad 7B][refcount 8B][tracker_id 8B][kind 4B][pad 4B][data 16B] = 48 Bytes
      After:  [flags 2B][kind 2B][pad 4B][refcount 8B][tracker_id 8B][data 16B]         = 40 Bytes
      ```
+
 1. **Core Systems Invariants**:
    - Bitwise idempotency: Setting an already-set flag (`flags |= MASK`) or clearing an already-cleared flag (`flags &= ~MASK`) must produce stable results without corrupting adjacent flag bits.
    - Immortal protection: The `OBJ_FLAG_IMMORTAL` bit must never be cleared once an object is initialized as a singleton.
    - Mark invariant: During GC mark-and-sweep, only the `OBJ_FLAG_MARKED` bit may be toggled; all other flags must remain invariant.
 1. **Architectural Trade-offs**: Using bitmasks requires bitwise CPU operations instead of direct boolean loads/stores, but reduces `struct Object` memory footprint and cache line pressure by up to 16% per object.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -55,7 +59,7 @@ ______________________________________________________________________
    - Why do production runtimes like CPython (`ob_flags`), Linux kernel (`page->flags`), and V8 rely heavily on header bitflags rather than `bool` members?
 1. **Failure Modes & Pitfalls**: Forgetting parentheses around bitwise operations due to operator precedence (e.g., `flags & MASK == 0` evaluates `==` before `&`); integer promotion of `uint16_t` causing signed comparison bugs; accidentally modifying adjacent bits with incorrect bitshift masks.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -71,7 +75,7 @@ ______________________________________________________________________
    - `src/vm.c`
    - `tests/test_object.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -80,7 +84,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

@@ -6,7 +6,7 @@
 **Focus:** Serialize and deserialize heap object graphs to and from binary files using standard C streams (`FILE*`, `fwrite`, `fread`), mastering binary file format layouts, magic headers, endianness awareness, and stream error handling.\
 **Prerequisites:** [Dynamic String Builder & Safe Formatting](4911b8b_dynamic_string_builder.md), [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -19,13 +19,14 @@ ______________________________________________________________________
    - Complex cyclic graph preservation across files is deferred to advanced serializer extensions.
    - Cross-architecture big-endian/little-endian bit swapping is an optional extension.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Binary serialization stream layout:
-     ```
+
+     ```text
      +-----------------------------------------------------------------+
      | HEADER: Magic "TGGC" (4B) | Version (2B) | Root Kind (2B)       |
      +-----------------------------------------------------------------+
@@ -35,6 +36,7 @@ ______________________________________________________________________
      |   Element Count (4B) | Nested Record 1 | Nested Record 2 ...    |
      +-----------------------------------------------------------------+
      ```
+
 1. **Core Systems Invariants**:
    - File handle safety: Every `fopen()` must be strictly closed with `fclose()` on all success and failure paths, preventing file descriptor leaks.
    - Header validation: `vm_load_from_file` must reject any file missing the magic header or bearing an unsupported version number before reading payload bytes.
@@ -42,7 +44,7 @@ ______________________________________________________________________
    - Allocation rollback on corruption: If an error or unexpected EOF occurs during deserialization, all partially reconstructed objects must be decremented and freed before returning `NULL`.
 1. **Architectural Trade-offs**: Binary serialization is significantly faster and more compact than text formats (JSON/XML), but requires strict schema versioning and careful defensive bounds checks against corrupted files.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -53,7 +55,7 @@ ______________________________________________________________________
    - Why must you check both the return value of `fread()` and `feof()`/`ferror()`?
 1. **Failure Modes & Pitfalls**: Leaking open `FILE*` handles on error return branches; trusting size headers without bounds checks causing huge allocations; unaligned multi-byte reads causing crashes on strict-alignment architectures.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -69,7 +71,7 @@ ______________________________________________________________________
    - `src/serialize.h`, `src/serialize.c`
    - `tests/test_serialize.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -78,7 +80,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

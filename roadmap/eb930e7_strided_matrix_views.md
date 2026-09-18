@@ -6,7 +6,7 @@
 **Focus:** Generalize 2D matrix indexing to row and column strides, implement zero-copy transpose views (`matrix_transpose`) borrowing underlying storage, enforce GC base object retention, and implement matrix multiplication (`matrix_matmul`).\
 **Prerequisites:** [Contiguous 2D Float Matrix & Elementwise Arithmetic](e67df2f_raw_float_matrix.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -20,13 +20,14 @@ ______________________________________________________________________
    - Arbitrary $N$-dimensional tensors ($N > 2$) are deferred to future numeric milestones.
    - NumPy-style broadcasting is an explicit non-goal.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Owning Matrix vs. Strided Transpose View:
-     ```
+
+     ```text
      Owning Matrix (A: 2x3, base=NULL)
      +-----------------------------------------+
      | rows: 2, cols: 3                        |
@@ -47,13 +48,14 @@ ______________________________________________________________________
      | data: ------------/ (shares same data!) |
      +-----------------------------------------+
      ```
+
 1. **Core Systems Invariants**:
    - Base buffer retention invariant: If `mat->base != NULL`, `mat->data` is not freed when `mat` is collected; instead, `refcount_dec(mat->base)` is called. Only owning matrices (`base == NULL`) free their `data` buffer.
    - GC reachability: During garbage collector mark phases, any reached view must immediately mark its `base` object, keeping the physical buffer alive even if user code dropped all direct variables referencing the original owner.
    - Zero-copy guarantee: Transpose creation is an $O(1)$ memory operation that allocates only a new `object_t` header, never copying float elements.
 1. **Architectural Trade-offs**: Strided views achieve instant zero-copy transposition, but hold the entire parent buffer alive in memory until all derived views are collected.
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -64,7 +66,7 @@ ______________________________________________________________________
    - Why must `matrix_matmul` use stride-based lookups rather than assuming contiguous linear memory layout?
 1. **Failure Modes & Pitfalls**: Double-freeing `data` when both owner and view are collected; use-after-free if the view fails to increment the base object's reference count; cache line thrashing when iterating across large non-unit strides.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -81,7 +83,7 @@ ______________________________________________________________________
    - `src/vm.c`
    - `tests/test_matrix.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -90,7 +92,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 

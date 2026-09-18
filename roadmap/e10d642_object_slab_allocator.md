@@ -6,7 +6,7 @@
 **Focus:** Build a standalone, fixed 64 KB slab arena with intrusive free-list slot threading for `object_t` allocations, eliminating `malloc` header overhead and mastering memory slot reuse without system deallocations.\
 **Prerequisites:** [Object Header Bitflags & Memory Layout](c87f151_object_header_bitflags.md)
 
-______________________________________________________________________
+______
 
 ## 1. Objective & Technical Scope
 
@@ -20,12 +20,13 @@ ______________________________________________________________________
    - Multi-arena dynamic expansion on exhaustion is deferred to Milestone `f682854_multi_arena_slab_chaining.md`.
    - Global VM allocator redirection (`new_object()` integration) is deferred to Milestone `f682854_multi_arena_slab_chaining.md`.
 
-______________________________________________________________________
+______
 
 ## 2. Architectural Design & Invariants
 
 1. **Memory Layout & Pointer Graph**:
    - Slot union and Single Slab Arena:
+
      ```c
      typedef union Slot {
          object_t object;
@@ -39,21 +40,24 @@ ______________________________________________________________________
          slot_t slots[];        // C99 flexible array member
      } slab_arena_t;
      ```
+
    - Intrusive free-list reuse diagram:
-     ```
+
+     ```text
      Arena: [Header: free_list -> Slot 1]
      Slot 0: [ ACTIVE object_t ]
      Slot 1: [ FREE: next_free -> Slot 3 ]
      Slot 2: [ ACTIVE object_t ]
      Slot 3: [ FREE: next_free -> NULL ]
      ```
+
 1. **Core Systems Invariants**:
    - Zero-metadata free slot invariant: When a slot is inactive, its memory stores exclusively `next_free` pointer bytes. Active objects never contain intrusive pointers.
    - Capacity bounds: Leased slots must satisfy $0 \\le \\text{allocated_count} \\le \\text{capacity}$. When $\\text{allocated_count} == \\text{capacity}$, `free_list == NULL` and `slab_alloc` returns `NULL`.
    - Single-allocation arena invariant: All slots reside contiguously within the 64 KB arena memory block, requiring zero per-slot `malloc` or `free` calls.
 1. **Architectural Trade-offs**: Fixed-size slabs eliminate the 8-to-16 byte glibc malloc header overhead per object and eliminate external heap fragmentation, at the cost of supporting only uniform fixed-size allocations (`sizeof(object_t)`).
 
-______________________________________________________________________
+______
 
 ## 3. Systems Concepts & Guiding Questions
 
@@ -64,7 +68,7 @@ ______________________________________________________________________
    - What happens if a caller calls `slab_free` with a pointer that does not belong to the arena's memory bounds?
 1. **Failure Modes & Pitfalls**: Double-freeing a slot corrupting the intrusive free-list into a circular loop; dereferencing `free_list` when the arena is exhausted; buffer overruns if `sizeof(slot_t)` is calculated incorrectly.
 
-______________________________________________________________________
+______
 
 ## 4. Implementation Steps & Touchpoints
 
@@ -77,7 +81,7 @@ ______________________________________________________________________
    - `src/slab.h`, `src/slab.c`
    - `tests/test_slab.c`
 
-______________________________________________________________________
+______
 
 ## 5. Verification & Acceptance Criteria
 
@@ -86,7 +90,7 @@ ______________________________________________________________________
 1. **Tooling Quality Gates**: `just test`, `just lint`, and `just check` pass cleanly with zero compiler warnings.
 1. **Milestone Completion & Lesson Extraction**: Upon green tests and zero leaks, update status to `Completed` in this writeup and `✅ Completed` in `roadmap/README.md`, update Mermaid node styling to `:::completed`, and generate the educational lesson in `lessons/`.
 
-______________________________________________________________________
+______
 
 ## 6. Recommended Reading & External References
 
