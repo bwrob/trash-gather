@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 4 / 5\
 **Focus:** Eliminate the tagged union by adopting offset-0 base header embedding (`PyObject` style), achieving single-allocation objects and eliminating union memory bloat.\
-**Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md)
+**Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md), [Type Descriptor Tables & Function Pointer Dispatch](54d0d12_type_descriptor_vtables.md)
 
 ______
 

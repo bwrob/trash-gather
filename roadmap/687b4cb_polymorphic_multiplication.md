@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 2 / 5\
 **Focus:** Implement polymorphic binary multiplication (`multiply`) supporting numeric arithmetic (integer and float) and Python-style sequence repetition (string, list, tuple) with commutative operand ordering.\
-**Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md)
+**Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md), [Small Integer Caching](70b20d3_small_integer_caching.md)
 
 ______
 

@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 2 / 5\
 **Focus:** Build an amortized dynamic byte/string buffer (`string_builder_t`) supporting `sb_append()`, `sb_append_format()`, and `sb_build()`, mastering `snprintf` sizing semantics, geometric buffer growth, and safe null-termination guarantees.\
-**Prerequisites:** [Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md)
+**Prerequisites:** [Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md), [Immutable ASCII String Object](e67154d_immutable_ascii_string_object.md)
 
 ______
 

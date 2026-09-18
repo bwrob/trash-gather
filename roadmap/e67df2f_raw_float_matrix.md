@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 2 / 5\
 **Focus:** Implement a flat row-major 2D float matrix object (`matrix_t`), 2D elementwise get/set accessors with dimension validation, and polymorphic elementwise arithmetic operations.\
-**Prerequisites:** [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md)
+**Prerequisites:** [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md)
 
 ______
 

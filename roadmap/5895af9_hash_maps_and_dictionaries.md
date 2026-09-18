@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 3 / 5\
 **Focus:** Implement an associative key-value dictionary (`dict_t`) using open addressing with linear probing, key hash caching, equality verification, and bidirectional GC key/value marking on fixed-capacity tables.\
-**Prerequisites:** [Object Hashing Protocol & Bitwise Hash Mixing](8782a4d_object_hashing_protocol.md), [Rich Comparisons & In-Place List Sorting](3f1132d_rich_comparisons_and_sorting.md)
+**Prerequisites:** [Object Hashing Protocol & Bitwise Hash Mixing](8782a4d_object_hashing_protocol.md), [Rich Comparisons & In-Place List Sorting](3f1132d_rich_comparisons_and_sorting.md), [Variadic Object Packing Constructors](5b538ed_variadic_tuple_and_list_pack.md)
 
 ______
 

@@ -141,8 +141,10 @@ def validate_roadmap_index(roadmap_readme: Path, milestone_hashes: dict[str, Pat
         return errors
 
     mermaid_code = mermaid_match.group(1)
-    # Find all node definitions containing hash IDs (e.g., m_...["d9c6780: ..."])
-    nodes_in_mermaid = set(re.findall(r'\["([a-f0-9]{7}):\s*[^"]+"\]', mermaid_code))
+    # Find all node definitions containing hash IDs (e.g., m_d9c6780["..."])
+    nodes_in_mermaid = set(re.findall(r"m_([a-f0-9]{7})\[", mermaid_code)) | set(
+        re.findall(r'\["([a-f0-9]{7}):\s*[^"]+"\]', mermaid_code)
+    )
 
     # Check that all milestone files are represented in the Mermaid DAG
     for hash_id, path in milestone_hashes.items():
