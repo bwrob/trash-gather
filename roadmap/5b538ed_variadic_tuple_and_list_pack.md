@@ -1,7 +1,7 @@
 # Milestone: Variadic Object Packing Constructors
 
 **ID:** `5b538ed`\
-**Status:** Planned\
+**Status:** In Progress\
 **Difficulty:** 1 / 5\
 **Focus:** Introduce variadic constructors (`new_tuple_pack`, `new_list_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors (`new_tuple_1`, `new_tuple_2`, `new_tuple_3`) and mastering variadic unpacking and cleanup safety.\
 **Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)

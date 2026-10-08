@@ -41,7 +41,7 @@ flowchart TD
     subgraph T1_Ergo ["Core Ergonomics"]
       direction TB
       m_negidx["b0c1d8b: Sequence Negative<br/>Indexing (Diff: 1)"]:::planned
-      m_variadic_pack["5b538ed: Variadic Object<br/>Constructors (Diff: 1)"]:::planned
+      m_variadic_pack["5b538ed: Variadic Object<br/>Constructors (Diff: 1)"]:::inProgress
     end
     subgraph T1_Data ["Singletons & Lists"]
       direction TB
@@ -270,7 +270,7 @@ ______
 1. **[Variadic Object Packing Constructors](5b538ed_variadic_tuple_and_list_pack.md)**
 
    - **ID:** `5b538ed`
-   - **Status:** 📋 Planned
+   - **Status:** ⏳ In Progress
    - **Difficulty:** 1 / 5
    - **Prerequisites:** [`f9c475f`](f9c475f_heap_allocated_variable_length_tuple.md)
    - **Focus:** Introduce variadic constructors (`new_tuple_pack`, `new_list_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors and mastering variadic unpacking and cleanup safety.
