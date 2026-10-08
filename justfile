@@ -4,19 +4,22 @@ default: test
 # Global Configuration Variables (Single Source of Truth)
 # ==============================================================================
 
+# Dynamically discover all include directories in src/
+SRC_INCS := `find src -type d | sort | sed 's|^|-I|' | tr '\n' ' '`
+
 # Language Standards
 export C_STD := "c17"
 export CPP_STD := "c++17"
 
 # C Compiler & Build Tooling
 CC := "gcc"
-CFLAGS := "-Wall -Wextra -Wswitch -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
+CFLAGS := "-Wall -Wextra -Wswitch -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude " + SRC_INCS + "-Ivendor/munit -Ivendor/bootlib"
 COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
 
 # Dynamically discover all runtime source modules in src/ (excluding main.c)
-SRC_OBJS := `find src -name '*.c' ! -name 'main.c' | sort | sed 's|src/|bin/|;s|\.c$|\.o|' | tr '\n' ' '`
-BENCH_SRC_OBJS := `find src -name '*.c' ! -name 'main.c' | sort | sed 's|src/|bin/bench_|;s|\.c$|\.o|' | tr '\n' ' '`
+SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/|;s|$|\.o|' | tr '\n' ' '`
+BENCH_SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/bench_|;s|$|\.o|' | tr '\n' ' '`
 
 # Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
 DOC_LINT_DIRS := "include vendor/bootlib bench tests"
@@ -47,8 +50,7 @@ mkdir-bin:
 [private]
 @src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
-    @set -e; for f in src/*.c; do \
-        [ "$f" = "src/main.c" ] && continue; \
+    @set -e; for f in $(find src -name '*.c' ! -name 'main.c'); do \
         base=$(basename "$f" .c); \
         {{CC}} {{CFLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
     done
@@ -114,8 +116,7 @@ coverage: mkdir-bin
     {{CC}} {{CFLAGS}} -c vendor/munit/munit.c -o {{BIN_DIR}}/munit.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
 
-    @set -e; for f in src/*.c; do \
-        [ "$f" = "src/main.c" ] && continue; \
+    @set -e; for f in $(find src -name '*.c' ! -name 'main.c'); do \
         base=$(basename "$f" .c); \
         {{CC}} {{COV_FLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
     done
@@ -206,7 +207,7 @@ lint-docs:
 
 # Run static analysis on C source files using clang-tidy
 lint-c:
-    clang-tidy src/*.c -- -std={{C_STD}} -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+    clang-tidy $(find src -name '*.c') -- -std={{C_STD}} -Iinclude {{SRC_INCS}} -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
 # Update Mermaid DAG in roadmap/README.md with transitive reduction
 update-dag:
@@ -236,8 +237,7 @@ install-deps:
 [private]
 bench-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bench_bootlib.o
-    @set -e; for f in src/*.c; do \
-        [ "$f" = "src/main.c" ] && continue; \
+    @set -e; for f in $(find src -name '*.c' ! -name 'main.c'); do \
         base=$(basename "$f" .c); \
         {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c "$f" -o "{{BIN_DIR}}/bench_${base}.o"; \
     done

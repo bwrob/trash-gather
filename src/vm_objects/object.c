@@ -1,8 +1,8 @@
-#include "object.h"
+#include "vm_objects/object.h"
 
-#include "list.h"
-#include "new.h"
-#include "vm.h"
+#include "vm/vm.h"
+#include "vm_objects/list.h"
+#include "vm_objects/new.h"
 
 #include <stdint.h>
 #include <string.h>

@@ -1,7 +1,10 @@
 #pragma once
 
-#include "object.h"
-#include "vm.h"
+#include "vm/vm.h"
+#include "vm_objects/list.h"
+#include "vm_objects/object.h"
+
+object_t *new_object();
 
 object_t *new_integer(
     int value
@@ -11,9 +14,6 @@ object_t *new_float(
 );
 object_t *new_string(
     char *value
-);
-object_t *new_list(
-    size_t size
 );
 
 object_t *new_tuple_0();

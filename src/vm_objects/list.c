@@ -1,9 +1,32 @@
-#include "list.h"
+#include "vm_objects/list.h"
 
-#include "new.h"
-#include "object.h"
+#include "vm_objects/new.h"
+#include "vm_objects/object.h"
 
 #include <stdint.h>
+
+object_t *new_list(
+    size_t size
+)
+{
+    object_t **elements = calloc(size, sizeof(object_t *));
+    if (elements == NULL)
+    {
+        return NULL;
+    }
+
+    object_t *obj = new_object();
+    if (obj == NULL)
+    {
+        free(elements);
+        return NULL;
+    }
+
+    obj->kind = LIST;
+    obj->data.v_list = (list_t){.size = size, .elements = elements};
+
+    return obj;
+}
 
 bool list_set(
     object_t *list,

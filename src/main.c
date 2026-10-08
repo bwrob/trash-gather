@@ -1,7 +1,7 @@
 #include "bootlib.h"
-#include "new.h"
-#include "object.h"
-#include "vm.h"
+#include "vm/vm.h"
+#include "vm_objects/new.h"
+#include "vm_objects/object.h"
 
 #include <stdio.h>
 #include <stdlib.h>

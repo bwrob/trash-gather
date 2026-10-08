@@ -1,4 +1,4 @@
-#include "stack.h"
+#include "vm/stack.h"
 
 #include "munit.h"
 

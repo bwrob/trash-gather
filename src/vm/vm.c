@@ -1,8 +1,8 @@
-#include "vm.h"
+#include "vm/vm.h"
 
-#include "new.h"
-#include "object.h"
-#include "stack.h"
+#include "vm/stack.h"
+#include "vm_objects/new.h"
+#include "vm_objects/object.h"
 
 static vm_t *CURRENT_VM = NULL;
 

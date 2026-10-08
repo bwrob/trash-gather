@@ -1,12 +1,12 @@
-#include "new.h"
+#include "vm_objects/new.h"
 
-#include "object.h"
-#include "vm.h"
+#include "vm/vm.h"
+#include "vm_objects/object.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-static object_t *_new_object()
+object_t *new_object()
 {
     object_t *obj = calloc(1, sizeof(object_t));
     if (obj == NULL)
@@ -34,29 +34,6 @@ static object_t *_immortal_object()
     return obj;
 }
 
-object_t *new_list(
-    size_t size
-)
-{
-    object_t **elements = calloc(size, sizeof(object_t *));
-    if (elements == NULL)
-    {
-        return NULL;
-    }
-
-    object_t *obj = _new_object();
-    if (obj == NULL)
-    {
-        free(elements);
-        return NULL;
-    }
-
-    obj->kind = LIST;
-    obj->data.v_list = (list_t){.size = size, .elements = elements};
-
-    return obj;
-}
-
 /**
  * @brief Tuple constructor; empty variant.
  *
@@ -73,7 +50,7 @@ object_t *_new_tuple_obj(
         return NULL;
     }
 
-    object_t *obj = _new_object();
+    object_t *obj = new_object();
     if (obj == NULL)
     {
         free(tuple);
@@ -178,7 +155,7 @@ object_t *new_integer(
     int value
 )
 {
-    object_t *obj = _new_object();
+    object_t *obj = new_object();
     if (obj == NULL)
     {
         return NULL;
@@ -194,7 +171,7 @@ object_t *new_float(
     float value
 )
 {
-    object_t *obj = _new_object();
+    object_t *obj = new_object();
     if (obj == NULL)
     {
         return NULL;
@@ -216,7 +193,7 @@ object_t *new_string(
         return NULL;
     }
 
-    object_t *obj = _new_object();
+    object_t *obj = new_object();
     if (obj == NULL)
     {
         free(dst);

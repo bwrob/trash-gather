@@ -13,6 +13,10 @@ typedef struct
     object_t **elements;
 } list_t;
 
+object_t *new_list(
+    size_t size
+);
+
 bool list_set(
     object_t *list,
     size_t index,

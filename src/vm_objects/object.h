@@ -1,7 +1,7 @@
 #pragma once
 
-#include "list.h"
-#include "stack.h"
+#include "vm/stack.h"
+#include "vm_objects/list.h"
 
 #include <stdbool.h>
 #include <stddef.h>

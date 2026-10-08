@@ -1,7 +1,7 @@
 #pragma once
 
-#include "object.h"
-#include "stack.h"
+#include "vm/stack.h"
+#include "vm_objects/object.h"
 
 typedef struct Immortals
 {
