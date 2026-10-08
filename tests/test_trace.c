@@ -242,7 +242,7 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t0 = tuple_new_0();
         object_t *container = tuple_new_2(none, t0);
 

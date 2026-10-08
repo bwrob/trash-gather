@@ -208,7 +208,7 @@ munit_case(
     test_container_scoped_checkpoint_leak_freedom,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t0 = tuple_new_0();
 
         // Establish checkpoint: VM and singletons are already alive
@@ -243,7 +243,7 @@ munit_case(
 
         // The VM and singletons remain completely healthy and active
         assert_not_null(vm_get_current());
-        assert_ptr_equal(new_none(), none);
+        assert_ptr_equal(none_get(), none);
         assert_ptr_equal(tuple_new_0(), t0);
 
         vm_cleanup_after_refcount();

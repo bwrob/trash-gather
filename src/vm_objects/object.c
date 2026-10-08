@@ -211,7 +211,7 @@ object_t *string_new(
     return obj;
 }
 
-object_t *create_none_singleton(
+object_t *none_create(
     void
 )
 {
@@ -224,7 +224,7 @@ object_t *create_none_singleton(
     return obj;
 }
 
-object_t *new_none(
+object_t *none_get(
     void
 )
 {

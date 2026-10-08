@@ -502,7 +502,7 @@ munit_case(
     test_list_add_with_immortals_refcount_parity,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t0 = tuple_new_0();
         object_t *elem1 = integer_new(10);
         object_t *elem2 = integer_new(20);

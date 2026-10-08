@@ -226,7 +226,7 @@ void vm_new(
     }
 
     immortals_t *imm = &vm->immortals;
-    imm->none = create_none_singleton();
+    imm->none = none_create();
     imm->empty_tuple = create_empty_tuple_singleton();
     if (imm->none == NULL || imm->empty_tuple == NULL)
     {

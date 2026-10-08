@@ -469,14 +469,14 @@ munit_case(
     test_none_survives_gc_sweep,
     {
         vm_new();
-        object_t *none1 = new_none();
+        object_t *none1 = none_get();
         assert_not_null(none1);
 
         // Run garbage collection when None has no frame references
         vm_collect_garbage();
 
         assert(!boot_is_freed(none1));
-        object_t *none2 = new_none();
+        object_t *none2 = none_get();
         assert_ptr_equal(none1, none2);
 
         vm_free();
@@ -515,7 +515,7 @@ munit_case(
     test_none_in_cycle_reclaimed,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
 
         // Construct cyclic mesh A <-> B where A also holds None
         object_t *list_a = list_new(2);
@@ -548,7 +548,7 @@ munit_case(
         for (int round = 0; round < 3; round++)
         {
             vm_new();
-            object_t *none = new_none();
+            object_t *none = none_get();
             object_t *t0 = tuple_new_0();
             assert_not_null(none);
             assert_not_null(t0);
@@ -568,7 +568,7 @@ munit_case(
     test_frame_stack_immortal_churn,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t0 = tuple_new_0();
 
         const size_t num_frames = 5;
@@ -641,7 +641,7 @@ munit_case(
     test_gc_mesh_cycle_with_immortals,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t0 = tuple_new_0();
 
         // Node A: holds B and None

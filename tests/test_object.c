@@ -488,7 +488,7 @@ munit_case(
         object_t *f = float_new(2.5f);
         object_t *s = string_new("mortal");
         object_t *l = list_new(1);
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *empty_t = tuple_new_0();
 
         assert_false(object_is_immortal(i));
@@ -550,7 +550,7 @@ munit_case(
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
-        assert_null(create_none_singleton());
+        assert_null(none_create());
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);

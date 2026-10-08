@@ -713,7 +713,7 @@ munit_case(
     test_tuple_holding_none_refcount_lifecycle,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t = tuple_new_1(none);
 
         assert_ptr_equal(t->data.v_tuple->elements[0], none);
@@ -735,7 +735,7 @@ munit_case(
     test_immortals_in_nested_tuples_refcount_parity,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t0 = tuple_new_0();
 
         object_t *t_inner = tuple_new_2(none, t0);
@@ -763,7 +763,7 @@ munit_case(
     test_tuple_add_mid_failure_with_none,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *i1 = integer_new(10);
         object_t *t1 = tuple_new_2(i1, none);
 

@@ -44,7 +44,7 @@ munit_case(
     {
         vm_new();
         size_t allocs_before = boot_total_alloc_count();
-        object_t *none1 = new_none();
+        object_t *none1 = none_get();
         assert_not_null(none1);
         assert_int(none1->kind, ==, NONE, "must be NONE kind");
         assert_size(
@@ -52,7 +52,7 @@ munit_case(
             "none must perform zero heap allocations"
         );
 
-        object_t *none2 = new_none();
+        object_t *none2 = none_get();
         assert_ptr_equal(none1, none2);
         assert_size(
             boot_total_alloc_count(), ==, allocs_before,
@@ -71,7 +71,7 @@ munit_case(
     RUN,
     test_none_without_vm,
     {
-        object_t *none = new_none();
+        object_t *none = none_get();
         assert_null(none);
     }
 );
@@ -84,7 +84,7 @@ munit_case(
     test_none_properties,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         assert_not_null(none);
         assert_int(none->kind, ==, NONE, "kind must be NONE");
         assert_int64(object_len(none), ==, -1);
@@ -106,7 +106,7 @@ munit_case(
     {
         vm_new();
         object_t *lst = list_new(3);
-        object_t *none = new_none();
+        object_t *none = none_get();
 
         assert_true(list_set(lst, 0, none));
         assert_true(list_set(lst, 1, none));
@@ -132,7 +132,7 @@ munit_case(
     test_none_add_operations,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *num = integer_new(42);
         object_t *empty_t = tuple_new_0();
 
@@ -155,7 +155,7 @@ munit_case(
     test_none_refcount_immunity,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         assert_not_null(none);
         assert_size(none->refcount, ==, OBJECT_IMMORTAL_REFCOUNT);
 
@@ -180,7 +180,7 @@ munit_case(
     test_container_holding_none_refcount_parity,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *lst = list_new(2);
 
         list_set(lst, 0, none);
@@ -208,7 +208,7 @@ munit_case(
     test_deep_nested_immortals_refcount_parity,
     {
         vm_new();
-        object_t *none = new_none();
+        object_t *none = none_get();
         object_t *t0 = tuple_new_0();
 
         object_t *l_inner = list_new(2);
