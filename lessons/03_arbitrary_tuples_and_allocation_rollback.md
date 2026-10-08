@@ -333,7 +333,7 @@ ______
 
 ### Why Line Coverage Was an Illusion
 
-Early in this milestone, `gcov` reported **100% line coverage** on `_add_tuples`, even though:
+Early in this milestone, `gcov` reported **100% line coverage** on `_tuple_add`, even though:
 
 1. Child elements had incorrect reference counts (`refcount == 2` instead of `1`).
 1. Mid-loop failures leaked intermediate allocations.

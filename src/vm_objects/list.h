@@ -28,7 +28,7 @@ object_t *list_get(
     size_t index
 );
 
-object_t *add_lists(
+object_t *list_add(
     object_t *a,
     object_t *b
 );

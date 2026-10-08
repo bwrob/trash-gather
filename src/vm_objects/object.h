@@ -1,23 +1,14 @@
 #pragma once
 
+#include "list.h"
+#include "tuple.h"
 #include "vm/stack.h"
-#include "vm_objects/list.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #define OBJECT_IMMORTAL_REFCOUNT SIZE_MAX
-
-typedef struct Object object_t;
-
-// Data structs
-
-typedef struct
-{
-    size_t size;
-    object_t *elements[];
-} tuple_t;
 
 // Object
 typedef enum ObjectKind
@@ -44,7 +35,6 @@ struct Object
     bool is_marked;
     size_t refcount;
     size_t tracker_id;
-
     object_kind_t kind;
     object_data_t data;
 };
@@ -68,6 +58,8 @@ void object_free_payload(
 void object_free(
     object_t *obj
 );
+
+object_t *immortal_object();
 
 bool object_is_immortal(
     const object_t *obj

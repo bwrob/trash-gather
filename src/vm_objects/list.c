@@ -78,7 +78,7 @@ object_t *list_get(
     return list->data.v_list.elements[index];
 }
 
-object_t *add_lists(
+object_t *list_add(
     object_t *a,
     object_t *b
 )

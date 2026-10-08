@@ -1,8 +1,9 @@
-#include "vm_objects/object.h"
+#include "object.h"
 
+#include "list.h"
+#include "new.h"
+#include "tuple.h"
 #include "vm/vm.h"
-#include "vm_objects/list.h"
-#include "vm_objects/new.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -128,64 +129,6 @@ void object_free(
     free(obj);
 }
 
-static object_t *_add_tuples(
-    object_t *a,
-    object_t *b
-)
-{
-    size_t a_len = a->data.v_tuple->size;
-    size_t b_len = b->data.v_tuple->size;
-    if (a_len != b_len)
-    {
-        return NULL;
-    }
-    if (a_len == 0)
-    {
-        return new_tuple_0();
-    }
-
-    object_t **added_objects = malloc(sizeof(object_t *) * a_len);
-    if (added_objects == NULL)
-    {
-        return NULL;
-    }
-
-    size_t failure_index = SIZE_MAX;
-    for (size_t i = 0; i < a_len; i++)
-    {
-        added_objects[i] =
-            object_add(a->data.v_tuple->elements[i], b->data.v_tuple->elements[i]);
-        if (added_objects[i] == NULL)
-        {
-            failure_index = i;
-            break;
-        }
-    }
-
-    // Mid-addition failure cleanup
-    if (failure_index < a_len)
-    {
-        for (size_t i = 0; i < failure_index; i++)
-        {
-            refcount_dec(added_objects[i]);
-        }
-        free(added_objects);
-        return NULL;
-    }
-
-    object_t *tuple = new_tuple(added_objects, a_len);
-
-    // Ownership was passed to the tuple, we need to release
-    // the reference and memory.
-    for (size_t i = 0; i < a_len; i++)
-    {
-        refcount_dec(added_objects[i]);
-    }
-    free(added_objects);
-
-    return tuple;
-}
-
 static object_t *_add_strings(
     object_t *a,
     object_t *b
@@ -264,7 +207,7 @@ object_t *object_add(
             {
                 case TUPLE:
                 {
-                    return _add_tuples(a, b);
+                    return tuple_add(a, b);
                 }
                 default:
                     return NULL;
@@ -277,7 +220,7 @@ object_t *object_add(
             {
                 case LIST:
                 {
-                    return add_lists(a, b);
+                    return list_add(a, b);
                 }
                 default:
                     return NULL;

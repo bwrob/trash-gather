@@ -388,7 +388,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_tuples,
+    test_tuple_add,
     {
         vm_new();
         object_t *x1 = new_integer(1);
@@ -420,7 +420,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_tuples_size_mismatch,
+    test_tuple_add_size_mismatch,
     {
         vm_new();
         object_t *i1 = new_integer(1);
@@ -446,7 +446,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_tuples_empty,
+    test_tuple_add_empty,
     {
         vm_new();
         object_t *t0_a = new_tuple_0();
@@ -469,7 +469,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_tuples_alloc_failure,
+    test_tuple_add_alloc_failure,
     {
         for (int fail_idx = 0; fail_idx < 10; fail_idx++)
         {
@@ -501,7 +501,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_lists,
+    test_list_add,
     {
         vm_new();
         object_t *arr1 = new_list(2);
@@ -533,7 +533,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_lists_alloc_failure,
+    test_list_add_alloc_failure,
     {
         for (int i = 0; i < 4; i++)
         {
@@ -560,7 +560,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_lists_sparse_nulls,
+    test_list_add_sparse_nulls,
     {
         vm_new();
         object_t *arr1 = new_list(2);
@@ -979,13 +979,13 @@ MunitTest object_tests[] = {
     munit_test("/add_floats", test_add_floats),
     munit_test("/add_strings", test_add_strings),
     munit_test("/add_strings_alloc_failure", test_add_strings_alloc_failure),
-    munit_test("/add_tuples", test_add_tuples),
-    munit_test("/add_tuples_size_mismatch", test_add_tuples_size_mismatch),
-    munit_test("/add_tuples_empty", test_add_tuples_empty),
-    munit_test("/add_tuples_alloc_failure", test_add_tuples_alloc_failure),
-    munit_test("/add_lists", test_add_lists),
-    munit_test("/add_lists_alloc_failure", test_add_lists_alloc_failure),
-    munit_test("/add_lists_sparse_nulls", test_add_lists_sparse_nulls),
+    munit_test("/tuple_add", test_tuple_add),
+    munit_test("/tuple_add_size_mismatch", test_tuple_add_size_mismatch),
+    munit_test("/tuple_add_empty", test_tuple_add_empty),
+    munit_test("/tuple_add_alloc_failure", test_tuple_add_alloc_failure),
+    munit_test("/list_add", test_list_add),
+    munit_test("/list_add_alloc_failure", test_list_add_alloc_failure),
+    munit_test("/list_add_sparse_nulls", test_list_add_sparse_nulls),
     munit_test("/add_invalid_mismatched", test_add_invalid_mismatched),
     munit_test("/len_null", test_object_len_null),
     munit_test("/len_non_sequence", test_object_len_non_sequence),

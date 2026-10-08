@@ -15,29 +15,7 @@ object_t *new_float(
 object_t *new_string(
     char *value
 );
-
-object_t *new_tuple_0();
-object_t *new_tuple_1(
-    object_t *x
-);
-object_t *new_tuple_2(
-    object_t *x,
-    object_t *y
-);
-object_t *new_tuple_3(
-    object_t *x,
-    object_t *y,
-    object_t *z
-);
-object_t *new_tuple(
-    object_t **objects,
-    size_t size
-);
 object_t *new_none(
-    void
-);
-
-object_t *create_empty_tuple_singleton(
     void
 );
 object_t *create_none_singleton(
