@@ -1,14 +1,12 @@
 #include "object.h"
 
-#include "list.h"
-#include "new.h"
-#include "tuple.h"
 #include "vm/vm.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-void refcount_inc(
+void object_refcount_inc(
     object_t *obj
 )
 {
@@ -20,7 +18,7 @@ void refcount_inc(
     return;
 }
 
-void refcount_dec(
+void object_refcount_dec(
     object_t *obj
 )
 {
@@ -70,7 +68,7 @@ void object_free_payload(
     }
 }
 
-static void _refcount_dec(
+static void _object_refcount_dec(
     object_t *obj,
     bool live_only
 )
@@ -81,7 +79,7 @@ static void _refcount_dec(
     }
     if (!live_only || obj->is_marked)
     {
-        refcount_dec(obj);
+        object_refcount_dec(obj);
     }
 }
 
@@ -102,7 +100,7 @@ void object_decref_children(
             tuple_t *t = obj->data.v_tuple;
             for (size_t i = 0; i < t->size; i++)
             {
-                _refcount_dec(t->elements[i], live_only);
+                _object_refcount_dec(t->elements[i], live_only);
             }
             break;
         }
@@ -111,7 +109,7 @@ void object_decref_children(
             list_t arr = obj->data.v_list;
             for (size_t i = 0; i < arr.size; i++)
             {
-                _refcount_dec(arr.elements[i], live_only);
+                _object_refcount_dec(arr.elements[i], live_only);
             }
             break;
         }
@@ -127,6 +125,110 @@ void object_free(
     object_free_payload(obj);
     vm_untrack_object(obj);
     free(obj);
+}
+
+object_t *object_new()
+{
+    object_t *obj = calloc(1, sizeof(object_t));
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+
+    obj->is_marked = false;
+    obj->refcount = 1;
+    vm_track_object(obj);
+
+    return obj;
+}
+
+object_t *object_immortal()
+{
+    object_t *obj = calloc(1, sizeof(*obj));
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+
+    obj->is_marked = false;
+    obj->refcount = OBJECT_IMMORTAL_REFCOUNT;
+    return obj;
+}
+
+object_t *integer_new(
+    int value
+)
+{
+    object_t *obj = object_new();
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+
+    obj->kind = INTEGER;
+    obj->data.v_int = value;
+
+    return obj;
+}
+
+object_t *float_new(
+    float value
+)
+{
+    object_t *obj = object_new();
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+
+    obj->kind = FLOAT;
+    obj->data.v_float = value;
+    return obj;
+}
+
+object_t *string_new(
+    char *value
+)
+{
+    int len = strlen(value);
+    char *dst = malloc(len + 1);
+    if (dst == NULL)
+    {
+        return NULL;
+    }
+
+    object_t *obj = object_new();
+    if (obj == NULL)
+    {
+        free(dst);
+        return NULL;
+    }
+
+    strcpy(dst, value);
+
+    obj->kind = STRING;
+    obj->data.v_string = dst;
+    return obj;
+}
+
+object_t *create_none_singleton(
+    void
+)
+{
+    object_t *obj = object_immortal();
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+    obj->kind = NONE;
+    return obj;
+}
+
+object_t *new_none(
+    void
+)
+{
+    return vm_get_none();
 }
 
 static object_t *_add_strings(
@@ -148,7 +250,7 @@ static object_t *_add_strings(
     strcat(dst, a->data.v_string);
     strcat(dst, b->data.v_string);
 
-    object_t *obj = new_string(dst);
+    object_t *obj = string_new(dst);
     free(dst);
 
     return obj;
@@ -171,9 +273,9 @@ object_t *object_add(
             switch (b->kind)
             {
                 case INTEGER:
-                    return new_integer(a->data.v_int + b->data.v_int);
+                    return integer_new(a->data.v_int + b->data.v_int);
                 case FLOAT:
-                    return new_float((float)a->data.v_int + b->data.v_float);
+                    return float_new((float)a->data.v_int + b->data.v_float);
                 default:
                     return NULL;
             }
@@ -183,7 +285,7 @@ object_t *object_add(
             switch (b->kind)
             {
                 case FLOAT:
-                    return new_float(a->data.v_float + b->data.v_float);
+                    return float_new(a->data.v_float + b->data.v_float);
                 default:
                     return object_add(b, a);
             }

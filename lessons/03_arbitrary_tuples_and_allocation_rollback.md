@@ -78,7 +78,7 @@ In a runtime where the VM tracks all allocated objects in an internal registry, 
 
 ```c
 // ANTI-PATTERN: Registration before payload verification
-object_t *obj = _new_object(); // Immediately calls vm_track_object(obj)
+object_t *obj = _object_new(); // Immediately calls vm_track_object(obj)
 if (obj == NULL) return NULL;
 
 tuple_t *tuple = malloc(sizeof(*tuple) + (tuple_size * sizeof(tuple->elements[0])));
@@ -106,7 +106,7 @@ READ of size 4 at 0x6040000007a8 thread T0
 
 ### Why Naive Unwinding Fails
 
-When `_new_object()` executes `vm_track_object(obj)`, `obj` is appended to `CURRENT_VM->objects`.
+When `_object_new()` executes `vm_track_object(obj)`, `obj` is appended to `CURRENT_VM->objects`.
 If the subsequent payload allocation fails and the caller invokes `free(obj)`:
 
 - The heap block is returned to the OS allocator.
@@ -124,7 +124,7 @@ if (tuple == NULL) {
     return NULL; // Failed before any global state was altered
 }
 
-object_t *obj = _new_object();
+object_t *obj = _object_new();
 if (obj == NULL) {
     free(tuple); // Safely clean up unshared buffer; VM has no dangling reference
     return NULL;
@@ -148,14 +148,14 @@ ______
 When a container operation creates new child elements to populate a new parent container (such as component-wise tuple addition `add(tupleA, tupleB)`):
 
 1. `add(a[i], b[i])` produces a new element with **`refcount = 1`** (owned by the local frame).
-1. `tuple_new(added_objects, N)` loops over elements and calls **`refcount_inc(objects[i])`**, raising each child's refcount to **`2`**.
+1. `tuple_new(added_objects, N)` loops over elements and calls **`object_refcount_inc(objects[i])`**, raising each child's refcount to **`2`**.
 1. The function returns `tuple` to the caller.
 
 ### The Problem: Zombie Objects
 
 If the creator function does not explicitly relinquish its temporary references:
 
-- When the caller later destroys `tuple` via `refcount_dec(tuple)`, `object_decref_children` decrements each element from **2 to 1**.
+- When the caller later destroys `tuple` via `object_refcount_dec(tuple)`, `object_decref_children` decrements each element from **2 to 1**.
 - Because their refcount is still 1, **the child elements are never freed by reference counting**. They remain orphaned in memory until swept by a full GC pass or program termination.
 
 ### The Solution: Ownership Transfer Handshake
@@ -167,13 +167,13 @@ object_t *tuple = tuple_new(added_objects, a_len);
 
 // Ownership was passed to the tuple: release local temporary references
 for (size_t i = 0; i < a_len; i++) {
-    refcount_dec(added_objects[i]);
+    object_refcount_dec(added_objects[i]);
 }
 free(added_objects);
 return tuple;
 ```
 
-Now each child element goes: `1 (created) -> 2 (tuple_new) -> 1 (refcount_dec)`. When `tuple` is decremented to 0, its children cascade to 0 and are freed immediately.
+Now each child element goes: `1 (created) -> 2 (tuple_new) -> 1 (object_refcount_dec)`. When `tuple` is decremented to 0, its children cascade to 0 and are freed immediately.
 
 ### Why Initial Tests Missed It: The `vm_free()` Masking Trap
 
@@ -189,7 +189,7 @@ assert(boot_all_freed());
 To detect reference leaks, tests must explicitly drop the parent container via pure reference counting:
 
 ```c
-refcount_dec(res);
+object_refcount_dec(res);
 vm_cleanup_after_refcount(); // Clears tracking array so only refcount drops free memory
 assert(boot_all_freed());    // Fails if any child refcount was 2 instead of 1!
 ```
@@ -274,7 +274,7 @@ If the failure cleanup loop attempts to iterate across all $N$ elements:
 ```c
 // DANGEROUS: Dereferences uninitialized pointers in slots k+1 .. N-1
 for (size_t i = 0; i < a_len; i++) {
-    refcount_dec(added_objects[i]); // CRASH / Wild pointer dereference!
+    object_refcount_dec(added_objects[i]); // CRASH / Wild pointer dereference!
 }
 ```
 
@@ -285,7 +285,7 @@ Failure cleanup must strictly unwind only the range of elements that were succes
 ```c
 if (failure_index < a_len) {
     for (size_t i = 0; i < failure_index; i++) {
-        refcount_dec(added_objects[i]); // Safely drops only allocated items
+        object_refcount_dec(added_objects[i]); // Safely drops only allocated items
     }
     free(added_objects);
     return NULL;
@@ -344,6 +344,6 @@ A single happy-path test executed every line in the function sequentially (`mall
 
 To prevent coverage illusions, test generation is governed by three non-negotiable heuristics derived from [`c-expert`](../.agents/skills/c-expert/SKILL.md):
 
-1. **The Container Lifecycle Probe:** Always test container destruction via `refcount_dec()` with `vm_cleanup_after_refcount(); assert(boot_all_freed())`. Never rely solely on `vm_free()`.
+1. **The Container Lifecycle Probe:** Always test container destruction via `object_refcount_dec()` with `vm_cleanup_after_refcount(); assert(boot_all_freed())`. Never rely solely on `vm_free()`.
 1. **The $K$-of-$N$ Mid-Loop Probe:** Always construct inputs where element $0$ succeeds and element $1$ fails, verifying early abort and clean unwinding.
 1. **Heap Exhaustion Sweeps:** Sweep `boot_set_fail_alloc_after(i)` across all fallible allocation steps to verify rollback.

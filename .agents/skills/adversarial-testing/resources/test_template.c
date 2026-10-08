@@ -42,7 +42,7 @@ munit_case(
     {
         vm_new();
 
-        object_t *elem = new_integer(42);
+        object_t *elem = integer_new(42);
         assert_not_null(elem);
         assert_size(elem->refcount, ==, 1);
 
@@ -52,14 +52,14 @@ munit_case(
         assert_size(elem->refcount, ==, 2);
 
         // Release container via pure reference counting
-        refcount_dec(container);
+        object_refcount_dec(container);
         vm_cleanup_after_refcount();
 
         // Child element must drop back to 1
         assert_size(elem->refcount, ==, 1);
 
         // Release child
-        refcount_dec(elem);
+        object_refcount_dec(elem);
         vm_cleanup_after_refcount();
 
         vm_free();

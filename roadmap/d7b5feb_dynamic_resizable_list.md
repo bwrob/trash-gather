@@ -47,7 +47,7 @@ ______
 1. **Core Systems Invariants**:
    - Capacity invariant: $0 \\le \\text{size} \\le \\text{capacity}$ must hold after every mutation.
    - Pointer safety: Reallocation must use `boot_realloc` (or `boot_malloc` + `memcpy` + `boot_free`). If allocation fails, the original elements buffer must remain untouched and un-leaked.
-   - Ownership transfer: Appending or inserting an object into a list transfers ownership by incrementing its reference count (`refcount_inc`). Popping an object retains its ownership for the caller without decrementing until the caller drops it.
+   - Ownership transfer: Appending or inserting an object into a list transfers ownership by incrementing its reference count (`object_refcount_inc`). Popping an object retains its ownership for the caller without decrementing until the caller drops it.
    - Overlap safety: Element shifting on insertion and deletion must strictly use `memmove()`, never `memcpy()`, because source and destination ranges overlap.
 1. **Architectural Trade-offs**: Pre-allocating capacity trades a small amount of memory overhead for $O(1)$ amortized append performance, avoiding costly heap reallocation on every single insertion.
 
@@ -60,7 +60,7 @@ ______
    - Why does ISO C state that calling `memcpy(dest, src, n)` produces Undefined Behavior when the regions `[dest, dest+n)` and `[src, src+n)` overlap, whereas `memmove` is guaranteed to be safe?
    - When expanding a dynamic array, why is geometric growth (e.g. $C\_{\\text{new}} = C\_{\\text{old}} \\times 2$) amortized $O(1)$, whereas linear growth ($C\_{\\text{new}} = C\_{\\text{old}} + 1$) is $O(N^2)$ for $N$ appends?
    - If `realloc()` fails and returns `NULL`, what happens to the existing pointer if you write `list->elements = realloc(list->elements, new_cap)`?
-1. **Failure Modes & Pitfalls**: Storing `realloc` result directly into `list->elements` causing instant memory leaks on allocation failure; off-by-one errors in `memmove` byte count calculations (`count * sizeof(object_t*)`); forgetting `refcount_inc` on appended items leading to premature reclamation.
+1. **Failure Modes & Pitfalls**: Storing `realloc` result directly into `list->elements` causing instant memory leaks on allocation failure; off-by-one errors in `memmove` byte count calculations (`count * sizeof(object_t*)`); forgetting `object_refcount_inc` on appended items leading to premature reclamation.
 
 ______
 

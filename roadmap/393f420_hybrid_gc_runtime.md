@@ -21,7 +21,7 @@ ______
 1. **Core Systems Invariants**:
    - Two-phase sweep invariant: Phase 1 decrements child references across dead objects (`live_only = true`), severing cyclic links; Phase 2 deallocates dead nodes, guaranteeing no child is freed while a parent still references its pointer.
    - Namespace hygiene invariant: Avoid leading underscores on non-static functions in C headers to prevent collisions with POSIX/ISO C system headers.
-1. **Architectural Trade-offs**: Hybrid GC adds runtime cost on pointer mutation (`refcount_inc`/`dec`) but enables immediate zero-pause deallocation for acyclic objects, reserving tracing sweeps for cycles.
+1. **Architectural Trade-offs**: Hybrid GC adds runtime cost on pointer mutation (`object_refcount_inc`/`dec`) but enables immediate zero-pause deallocation for acyclic objects, reserving tracing sweeps for cycles.
 
 ______
 
@@ -39,7 +39,7 @@ ______
 
 1. **Step-by-Step Execution Sequence**:
    - Add `refcount` to `struct Object` in `src/object.h`.
-   - Implement `refcount_inc()` and `refcount_dec()` in `src/object.c` and `src/object.h`.
+   - Implement `object_refcount_inc()` and `object_refcount_dec()` in `src/object.c` and `src/object.h`.
    - Refactor functions with leading underscores (`_stack_*`) to clean public names.
    - Implement two-phase sweep in `src/vm.c`.
    - Write unit tests in `tests/test_refcount.c`.

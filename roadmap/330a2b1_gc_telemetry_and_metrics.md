@@ -42,7 +42,7 @@ ______
    - Conservation invariant: At any time, $\\text{current_live_objects} == \\text{total_allocations} - \\text{total_deallocations}$.
    - Non-intrusive invariant: Updating metrics counters must occur exclusively on allocation and deallocation code paths without adding branches to hot-path pointer reads.
    - Deterministic reset: `vm_new()` zeros all telemetry counters; `vm_free()` leaves zero uncollected accounting discrepancies.
-1. **Architectural Trade-offs**: Incrementing counters on `new_object()` and `object_free()` adds a negligible CPU cost (\<1%) while providing immediate empirical visibility into GC behavior and allocation churn.
+1. **Architectural Trade-offs**: Incrementing counters on `object_new()` and `object_free()` adds a negligible CPU cost (\<1%) while providing immediate empirical visibility into GC behavior and allocation churn.
 
 ______
 
@@ -62,7 +62,7 @@ ______
 1. **Step-by-Step Execution Sequence**:
    - Define `gc_stats_t` in `src/vm.h`.
    - Add `gc_stats_t stats;` to `struct VM` in `src/vm.h`.
-   - Instrument `new_object()` in `src/new.c` to increment `total_allocations`, `current_live_objects`, and update `peak_live_objects`.
+   - Instrument `object_new()` in `src/new.c` to increment `total_allocations`, `current_live_objects`, and update `peak_live_objects`.
    - Instrument `object_free()` in `src/object.c` to increment `total_deallocations` and decrement `current_live_objects`.
    - Instrument `vm_collect_garbage()` in `src/vm.c` to track `total_gc_runs` and `total_objects_swept`.
    - Implement `gc_stats_t vm_get_stats(void)` and `void vm_stats_print(void)` in `src/vm.c` and `src/vm.h`.

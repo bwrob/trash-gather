@@ -70,7 +70,7 @@ ______
      ```
 
 1. **Core Systems Invariants**:
-   - **Ownership Balance**: Creating a cycle iterator increments the sequence refcount (`refcount_inc(sequence)`). Freeing the iterator payload releases that reference (`refcount_dec(sequence)`).
+   - **Ownership Balance**: Creating a cycle iterator increments the sequence refcount (`object_refcount_inc(sequence)`). Freeing the iterator payload releases that reference (`object_refcount_dec(sequence)`).
    - **Zero Secondary Allocations**: Because `sizeof(cycle_iter_t)` is 16 bytes (identical to `sizeof(list_t)`), it resides by value inside the tagged union `object_data_t`, requiring zero auxiliary heap blocks beyond the `object_t` container itself.
    - **Dynamic Mutation Resilience**: `cycle_iter_next()` dynamically queries `object_len(sequence)` on each step. If a mutable list shrinks or grows, modular arithmetic (`index % len`) guards against buffer overruns and segmentation faults.
    - **Empty Container Safety**: If `len <= 0`, `cycle_iter_next()` returns `NULL` without mutating `index` and without triggering division-by-zero faults.
@@ -94,8 +94,8 @@ ______
    - If code appends an element to a list while a cycle iterator is active, what should `cycle_iter_next()` do on subsequent iterations?
 1. **Failure Modes & Pitfalls**:
    - Division-by-zero CPU trap on empty sequences (`index % 0`).
-   - Omitting `refcount_inc(sequence)` in `new_cycle_iter()`, causing a dangling pointer if the caller drops their handle to the sequence.
-   - Memory leak if `object_free_payload()` fails to call `refcount_dec(sequence)`.
+   - Omitting `object_refcount_inc(sequence)` in `new_cycle_iter()`, causing a dangling pointer if the caller drops their handle to the sequence.
+   - Memory leak if `object_free_payload()` fails to call `object_refcount_dec(sequence)`.
    - Infinite loops if calling code expects every iterator to eventually return a terminating sentinel.
 
 ______
@@ -109,7 +109,7 @@ ______
    - Declare `object_t *cycle_iter_next(object_t *iter);` and `bool cycle_iter_reset(object_t *iter);` in `src/object.h`.
    - Implement `new_cycle_iter()` in `src/new.c`, validating sequence types (`OBJ_LIST`, `OBJ_TUPLE`), incrementing sequence refcount, and registering with `vm_track_object()`.
    - Implement `cycle_iter_next()` and `cycle_iter_reset()` in `src/object.c`.
-   - Update `object_free_payload()` in `src/object.c` to call `refcount_dec(obj->data.v_cycle_iter.sequence)`.
+   - Update `object_free_payload()` in `src/object.c` to call `object_refcount_dec(obj->data.v_cycle_iter.sequence)`.
    - Update `trace_blacken_object()` in `src/gc.c` to mark `obj->data.v_cycle_iter.sequence`.
    - Add comprehensive unit and adversarial tests in `tests/test_object.c` and `tests/test_gc.c`.
 1. **File Touchpoints**:

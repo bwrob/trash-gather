@@ -52,13 +52,13 @@ In a pure tracing collector, an object's `free()` function only needs to return 
 In a reference-counted runtime, deallocation has two conflicting jobs:
 
 1. **Resource Reclamation:** Freeing private heap allocations (e.g., string buffers, dynamic arrays).
-1. **Graph Ownership Relinquishment:** Cascading decrements to children (`refcount_dec(child)`).
+1. **Graph Ownership Relinquishment:** Cascading decrements to children (`object_refcount_dec(child)`).
 
 ### The Inherent Failure of Linear Traversal
 
 When a runtime iterates over a collection of objects (during full VM shutdown or cycle sweeping):
 
-- In any realistic program, object creation order is arbitrary. A child may be allocated *before* its container (`v = new_vector(x, y)`), or *after* its container (`arr = new_array(2); arr[0] = new_string(...)`).
+- In any realistic program, object creation order is arbitrary. A child may be allocated *before* its container (`v = new_vector(x, y)`), or *after* its container (`arr = new_array(2); arr[0] = string_new(...)`).
 - **Backward iteration:** Frees children created before their parents first. When the loop visits the parent, the parent cascades a decref to an already-freed child pointer $\\rightarrow$ **ASan `heap-use-after-free`**.
 - **Forward iteration:** Frees children created after their parents first. When the loop visits the parent, the parent cascades a decref to an already-freed child pointer $\\rightarrow$ **ASan `heap-use-after-free`**.
 
@@ -93,13 +93,13 @@ During total runtime shutdown, all remaining objects are unconditionally doomed.
 When the cycle collector sweeps unreachable (unmarked) objects:
 
 - **If a child is unmarked (dead):** The child is part of the dead cycle being collected in this same sweep. Cascading a decref to it is redundant and triggers use-after-free if the child was already visited.
-- **If a child is marked (live):** The child is rooted in an active call stack. Because the dead container is being destroyed, the container **must** release its reference to the surviving child (`refcount_dec(live_child)`).
+- **If a child is marked (live):** The child is rooted in an active call stack. Because the dead container is being destroyed, the container **must** release its reference to the surviving child (`object_refcount_dec(live_child)`).
 - **The Invariant:**
 
   ```c
   if (obj == NULL) return;
   if (!live_only || obj->is_marked) {
-    refcount_dec(obj);
+    object_refcount_dec(obj);
   }
   ```
 
@@ -118,7 +118,7 @@ ______
 ### Where Inlining Belongs in Reference Counting
 
 - **The Hot Path (Inline aggressively):**
-  - `refcount_inc()` and the non-zero branch of `refcount_dec()`:
+  - `object_refcount_inc()` and the non-zero branch of `object_refcount_dec()`:
 
     ```c
     obj->refcount--;

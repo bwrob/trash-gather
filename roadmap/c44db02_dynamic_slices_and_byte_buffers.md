@@ -14,7 +14,7 @@ ______
    - Introduce `SLICE` as a first-class `object_kind_t` backed by an embedded `slice_t` payload in `object_data_t`.
    - Implement `new_slice(object_t *source, int64_t start, int64_t stop, int64_t step)` supporting sequence types (`LIST`, `TUPLE`, `BYTES`).
    - Implement zero-copy read indexing `slice_get(object_t *slice, int64_t index)` mapping to the corresponding element in the underlying container.
-   - Enforce base container retention: `slice_t` increments `refcount_inc(source)` and marks `source` during GC cycle tracing, guaranteeing the backing buffer remains alive while the slice is reachable.
+   - Enforce base container retention: `slice_t` increments `object_refcount_inc(source)` and marks `source` during GC cycle tracing, guaranteeing the backing buffer remains alive while the slice is reachable.
    - Hook into `object_len(slice)` returning the logical slice length calculated via standard Python slice arithmetic: $\\max(0, \\lceil(\\text{stop} - \\text{start}) / \\text{step}\\rceil)$.
 1. **Scope Boundaries**:
    - In-place slice assignments (`seq[a:b] = replacement`) with buffer shifts are deferred to advanced container milestones.

@@ -61,7 +61,7 @@ ______
 1. **Step-by-Step Execution Sequence**:
    - Redefine `object_t` as a base metadata header in `src/object.h`.
    - Define concrete per-type structs (`int_object_t`, `tuple_object_t`, etc.) in `src/object.h`.
-   - Update `new_object()` in `src/new.c` to accept `size_t total_bytes`.
+   - Update `object_new()` in `src/new.c` to accept `size_t total_bytes`.
    - Update constructors to allocate unified memory blocks.
    - Update GC traversal and deallocation in `src/vm.c` and `src/object.c`.
 1. **File Touchpoints**:

@@ -42,7 +42,7 @@ ______
 1. **Socratic Inquiries**:
    - Why can't a flexible array member appear directly inside a union?
    - How does tuple allocation differ from list allocation in terms of buffer resizing and immutability?
-   - How does the runtime handle allocation failure rollback if `new_object` succeeds but `malloc(payload)` fails?
+   - How does the runtime handle allocation failure rollback if `object_new` succeeds but `malloc(payload)` fails?
 1. **Failure Modes & Pitfalls**: Uninitialized slot dereferences during GC tracing; memory leaks on failed allocation paths; integer overflow during size multiplication.
 
 ______

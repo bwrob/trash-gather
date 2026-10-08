@@ -1,6 +1,5 @@
 #include "bootlib.h"
 #include "vm/vm.h"
-#include "vm_objects/new.h"
 #include "vm_objects/object.h"
 
 #include <stdio.h>
@@ -15,7 +14,7 @@ int main(
     vm_new();
     frame_t *f1 = vm_new_frame();
 
-    object_t *s = new_string("Hello from  VM!");
+    object_t *s = string_new("Hello from  VM!");
     frame_reference_object(f1, s);
 
     printf("Created string object in frame 1. Collecting garbage...\n");

@@ -67,7 +67,7 @@ ______
 - **Target Invariant**: **100.00% line coverage** across all files in `src/` (`src/vm.c`, `src/object.c`, `src/new.c`, `src/stack.c`).
 - **Adversarial Safety Audit Checklist** (strictly audited per the `adversarial-testing` skill):
   - [ ] **NULL Safety**: API functions safely reject `NULL` arguments without segmentation faults.
-  - [ ] **Container Lifecycle Parity**: Container child objects released via pure `refcount_dec()` rather than masked solely by `vm_free()`.
+  - [ ] **Container Lifecycle Parity**: Container child objects released via pure `object_refcount_dec()` rather than masked solely by `vm_free()`.
   - [ ] **Cycle Reclaimability**: Self-referencing cycles and mutual cycle meshes are cleanly swept by `vm_collect_garbage()`.
   - [ ] **Allocation Failure Rollback**: Multi-step allocations unwound cleanly without leaks via `boot_set_fail_alloc_after()`.
   - [ ] **Boundary Conditions**: Empty containers (`0` length/capacity), sparse containers (NULL slots), and large sequences verified.

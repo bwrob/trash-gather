@@ -6,7 +6,6 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "new.h"
 #include "object.h"
 #include "vm.h"
 
@@ -23,7 +22,7 @@ munit_case(
         vm_new();
         frame_t *f1 = vm_new_frame();
 
-        object_t *s = new_string("I wish I knew how to read.");
+        object_t *s = string_new("I wish I knew how to read.");
         frame_reference_object(f1, s);
         vm_collect_garbage();
         // nothing should be collected because
@@ -53,18 +52,18 @@ munit_case(
         frame_t *f2 = vm_new_frame();
         frame_t *f3 = vm_new_frame();
 
-        object_t *s1 = new_string("This string is going into frame 1");
+        object_t *s1 = string_new("This string is going into frame 1");
         frame_reference_object(f1, s1);
 
-        object_t *s2 = new_string("This string is going into frame 2");
+        object_t *s2 = string_new("This string is going into frame 2");
         frame_reference_object(f2, s2);
 
-        object_t *s3 = new_string("This string is going into frame 3");
+        object_t *s3 = string_new("This string is going into frame 3");
         frame_reference_object(f3, s3);
 
-        object_t *i1 = new_integer(69);
-        object_t *i2 = new_integer(420);
-        object_t *i3 = new_integer(1337);
+        object_t *i1 = integer_new(69);
+        object_t *i2 = integer_new(420);
+        object_t *i3 = integer_new(1337);
         object_t *v = tuple_new_3(i1, i2, i3);
         frame_reference_object(f2, v);
         frame_reference_object(f3, v);
@@ -108,8 +107,8 @@ munit_case(
     test_reference_object,
     {
         vm_new();
-        new_integer(5);
-        new_string("hello");
+        integer_new(5);
+        string_new("hello");
         vm_free();
         assert(boot_all_freed());
     }
@@ -165,11 +164,11 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_new_object,
+    test_object_new,
     {
         vm_new();
         vm_t *vm = vm_get_current();
-        object_t *obj = new_integer(5);
+        object_t *obj = integer_new(5);
         assert_int(obj->kind, ==, INTEGER, "kind must be INTEGER");
         assert_ptr_equal(vm->objects->data[0], obj, "object must be tracked");
         vm_free();
@@ -193,7 +192,7 @@ munit_case(
         }
 
         vm_new();
-        object_t *obj = new_integer(42);
+        object_t *obj = integer_new(42);
         frame_t *f = vm_new_frame();
         frame_reference_object(f, obj);
         mark();
@@ -286,7 +285,7 @@ munit_case(
     {
         vm_new();
         frame_t *live_frame = vm_new_frame();
-        object_t *live_str = new_string("survivor");
+        object_t *live_str = string_new("survivor");
         frame_reference_object(live_frame, live_str);
 
         frame_t *dead_frame = vm_new_frame();
@@ -329,8 +328,8 @@ munit_case(
         frame_reference_object(f, arr);
 
         // Set only slots 0 and 3; slots 1, 2, 4 remain NULL
-        object_t *val0 = new_integer(100);
-        object_t *val3 = new_integer(300);
+        object_t *val0 = integer_new(100);
+        object_t *val3 = integer_new(300);
         list_set(arr, 0, val0);
         list_set(arr, 3, val3);
 
@@ -359,7 +358,7 @@ munit_case(
         object_t *n1 = list_new(1);
         object_t *n2 = list_new(1);
         object_t *n3 = list_new(2);
-        object_t *tail = new_integer(999);
+        object_t *tail = integer_new(999);
 
         frame_reference_object(f, n1);
         frame_reference_object(f, n2);
@@ -652,7 +651,7 @@ munit_case(
         // Node C: holds A, None, and live_tail
         object_t *node_c = list_new(3);
 
-        object_t *live_tail = new_integer(999);
+        object_t *live_tail = integer_new(999);
 
         // Frame roots only the live_tail
         frame_t *frame = vm_new_frame();
@@ -669,7 +668,7 @@ munit_case(
         list_set(node_c, 2, live_tail);
 
         // Drop caller's local reference so live_tail is held only by frame and node_c
-        refcount_dec(live_tail);
+        object_refcount_dec(live_tail);
         assert_int(live_tail->refcount, ==, 2);
 
         // Run GC: cycle A-B-C is unrooted and must be collected
@@ -728,7 +727,7 @@ MunitTest vm_tests[] = {
     munit_test("/list_freed", test_list_freed),
     munit_test("/frames_are_freed", test_frames_are_freed),
     munit_test("/vm_new", test_vm_new),
-    munit_test("/new_object", test_new_object),
+    munit_test("/object_new", test_object_new),
     munit_test("/vm_alloc_failures", test_vm_alloc_failures),
     munit_test("/gc_reclaims_unreachable_cycle", test_gc_reclaims_unreachable_cycle),
     munit_test(

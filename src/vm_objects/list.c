@@ -1,7 +1,6 @@
-#include "vm_objects/list.h"
+#include "list.h"
 
-#include "vm_objects/new.h"
-#include "vm_objects/object.h"
+#include "object.h"
 
 #include <stdint.h>
 
@@ -15,7 +14,7 @@ object_t *list_new(
         return NULL;
     }
 
-    object_t *obj = new_object();
+    object_t *obj = object_new();
     if (obj == NULL)
     {
         free(elements);
@@ -49,10 +48,10 @@ bool list_set(
 
     if (list->data.v_list.elements[index] != NULL)
     {
-        refcount_dec(list->data.v_list.elements[index]);
+        object_refcount_dec(list->data.v_list.elements[index]);
     }
     list->data.v_list.elements[index] = value;
-    refcount_inc(value);
+    object_refcount_inc(value);
     return true;
 }
 

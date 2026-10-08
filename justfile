@@ -20,6 +20,7 @@ BIN_DIR := "bin"
 # Dynamically discover all runtime source modules in src/ (excluding main.c)
 SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/|;s|$|\.o|' | tr '\n' ' '`
 BENCH_SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/bench_|;s|$|\.o|' | tr '\n' ' '`
+TEST_OBJS := `find tests -name 'test_*.c' ! -name 'test_runner.c' -exec basename {} .c \; | sort | sed 's|^|bin/|;s|$|\.o|' | tr '\n' ' '`
 
 # Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
 DOC_LINT_DIRS := "include vendor/bootlib bench tests"
@@ -57,16 +58,11 @@ mkdir-bin:
 
 # Compile test runner binary
 @test-build: src-objs munit-obj
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_object.c -o {{BIN_DIR}}/test_object.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_frame.c -o {{BIN_DIR}}/test_frame.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_new.c -o {{BIN_DIR}}/test_new.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
+    @set -e; for f in $(find tests -name '*.c'); do \
+        base=$(basename "$f" .c); \
+        {{CC}} {{CFLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
+    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{TEST_OBJS}} {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
 
 # Run unit tests (only displaying errors, failures, and summary)
 @test *args="": test-build
@@ -120,16 +116,11 @@ coverage: mkdir-bin
         base=$(basename "$f" .c); \
         {{CC}} {{COV_FLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
     done
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_object.c -o {{BIN_DIR}}/test_object.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_frame.c -o {{BIN_DIR}}/test_frame.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_new.c -o {{BIN_DIR}}/test_new.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
+    @set -e; for f in $(find tests -name '*.c'); do \
+        base=$(basename "$f" .c); \
+        {{CC}} {{COV_FLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
+    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{TEST_OBJS}} {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
     ./{{BIN_DIR}}/cov_runner > /dev/null
     @if command -v xcrun >/dev/null 2>&1; then \
         xcrun llvm-cov gcov {{SRC_OBJS}}; \

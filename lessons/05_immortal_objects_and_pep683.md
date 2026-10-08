@@ -33,15 +33,15 @@ bool object_is_immortal(const object_t *obj) {
 }
 ```
 
-Whenever `refcount_inc()` or `refcount_dec()` is invoked:
+Whenever `object_refcount_inc()` or `object_refcount_dec()` is invoked:
 
 ```c
-void refcount_inc(object_t *obj) {
+void object_refcount_inc(object_t *obj) {
     if (obj == NULL || object_is_immortal(obj)) return;
     obj->refcount++;
 }
 
-void refcount_dec(object_t *obj) {
+void object_refcount_dec(object_t *obj) {
     if (obj == NULL || object_is_immortal(obj)) return;
     obj->refcount--;
     if (obj->refcount == 0) object_free(obj);
@@ -123,13 +123,13 @@ ______
 
 ### 3.1 Eager Bootstrapping vs. Lazy Allocation
 
-Rather than allocating `None` on its first access (which would make `new_none()` fallible and require runtime allocation failure checks), the VM adopts **eager startup bootstrapping**:
+Rather than allocating `None` on its first access (which would make `none()` fallible and require runtime allocation failure checks), the VM adopts **eager startup bootstrapping**:
 
 ```mermaid
 flowchart TD
   A["vm_new()"] --> B["stack_new(frames)"]
   B --> C["stack_new(objects)"]
-  C --> D["create_none_singleton()"]
+  C --> D["none_new()"]
   D --> E["create_empty_tuple_singleton()"]
   E --> F["CURRENT_VM = vm"]
 
@@ -140,7 +140,7 @@ flowchart TD
 
 1. `vm_new()` allocates `none` and `empty_tuple` during VM initialization.
 1. If any singleton allocation fails under memory pressure, `vm_new()` executes a clean multi-stage rollback (`_immortals_free`, `stack_free`, `free(vm)`), leaving zero memory leaks and `CURRENT_VM == NULL`.
-1. Once initialized, `new_none()` and `tuple_new_0()` are **100% infallible, zero-allocation accessors**.
+1. Once initialized, `none()` and `tuple_new_0()` are **100% infallible, zero-allocation accessors**.
 
 ### 3.2 Scoped Memory Verification with Checkpoints
 
@@ -151,8 +151,8 @@ boot_checkpoint_t cp = boot_checkpoint();
 
 // Run local operations
 object_t *lst = list_new(2);
-list_set(lst, 0, new_none());
-refcount_dec(lst);
+list_set(lst, 0, none());
+object_refcount_dec(lst);
 
 // Assert 100% of memory allocated since checkpoint is freed,
 // while the VM and immortals remain active!
@@ -164,11 +164,11 @@ ______
 ## 4. Tooling Insights & Workflow Takeaways
 
 1. **Empirical Zero-Allocation Verification**:
-   Using `boot_total_alloc_count()`, unit tests now mathematically prove that accessing `new_none()` or `tuple_new_0()` does not allocate:
+   Using `boot_total_alloc_count()`, unit tests now mathematically prove that accessing `none()` or `tuple_new_0()` does not allocate:
 
    ```c
    size_t allocs_before = boot_total_alloc_count();
-   object_t *n = new_none();
+   object_t *n = none();
    assert_size(boot_total_alloc_count(), ==, allocs_before);
    ```
 

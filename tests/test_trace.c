@@ -6,7 +6,6 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "new.h"
 #include "object.h"
 #include "vm.h"
 
@@ -23,9 +22,9 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *x = new_integer(5);
-        object_t *y = new_integer(5);
-        object_t *z = new_integer(5);
+        object_t *x = integer_new(5);
+        object_t *y = integer_new(5);
+        object_t *z = integer_new(5);
         object_t *vector = tuple_new_3(x, y, z);
 
         // nothing is marked
@@ -65,11 +64,11 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *val1 = new_integer(100);
-        object_t *val2 = new_string("nested");
+        object_t *val1 = integer_new(100);
+        object_t *val2 = string_new("nested");
         object_t *inner = tuple_new_2(val1, val2);
 
-        object_t *val3 = new_float(3.14f);
+        object_t *val3 = float_new(3.14f);
         object_t *outer = tuple_new_2(inner, val3);
 
         frame_reference_object(frame, outer);
@@ -103,8 +102,8 @@ munit_case(
         frame_t *frame = vm_new_frame();
 
         object_t *devs = list_new(2);
-        object_t *lane = new_string("Lane");
-        object_t *teej = new_string("Teej");
+        object_t *lane = string_new("Lane");
+        object_t *teej = string_new("Teej");
         list_set(devs, 0, lane);
         list_set(devs, 1, teej);
 
@@ -143,16 +142,16 @@ munit_case(
         frame_t *frame = vm_new_frame();
 
         object_t *bootdevs = list_new(2);
-        object_t *lane = new_string("Lane");
-        object_t *hunter = new_string("Hunter");
+        object_t *lane = string_new("Lane");
+        object_t *hunter = string_new("Hunter");
         list_set(bootdevs, 0, lane);
         list_set(bootdevs, 1, hunter);
 
         object_t *terminaldevs = list_new(4);
-        object_t *prime = new_string("Prime");
-        object_t *teej = new_string("Teej");
-        object_t *dax = new_string("Dax");
-        object_t *adam = new_string("Adam");
+        object_t *prime = string_new("Prime");
+        object_t *teej = string_new("Teej");
+        object_t *dax = string_new("Dax");
+        object_t *adam = string_new("Adam");
         list_set(terminaldevs, 0, prime);
         list_set(terminaldevs, 1, teej);
         list_set(terminaldevs, 2, dax);
@@ -191,7 +190,7 @@ munit_case(
     {
         vm_new();
         vm_stack_t *gray_objects = stack_new(8);
-        object_t *obj = new_integer(7);
+        object_t *obj = integer_new(7);
 
         assert_not_null(gray_objects, "must allocate gray object stack");
         assert_not_null(obj, "must allocate object");

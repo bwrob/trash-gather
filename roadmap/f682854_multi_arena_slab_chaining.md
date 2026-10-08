@@ -14,7 +14,7 @@ ______
    - Create a multi-arena coordinator struct `object_slab_t` holding a singly-linked list of `slab_arena_t` blocks.
    - Implement dynamic arena allocation: when the active arena free list is exhausted, allocate a new 64 KB arena, link it to the arena chain, and continue servicing allocations seamlessly.
    - Embed `object_slab_t` into `vm_t` in `src/vm.h`.
-   - Update `new_object()` in `src/new.c` to allocate `object_t` instances from the VM slab allocator instead of `boot_malloc()`.
+   - Update `object_new()` in `src/new.c` to allocate `object_t` instances from the VM slab allocator instead of `boot_malloc()`.
    - Update `object_free()` and GC `sweep()` to return dead `object_t` slots to the slab free list.
    - Update `vm_free()` to deallocate all chained 64 KB arenas in a clean loop.
 1. **Scope Boundaries**:

@@ -11,6 +11,7 @@
 #define OBJECT_IMMORTAL_REFCOUNT SIZE_MAX
 
 // Object
+
 typedef enum ObjectKind
 {
     INTEGER,
@@ -41,17 +42,16 @@ struct Object
 
 // Memory managment
 
-void refcount_inc(
+void object_refcount_inc(
     object_t *obj
 );
-void refcount_dec(
+void object_refcount_dec(
     object_t *obj
 );
 void object_decref_children(
     object_t *obj,
     bool live_only
 );
-
 void object_free_payload(
     object_t *obj
 );
@@ -59,10 +59,37 @@ void object_free(
     object_t *obj
 );
 
-object_t *immortal_object();
+// Immortality
 
+object_t *object_immortal(
+    void
+);
 bool object_is_immortal(
     const object_t *obj
+);
+
+// Construction
+
+object_t *object_new(
+    void
+);
+object_t *integer_new(
+    int value
+);
+object_t *float_new(
+    float value
+);
+object_t *string_new(
+    char *value
+);
+
+// None
+
+object_t *new_none(
+    void
+);
+object_t *create_none_singleton(
+    void
 );
 
 // Polymorfic object functions
@@ -71,7 +98,6 @@ object_t *object_add(
     object_t *a,
     object_t *b
 );
-
 int64_t object_len(
     const object_t *obj
 );

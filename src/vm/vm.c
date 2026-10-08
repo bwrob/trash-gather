@@ -1,7 +1,6 @@
-#include "vm/vm.h"
+#include "vm.h"
 
-#include "vm/stack.h"
-#include "vm_objects/new.h"
+#include "stack.h"
 #include "vm_objects/object.h"
 
 static vm_t *CURRENT_VM = NULL;
@@ -192,7 +191,7 @@ void frame_reference_object(
 )
 {
     stack_push(frame->references, obj);
-    refcount_inc(obj);
+    object_refcount_inc(obj);
 }
 
 void _immortals_free(
@@ -320,7 +319,7 @@ void frame_free(
         {
             continue;
         }
-        refcount_dec(frame->references->data[i]);
+        object_refcount_dec(frame->references->data[i]);
     }
     stack_free(frame->references);
     free(frame);

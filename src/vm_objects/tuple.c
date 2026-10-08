@@ -1,6 +1,5 @@
 #include "tuple.h"
 
-#include "new.h"
 #include "object.h"
 #include "vm/vm.h"
 
@@ -14,7 +13,7 @@ static object_t *_tuple_new_obj(
         return NULL;
     }
 
-    object_t *obj = new_object();
+    object_t *obj = object_new();
     if (obj == NULL)
     {
         free(tuple);
@@ -35,7 +34,7 @@ object_t *create_empty_tuple_singleton()
         return NULL;
     }
 
-    object_t *obj = immortal_object();
+    object_t *obj = object_immortal();
     if (obj == NULL)
     {
         free(tuple);
@@ -110,7 +109,7 @@ object_t *tuple_new(
     for (size_t i = 0; i < size; i++)
     {
         obj->data.v_tuple->elements[i] = objects[i];
-        refcount_inc(obj->data.v_tuple->elements[i]);
+        object_refcount_inc(obj->data.v_tuple->elements[i]);
     }
     return obj;
 }
@@ -154,7 +153,7 @@ object_t *tuple_add(
     {
         for (size_t i = 0; i < failure_index; i++)
         {
-            refcount_dec(added_objects[i]);
+            object_refcount_dec(added_objects[i]);
         }
         free(added_objects);
         return NULL;
@@ -166,7 +165,7 @@ object_t *tuple_add(
     // the reference and memory.
     for (size_t i = 0; i < a_len; i++)
     {
-        refcount_dec(added_objects[i]);
+        object_refcount_dec(added_objects[i]);
     }
     free(added_objects);
 
