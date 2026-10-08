@@ -3,6 +3,7 @@
 #include "object.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 
 object_t *list_new(
     size_t size

@@ -358,6 +358,7 @@ int64_t object_len(
         case LIST:
             return obj->data.v_list.size;
     }
+    return -3;
 }
 
 bool object_is_immortal(

@@ -336,10 +336,12 @@ munit_case(
         object_t *i = integer_new(42);
         object_t *f = float_new(3.14f);
         object_t invalid_obj = {.kind = INVALID};
+        object_t unknown_obj = {.kind = (object_kind_t)999};
 
         assert_int64(object_len(i), ==, -1);
         assert_int64(object_len(f), ==, -1);
         assert_int64(object_len(&invalid_obj), ==, -3);
+        assert_int64(object_len(&unknown_obj), ==, -3);
 
         assert_size(i->refcount, ==, 1);
         assert_size(f->refcount, ==, 1);
