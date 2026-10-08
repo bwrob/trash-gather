@@ -1,7 +1,7 @@
 # Milestone: Dynamic Resizable List Mutations
 
 **ID:** `d7b5feb`\
-**Status:** Planned\
+**Status:** In Progress\
 **Difficulty:** 1 / 5\
 **Focus:** Transform `list_t` from a fixed-size buffer into a dynamically resizable sequence supporting `list_append()`, `list_insert()`, and `list_pop()` with amortized $O(1)$ geometric growth and overlapping memory shifts via `memmove`.\
 **Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)

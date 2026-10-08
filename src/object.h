@@ -1,5 +1,6 @@
 #pragma once
 
+#include "list.h"
 #include "stack.h"
 
 #include <stdbool.h>
@@ -10,11 +11,7 @@
 
 typedef struct Object object_t;
 
-typedef struct
-{
-    size_t size;
-    object_t **elements;
-} list_t;
+// Data structs
 
 typedef struct
 {
@@ -22,6 +19,7 @@ typedef struct
     object_t *elements[];
 } tuple_t;
 
+// Object
 typedef enum ObjectKind
 {
     INTEGER,
@@ -51,6 +49,8 @@ struct Object
     object_data_t data;
 };
 
+// Memory managment
+
 void refcount_inc(
     object_t *obj
 );
@@ -73,15 +73,7 @@ bool object_is_immortal(
     const object_t *obj
 );
 
-bool list_set(
-    object_t *list,
-    size_t index,
-    object_t *value
-);
-object_t *list_get(
-    object_t *list,
-    size_t index
-);
+// Polymorfic object functions
 
 object_t *object_add(
     object_t *a,

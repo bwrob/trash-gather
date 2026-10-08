@@ -47,7 +47,7 @@ flowchart TD
       direction TB
       m_bool["6c3a989: Boolean Singletons<br/>& Truthiness (Diff: 1)"]:::planned
       m_smallint["70b20d3: Small Integer<br/>Caching (Diff: 1)"]:::planned
-      m_dynamic_resizable_list["d7b5feb: Dynamic Resizable<br/>List Mutations (Diff: 1)"]:::planned
+      m_dynamic_resizable_list["d7b5feb: Dynamic Resizable<br/>List Mutations (Diff: 1)"]:::inProgress
     end
   end
 
@@ -262,7 +262,7 @@ ______
 1. **[Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md)**
 
    - **ID:** `d7b5feb`
-   - **Status:** 📋 Planned
+   - **Status:** ⏳ In Progress
    - **Difficulty:** 1 / 5
    - **Prerequisites:** [`b81f9a7`](b81f9a7_polymorphic_sequence_length.md)
    - **Focus:** Transform `list_t` into a dynamically resizable sequence supporting `list_append()`, `list_insert()`, and `list_pop()` with amortized $O(1)$ geometric growth and `memmove` overlapping memory shifts.

@@ -14,6 +14,10 @@ CFLAGS := "-Wall -Wextra -Wswitch -std=" + C_STD + " -g -fsanitize=address,undef
 COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
 
+# Dynamically discover all runtime source modules in src/ (excluding main.c)
+SRC_OBJS := `find src -name '*.c' ! -name 'main.c' | sort | sed 's|src/|bin/|;s|\.c$|\.o|' | tr '\n' ' '`
+BENCH_SRC_OBJS := `find src -name '*.c' ! -name 'main.c' | sort | sed 's|src/|bin/bench_|;s|\.c$|\.o|' | tr '\n' ' '`
+
 # Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
 DOC_LINT_DIRS := "include vendor/bootlib bench tests"
 
@@ -43,10 +47,11 @@ mkdir-bin:
 [private]
 @src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
+    @set -e; for f in src/*.c; do \
+        [ "$f" = "src/main.c" ] && continue; \
+        base=$(basename "$f" .c); \
+        {{CC}} {{CFLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
 
 # Compile test runner binary
 @test-build: src-objs munit-obj
@@ -59,7 +64,7 @@ mkdir-bin:
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
     {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
+    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
 
 # Run unit tests (only displaying errors, failures, and summary)
 @test *args="": test-build
@@ -109,10 +114,11 @@ coverage: mkdir-bin
     {{CC}} {{CFLAGS}} -c vendor/munit/munit.c -o {{BIN_DIR}}/munit.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
 
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
+    @set -e; for f in src/*.c; do \
+        [ "$f" = "src/main.c" ] && continue; \
+        base=$(basename "$f" .c); \
+        {{CC}} {{COV_FLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
@@ -122,19 +128,19 @@ coverage: mkdir-bin
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
+    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
     ./{{BIN_DIR}}/cov_runner > /dev/null
     @if command -v xcrun >/dev/null 2>&1; then \
-        xcrun llvm-cov gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/object.o {{BIN_DIR}}/new.o {{BIN_DIR}}/stack.o; \
+        xcrun llvm-cov gcov {{SRC_OBJS}}; \
     else \
-        gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/object.o {{BIN_DIR}}/new.o {{BIN_DIR}}/stack.o; \
+        gcov {{SRC_OBJS}}; \
     fi
     @rm -f *.gcov
 
 # Build the main sandbox executable
 build: src-objs
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/main.c -o {{BIN_DIR}}/main.o
-    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/main.o -o {{BIN_DIR}}/main_app
+    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/main.o -o {{BIN_DIR}}/main_app
 
 # Run the main sandbox executable
 run: build
@@ -230,14 +236,15 @@ install-deps:
 [private]
 bench-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bench_bootlib.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/new.c -o {{BIN_DIR}}/bench_new.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/object.c -o {{BIN_DIR}}/bench_object.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/stack.c -o {{BIN_DIR}}/bench_stack.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/vm.c -o {{BIN_DIR}}/bench_vm.o
+    @set -e; for f in src/*.c; do \
+        [ "$f" = "src/main.c" ] && continue; \
+        base=$(basename "$f" .c); \
+        {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c "$f" -o "{{BIN_DIR}}/bench_${base}.o"; \
+    done
 
 # Compile benchmark runner binary
 bench-build: bench-objs
-    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_new.o {{BIN_DIR}}/bench_object.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
+    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BENCH_SRC_OBJS}} {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
 
 # Compile and run Google Benchmark performance benchmarks
 bench: bench-build
