@@ -101,7 +101,7 @@ READ of size 4 at 0x6040000007a8 thread T0
 ...
 0x6040000007a8 was freed by thread T0 here:
     #0 free (libclang_rt.asan_osx_dynamic.dylib)
-    #1 _tuple_new_obj new.c:66
+    #1 tuple_new_obj new.c:66
 ```
 
 ### Why Naive Unwinding Fails

@@ -36,14 +36,14 @@ munit_case(
         // After referencing and marking, the
         // vector should be marked, but not the contents
         frame_reference_object(frame, vector);
-        mark();
+        vm_mark();
         assert_true(vector->is_marked);
         assert_false(x->is_marked);
         assert_false(y->is_marked);
         assert_false(z->is_marked);
 
         // After tracing, the contents should be marked
-        trace();
+        vm_trace();
         assert_true(vector->is_marked);
         assert_true(x->is_marked);
         assert_true(y->is_marked);
@@ -72,14 +72,14 @@ munit_case(
         object_t *outer = tuple_new_2(inner, val3);
 
         frame_reference_object(frame, outer);
-        mark();
+        vm_mark();
         assert_true(outer->is_marked);
         assert_false(inner->is_marked);
         assert_false(val1->is_marked);
         assert_false(val2->is_marked);
         assert_false(val3->is_marked);
 
-        trace();
+        vm_trace();
         assert_true(outer->is_marked);
         assert_true(inner->is_marked);
         assert_true(val1->is_marked);
@@ -115,13 +115,13 @@ munit_case(
         // After referencing and marking, the
         // list should be marked, but not the contents
         frame_reference_object(frame, devs);
-        mark();
+        vm_mark();
         assert_true(devs->is_marked);
         assert_false(lane->is_marked);
         assert_false(teej->is_marked);
 
         // After tracing, the contents should be marked
-        trace();
+        vm_trace();
         assert_true(devs->is_marked);
         assert_true(lane->is_marked);
         assert_true(teej->is_marked);
@@ -162,8 +162,8 @@ munit_case(
         list_set(alldevs, 1, terminaldevs);
 
         frame_reference_object(frame, alldevs);
-        mark();
-        trace();
+        vm_mark();
+        vm_trace();
 
         assert_true(bootdevs->is_marked);
         assert_true(lane->is_marked);
@@ -221,8 +221,8 @@ munit_case(
 
         list_set(unreachable, 0, unreachable);
 
-        mark();
-        trace();
+        vm_mark();
+        vm_trace();
 
         assert_false(unreachable->is_marked);
 
@@ -251,12 +251,12 @@ munit_case(
         assert_false(container->is_marked);
 
         frame_reference_object(frame, container);
-        mark();
+        vm_mark();
         assert_true(container->is_marked);
         assert_false(none->is_marked);
         assert_false(t0->is_marked);
 
-        trace();
+        vm_trace();
         assert_true(container->is_marked);
         assert_false(none->is_marked);
         assert_false(t0->is_marked);

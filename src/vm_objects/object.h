@@ -2,7 +2,6 @@
 
 #include "list.h"
 #include "tuple.h"
-#include "vm/stack.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -14,6 +13,7 @@
 
 typedef enum ObjectKind
 {
+    INVALID,
     INTEGER,
     FLOAT,
     STRING,
@@ -61,7 +61,7 @@ void object_free(
 
 // Immortality
 
-object_t *object_immortal(
+object_t *immortal_new(
     void
 );
 bool object_is_immortal(

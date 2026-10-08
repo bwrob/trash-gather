@@ -49,6 +49,7 @@ void object_free_payload(
         case INTEGER:
         case FLOAT:
         case NONE:
+        case INVALID:
             break;
         case TUPLE:
         {
@@ -68,7 +69,7 @@ void object_free_payload(
     }
 }
 
-static void _object_refcount_dec(
+static void object_refcount_dec_helper(
     object_t *obj,
     bool live_only
 )
@@ -94,13 +95,14 @@ void object_decref_children(
         case FLOAT:
         case STRING:
         case NONE:
+        case INVALID:
             break;
         case TUPLE:
         {
             tuple_t *t = obj->data.v_tuple;
             for (size_t i = 0; i < t->size; i++)
             {
-                _object_refcount_dec(t->elements[i], live_only);
+                object_refcount_dec_helper(t->elements[i], live_only);
             }
             break;
         }
@@ -109,7 +111,7 @@ void object_decref_children(
             list_t arr = obj->data.v_list;
             for (size_t i = 0; i < arr.size; i++)
             {
-                _object_refcount_dec(arr.elements[i], live_only);
+                object_refcount_dec_helper(arr.elements[i], live_only);
             }
             break;
         }
@@ -129,7 +131,7 @@ void object_free(
 
 object_t *object_new()
 {
-    object_t *obj = calloc(1, sizeof(object_t));
+    object_t *obj = calloc(1, sizeof(*obj));
     if (obj == NULL)
     {
         return NULL;
@@ -142,7 +144,7 @@ object_t *object_new()
     return obj;
 }
 
-object_t *object_immortal()
+object_t *immortal_new()
 {
     object_t *obj = calloc(1, sizeof(*obj));
     if (obj == NULL)
@@ -190,7 +192,7 @@ object_t *string_new(
     char *value
 )
 {
-    int len = strlen(value);
+    size_t len = strlen(value);
     char *dst = malloc(len + 1);
     if (dst == NULL)
     {
@@ -215,7 +217,7 @@ object_t *none_create(
     void
 )
 {
-    object_t *obj = object_immortal();
+    object_t *obj = immortal_new();
     if (obj == NULL)
     {
         return NULL;
@@ -231,7 +233,7 @@ object_t *none_get(
     return vm_get_none();
 }
 
-static object_t *_add_strings(
+static object_t *add_strings(
     object_t *a,
     object_t *b
 )
@@ -296,7 +298,7 @@ object_t *object_add(
             {
                 case STRING:
                 {
-                    return _add_strings(a, b);
+                    return add_strings(a, b);
                 }
                 default:
                     return NULL;
@@ -343,6 +345,8 @@ int64_t object_len(
     }
     switch (obj->kind)
     {
+        case INVALID:
+            return -3;
         case INTEGER:
         case FLOAT:
         case NONE:
@@ -354,7 +358,6 @@ int64_t object_len(
         case LIST:
             return obj->data.v_list.size;
     }
-    return -3;
 }
 
 bool object_is_immortal(

@@ -195,10 +195,10 @@ munit_case(
         object_t *obj = integer_new(42);
         frame_t *f = vm_new_frame();
         frame_reference_object(f, obj);
-        mark();
+        vm_mark();
 
         boot_set_fail_alloc_after(0);
-        trace();
+        vm_trace();
         assert_true(boot_fail_alloc_triggered());
 
         vm_free();
@@ -439,13 +439,13 @@ munit_case(
         stack_push(vm_get_current()->objects, NULL);
 
         // mark() encounters NULL in frame references
-        mark();
+        vm_mark();
 
         // trace() encounters NULL in objects list
-        trace();
+        vm_trace();
 
         // sweep() encounters NULL in objects list during pass 2
-        sweep();
+        vm_sweep();
 
         // Remove the NULL from objects list so clean teardown succeeds
         stack_pop(vm_get_current()->objects);
@@ -613,9 +613,9 @@ munit_case(
         // Calling GC and VM routines when no VM is active must safely return without
         // crashing
         vm_free();
-        mark();
-        trace();
-        sweep();
+        vm_mark();
+        vm_trace();
+        vm_sweep();
         vm_collect_garbage();
 
         vm_frame_push(NULL);

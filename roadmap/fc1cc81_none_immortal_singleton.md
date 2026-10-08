@@ -42,7 +42,7 @@ ______
 1. **Socratic Inquiries**:
    - In Python, why does `a is None` check pointer identity rather than value equality?
    - How can the sweep phase distinguish an immortal singleton from normal heap objects? Is it better to set an `is_immortal` bit, check a dedicated pointer address (`obj == vm->none_object`), or keep it permanently marked?
-   - What happens if a user stores `None` inside a list or tuple that is later freed? Should `_object_refcount_dec(none)` be a no-op?
+   - What happens if a user stores `None` inside a list or tuple that is later freed? Should `object_refcount_dec(none)` be a no-op?
 1. **Failure Modes & Pitfalls**: The GC sweep loop inadvertently freeing `none_object`, causing a dangling pointer; `none()` returning multiple distinct allocations; memory leaks if `none_object` is tracked incorrectly in the VM object array.
 
 ______
@@ -55,7 +55,7 @@ ______
    - Initialize `none_object` in `vm_new()` in `src/vm.c`.
    - Implement `none()` in `src/new.c` and `src/new.h` returning `CURRENT_VM->none_object`.
    - Update `sweep()` in `src/vm.c` to skip `CURRENT_VM->none_object`.
-   - Update `_object_refcount_dec()` in `src/object.c` so `NONE` objects never deallocate.
+   - Update `object_refcount_dec()` in `src/object.c` so `NONE` objects never deallocate.
    - Free `none_object` during `vm_free()` in `src/vm.c`.
    - Write unit tests in `tests/test_new.c` and `tests/test_object.c`.
 1. **File Touchpoints**:

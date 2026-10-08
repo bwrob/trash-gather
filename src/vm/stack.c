@@ -78,6 +78,11 @@ vm_stack_t *stack_new(
     size_t capacity
 )
 {
+    if (capacity == 0)
+    {
+        return NULL;
+    }
+
     vm_stack_t *stack = malloc(sizeof(vm_stack_t));
     if (stack == NULL)
     {

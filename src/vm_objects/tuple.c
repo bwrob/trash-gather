@@ -3,7 +3,7 @@
 #include "object.h"
 #include "vm/vm.h"
 
-static object_t *_tuple_new_obj(
+static object_t *tuple_new_obj(
     size_t tuple_size
 )
 {
@@ -26,7 +26,9 @@ static object_t *_tuple_new_obj(
     return obj;
 }
 
-object_t *create_empty_tuple_singleton()
+object_t *create_empty_tuple_singleton(
+    void
+)
 {
     tuple_t *tuple = malloc(sizeof(*tuple));
     if (tuple == NULL)
@@ -34,7 +36,7 @@ object_t *create_empty_tuple_singleton()
         return NULL;
     }
 
-    object_t *obj = object_immortal();
+    object_t *obj = immortal_new();
     if (obj == NULL)
     {
         free(tuple);
@@ -47,7 +49,9 @@ object_t *create_empty_tuple_singleton()
     return obj;
 }
 
-object_t *tuple_new_0()
+object_t *tuple_new_0(
+    void
+)
 {
     return tuple_new(NULL, 0);
 }
@@ -100,12 +104,12 @@ object_t *tuple_new(
         }
     }
 
-    object_t *obj = _tuple_new_obj(size);
+    object_t *obj = tuple_new_obj(size);
     if (obj == NULL)
     {
         return NULL;
     }
-    obj->kind = TUPLE;
+
     for (size_t i = 0; i < size; i++)
     {
         obj->data.v_tuple->elements[i] = objects[i];

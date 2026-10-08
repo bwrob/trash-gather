@@ -54,7 +54,10 @@ munit_case(
 munit_case(
     RUN,
     test_integer_constant,
-    { assert_int(INTEGER, ==, 0, "INTEGER is defined as 0"); }
+    {
+        assert_int(INVALID, ==, 0, "INVALID is defined as 0");
+        assert_int(INTEGER, ==, 1, "INTEGER is defined as 1");
+    }
 );
 
 /**
@@ -238,7 +241,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_strings,
+    testadd_strings,
     {
         vm_new();
         object_t *a = string_new("Hello ");
@@ -259,7 +262,7 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_strings_alloc_failure,
+    testadd_strings_alloc_failure,
     {
         for (int i = 0; i < 3; i++)
         {
@@ -332,7 +335,7 @@ munit_case(
         vm_new();
         object_t *i = integer_new(42);
         object_t *f = float_new(3.14f);
-        object_t invalid_obj = {.kind = (object_kind_t)999};
+        object_t invalid_obj = {.kind = INVALID};
 
         assert_int64(object_len(i), ==, -1);
         assert_int64(object_len(f), ==, -1);
@@ -617,8 +620,8 @@ MunitTest object_tests[] = {
     munit_test("/add_integers", test_add_integers),
     munit_test("/add_integer_and_float", test_add_integer_and_float),
     munit_test("/add_floats", test_add_floats),
-    munit_test("/add_strings", test_add_strings),
-    munit_test("/add_strings_alloc_failure", test_add_strings_alloc_failure),
+    munit_test("/add_strings", testadd_strings),
+    munit_test("/add_strings_alloc_failure", testadd_strings_alloc_failure),
     munit_test("/add_invalid_mismatched", test_add_invalid_mismatched),
     munit_test("/len_null", test_object_len_null),
     munit_test("/len_non_sequence", test_object_len_non_sequence),
