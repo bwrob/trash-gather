@@ -1,6 +1,7 @@
 #pragma once
 
-#include "stack.h"
+#include "list.h"
+#include "tuple.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -8,22 +9,11 @@
 
 #define OBJECT_IMMORTAL_REFCOUNT SIZE_MAX
 
-typedef struct Object object_t;
-
-typedef struct
-{
-    size_t size;
-    object_t **elements;
-} list_t;
-
-typedef struct
-{
-    size_t size;
-    object_t *elements[];
-} tuple_t;
+// Object
 
 typedef enum ObjectKind
 {
+    INVALID,
     INTEGER,
     FLOAT,
     STRING,
@@ -46,22 +36,22 @@ struct Object
     bool is_marked;
     size_t refcount;
     size_t tracker_id;
-
     object_kind_t kind;
     object_data_t data;
 };
 
-void refcount_inc(
+// Memory managment
+
+void object_refcount_inc(
     object_t *obj
 );
-void refcount_dec(
+void object_refcount_dec(
     object_t *obj
 );
 void object_decref_children(
     object_t *obj,
     bool live_only
 );
-
 void object_free_payload(
     object_t *obj
 );
@@ -69,25 +59,45 @@ void object_free(
     object_t *obj
 );
 
+// Immortality
+
+object_t *immortal_new(
+    void
+);
 bool object_is_immortal(
     const object_t *obj
 );
 
-bool list_set(
-    object_t *list,
-    size_t index,
-    object_t *value
+// Construction
+
+object_t *object_new(
+    void
 );
-object_t *list_get(
-    object_t *list,
-    size_t index
+object_t *integer_new(
+    int value
 );
+object_t *float_new(
+    float value
+);
+object_t *string_new(
+    char *value
+);
+
+// None
+
+object_t *none_get(
+    void
+);
+object_t *none_create(
+    void
+);
+
+// Polymorfic object functions
 
 object_t *object_add(
     object_t *a,
     object_t *b
 );
-
 int64_t object_len(
     const object_t *obj
 );

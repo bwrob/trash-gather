@@ -46,7 +46,7 @@ ______
 1. **Core Systems Invariants**:
    - The Python equality invariant: Two keys are considered identical if `key1 == key2` (pointer identity) OR (`hash(key1) == hash(key2)` AND `object_equal(key1, key2)`).
    - Bidirectional GC marking: Dictionaries can participate in reference cycles (e.g., a dictionary holding a list that references the dictionary). Marking a dict must mark all occupied keys and values.
-   - Ownership transfer: Setting a key/value increments reference counts (`refcount_inc(key)` and `refcount_inc(val)`). Replacing an existing key's value decrements the old value's reference count.
+   - Ownership transfer: Setting a key/value increments reference counts (`object_refcount_inc(key)` and `object_refcount_inc(val)`). Replacing an existing key's value decrements the old value's reference count.
 1. **Architectural Trade-offs**: Open addressing with linear probing has superior CPU cache locality compared to separate chaining (linked lists per bucket), but requires keeping load factors moderate ($\\le 0.70$) to prevent clustering.
 
 ______

@@ -15,7 +15,7 @@ ______
    - Define a pure, portable `complex_t` payload structure containing double-precision real and imaginary components (`double real; double imag;`) inside `object_data_t`.
    - Implement factory constructor `object_t *new_complex(double real, double imag);` registered with VM tracking.
    - Implement component accessors and utilities: `double complex_real(const object_t *obj);`, `double complex_imag(const object_t *obj);`, and `object_t *complex_conjugate(const object_t *obj);`.
-   - Integrate `COMPLEX` into polymorphic addition ([`add()`](../src/object.c)) with numeric promotion:
+   - Integrate `COMPLEX` into polymorphic addition ([`add()`](../src/vm_objects/object.c)) with numeric promotion:
      - `COMPLEX + COMPLEX` $\\to$ $(a_r + b_r) + (a_i + b_i)j$
      - `COMPLEX + FLOAT` and `FLOAT + COMPLEX` $\\to$ $(a_r + b) + a_i j$
      - `COMPLEX + INTEGER` and `INTEGER + COMPLEX` $\\to$ $(a_r + b) + a_i j$

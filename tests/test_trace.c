@@ -6,7 +6,6 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "new.h"
 #include "object.h"
 #include "vm.h"
 
@@ -23,10 +22,10 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *x = new_integer(5);
-        object_t *y = new_integer(5);
-        object_t *z = new_integer(5);
-        object_t *vector = new_tuple_3(x, y, z);
+        object_t *x = integer_new(5);
+        object_t *y = integer_new(5);
+        object_t *z = integer_new(5);
+        object_t *vector = tuple_new_3(x, y, z);
 
         // nothing is marked
         assert_false(x->is_marked);
@@ -37,14 +36,14 @@ munit_case(
         // After referencing and marking, the
         // vector should be marked, but not the contents
         frame_reference_object(frame, vector);
-        mark();
+        vm_mark();
         assert_true(vector->is_marked);
         assert_false(x->is_marked);
         assert_false(y->is_marked);
         assert_false(z->is_marked);
 
         // After tracing, the contents should be marked
-        trace();
+        vm_trace();
         assert_true(vector->is_marked);
         assert_true(x->is_marked);
         assert_true(y->is_marked);
@@ -65,22 +64,22 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *val1 = new_integer(100);
-        object_t *val2 = new_string("nested");
-        object_t *inner = new_tuple_2(val1, val2);
+        object_t *val1 = integer_new(100);
+        object_t *val2 = string_new("nested");
+        object_t *inner = tuple_new_2(val1, val2);
 
-        object_t *val3 = new_float(3.14f);
-        object_t *outer = new_tuple_2(inner, val3);
+        object_t *val3 = float_new(3.14f);
+        object_t *outer = tuple_new_2(inner, val3);
 
         frame_reference_object(frame, outer);
-        mark();
+        vm_mark();
         assert_true(outer->is_marked);
         assert_false(inner->is_marked);
         assert_false(val1->is_marked);
         assert_false(val2->is_marked);
         assert_false(val3->is_marked);
 
-        trace();
+        vm_trace();
         assert_true(outer->is_marked);
         assert_true(inner->is_marked);
         assert_true(val1->is_marked);
@@ -102,9 +101,9 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *devs = new_list(2);
-        object_t *lane = new_string("Lane");
-        object_t *teej = new_string("Teej");
+        object_t *devs = list_new(2);
+        object_t *lane = string_new("Lane");
+        object_t *teej = string_new("Teej");
         list_set(devs, 0, lane);
         list_set(devs, 1, teej);
 
@@ -116,13 +115,13 @@ munit_case(
         // After referencing and marking, the
         // list should be marked, but not the contents
         frame_reference_object(frame, devs);
-        mark();
+        vm_mark();
         assert_true(devs->is_marked);
         assert_false(lane->is_marked);
         assert_false(teej->is_marked);
 
         // After tracing, the contents should be marked
-        trace();
+        vm_trace();
         assert_true(devs->is_marked);
         assert_true(lane->is_marked);
         assert_true(teej->is_marked);
@@ -142,29 +141,29 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *bootdevs = new_list(2);
-        object_t *lane = new_string("Lane");
-        object_t *hunter = new_string("Hunter");
+        object_t *bootdevs = list_new(2);
+        object_t *lane = string_new("Lane");
+        object_t *hunter = string_new("Hunter");
         list_set(bootdevs, 0, lane);
         list_set(bootdevs, 1, hunter);
 
-        object_t *terminaldevs = new_list(4);
-        object_t *prime = new_string("Prime");
-        object_t *teej = new_string("Teej");
-        object_t *dax = new_string("Dax");
-        object_t *adam = new_string("Adam");
+        object_t *terminaldevs = list_new(4);
+        object_t *prime = string_new("Prime");
+        object_t *teej = string_new("Teej");
+        object_t *dax = string_new("Dax");
+        object_t *adam = string_new("Adam");
         list_set(terminaldevs, 0, prime);
         list_set(terminaldevs, 1, teej);
         list_set(terminaldevs, 2, dax);
         list_set(terminaldevs, 3, adam);
 
-        object_t *alldevs = new_list(2);
+        object_t *alldevs = list_new(2);
         list_set(alldevs, 0, bootdevs);
         list_set(alldevs, 1, terminaldevs);
 
         frame_reference_object(frame, alldevs);
-        mark();
-        trace();
+        vm_mark();
+        vm_trace();
 
         assert_true(bootdevs->is_marked);
         assert_true(lane->is_marked);
@@ -191,7 +190,7 @@ munit_case(
     {
         vm_new();
         vm_stack_t *gray_objects = stack_new(8);
-        object_t *obj = new_integer(7);
+        object_t *obj = integer_new(7);
 
         assert_not_null(gray_objects, "must allocate gray object stack");
         assert_not_null(obj, "must allocate object");
@@ -218,12 +217,12 @@ munit_case(
     test_trace_unreachable_cycle,
     {
         vm_new();
-        object_t *unreachable = new_list(1);
+        object_t *unreachable = list_new(1);
 
         list_set(unreachable, 0, unreachable);
 
-        mark();
-        trace();
+        vm_mark();
+        vm_trace();
 
         assert_false(unreachable->is_marked);
 
@@ -243,21 +242,21 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *none = new_none();
-        object_t *t0 = new_tuple_0();
-        object_t *container = new_tuple_2(none, t0);
+        object_t *none = none_get();
+        object_t *t0 = tuple_new_0();
+        object_t *container = tuple_new_2(none, t0);
 
         assert_false(none->is_marked);
         assert_false(t0->is_marked);
         assert_false(container->is_marked);
 
         frame_reference_object(frame, container);
-        mark();
+        vm_mark();
         assert_true(container->is_marked);
         assert_false(none->is_marked);
         assert_false(t0->is_marked);
 
-        trace();
+        vm_trace();
         assert_true(container->is_marked);
         assert_false(none->is_marked);
         assert_false(t0->is_marked);

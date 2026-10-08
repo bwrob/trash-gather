@@ -39,10 +39,10 @@ ______
      ```text
      multiply(a, b)
        |
-       +--> (INTEGER, INTEGER)  -> new_integer(a * b)
-       +--> (INTEGER, FLOAT)    -> new_float(a * b)
-       +--> (FLOAT, INTEGER)    -> new_float(a * b)
-       +--> (FLOAT, FLOAT)      -> new_float(a * b)
+       +--> (INTEGER, INTEGER)  -> integer_new(a * b)
+       +--> (INTEGER, FLOAT)    -> float_new(a * b)
+       +--> (FLOAT, INTEGER)    -> float_new(a * b)
+       +--> (FLOAT, FLOAT)      -> float_new(a * b)
        +--> (STRING, INTEGER)   -> _repeat_string(a, b->data.v_int)
        +--> (INTEGER, STRING)   -> _repeat_string(b, a->data.v_int)
        +--> (LIST, INTEGER)     -> _repeat_list(a, b->data.v_int)
@@ -69,8 +69,8 @@ ______
 1. **Core Systems Invariants**:
    - **Integer Overflow Protection**: Before computing buffer sizes or allocating payloads (`size_t total = len * count`), callers must verify against multiplication overflow:
      $$\\text{count} > 0 \\land \\text{len} > \\frac{\\text{SIZE_MAX}}{\\text{count}} \\implies \\text{abort / return NULL}$$
-   - **Shallow Reference Ownership**: Every repeated element inserted into a new list or tuple must have its reference count incremented via `refcount_inc(elem)`.
-   - **Multi-Stage Allocation Rollback**: If memory allocation fails midway through repeating container elements at step $K$, all previously incremented elements ($0 \\le i < K$) must be decremented via `refcount_dec()` and the allocated memory freed cleanly before returning `NULL`.
+   - **Shallow Reference Ownership**: Every repeated element inserted into a new list or tuple must have its reference count incremented via `object_refcount_inc(elem)`.
+   - **Multi-Stage Allocation Rollback**: If memory allocation fails midway through repeating container elements at step $K$, all previously incremented elements ($0 \\le i < K$) must be decremented via `object_refcount_dec()` and the allocated memory freed cleanly before returning `NULL`.
    - **Boundary Multiplier Invariant**: Multiplying by zero or any negative integer ($N \\le 0$) must return an empty container of the appropriate kind, never `NULL`.
    - **Commutativity Invariant**: For all supported types $A$ and $B$, `multiply(a, b)` and `multiply(b, a)` must evaluate to semantically equivalent objects.
    - **Input Constness**: Multiplying sequences must never mutate the input sequences, their element arrays, or their existing sizes.
@@ -90,12 +90,12 @@ ______
 1. **Socratic Inquiries**:
    - In Python, if you evaluate `x = [[0]] * 3; x[0][0] = 1; print(x)`, why does it output `[[1], [1], [1]]`? What does this demonstrate about shallow sequence repetition?
    - In C, if `size_t len = 0x40000000` and `int count = 4`, why does `len * count` equal `0` on 32-bit systems? How does checking `len > SIZE_MAX / count` prevent this vulnerability?
-   - If allocating a repeated tuple runs out of memory after copying 500 element references, why is calling `refcount_dec()` on those 500 items strictly necessary before freeing the tuple container?
+   - If allocating a repeated tuple runs out of memory after copying 500 element references, why is calling `object_refcount_dec()` on those 500 items strictly necessary before freeing the tuple container?
 1. **Failure Modes & Pitfalls**:
    - Arithmetic overflow leading to undersized buffer allocation and subsequent out-of-bounds heap writes.
    - Negative multiplier sign confusion: casting a negative signed integer to `size_t` without checking if $N < 0$, resulting in an enormous positive number (`SIZE_MAX - |N| + 1`).
    - Memory leaks on partial allocation failure due to forgotten rollback loops.
-   - Missing `refcount_inc()` on repeated items causing double-free and use-after-free bugs when either container is collected.
+   - Missing `object_refcount_inc()` on repeated items causing double-free and use-after-free bugs when either container is collected.
 
 ______
 
@@ -108,11 +108,11 @@ ______
      - Copy string payload repeatedly using `memcpy`.
    - Implement `static object_t *_repeat_list(object_t *list, int count);` in `src/object.c`:
      - Allocate new `list_t` with capacity `len * count`.
-     - Populate elements with `refcount_inc(elem)`.
+     - Populate elements with `object_refcount_inc(elem)`.
      - Implement clean rollback loop on allocation failure.
    - Implement `static object_t *_repeat_tuple(object_t *tuple, int count);` in `src/object.c`:
      - Calculate contiguous size with overflow protection.
-     - Allocate and populate with `refcount_inc(elem)`.
+     - Allocate and populate with `object_refcount_inc(elem)`.
      - Implement rollback loop on failure.
    - Implement `multiply()` in `src/object.c` with bidirectional type dispatch across scalars and sequences.
    - Add unit and adversarial tests in `tests/test_object.c`.

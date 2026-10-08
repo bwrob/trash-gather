@@ -4,15 +4,23 @@ default: test
 # Global Configuration Variables (Single Source of Truth)
 # ==============================================================================
 
+# Dynamically discover all include directories in src/
+SRC_INCS := `find src -type d | sort | sed 's|^|-I|' | tr '\n' ' '`
+
 # Language Standards
 export C_STD := "c17"
 export CPP_STD := "c++17"
 
 # C Compiler & Build Tooling
 CC := "gcc"
-CFLAGS := "-Wall -Wextra -Wswitch -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib"
+CFLAGS := "-Wall -Wextra -Wswitch -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude " + SRC_INCS + "-Ivendor/munit -Ivendor/bootlib"
 COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
+
+# Dynamically discover all runtime source modules in src/ (excluding main.c)
+SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/|;s|$|\.o|' | tr '\n' ' '`
+BENCH_SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/bench_|;s|$|\.o|' | tr '\n' ' '`
+TEST_OBJS := `find tests -name 'test_*.c' ! -name 'test_runner.c' -exec basename {} .c \; | sort | sed 's|^|bin/|;s|$|\.o|' | tr '\n' ' '`
 
 # Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
 DOC_LINT_DIRS := "include vendor/bootlib bench tests"
@@ -21,7 +29,7 @@ DOC_LINT_DIRS := "include vendor/bootlib bench tests"
 BENCH_CXX := "clang++"
 BREW_BENCH_INC := `pkg-config --cflags-only-I benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/include ]; then echo "-I/opt/homebrew/opt/google-benchmark/include"; elif [ -d /usr/local/opt/google-benchmark/include ]; then echo "-I/usr/local/opt/google-benchmark/include"; fi`
 BREW_BENCH_LIB := `pkg-config --libs benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/lib ]; then echo "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"; else echo "-lbenchmark -pthread"; fi`
-BENCH_FLAGS := "-O3 -std=" + CPP_STD + " -fsanitize=address,undefined -Iinclude -Isrc -Ivendor/bootlib " + BREW_BENCH_INC
+BENCH_FLAGS := "-O3 -std=" + CPP_STD + " -fsanitize=address,undefined -Iinclude " + SRC_INCS + "-Ivendor/bootlib " + BREW_BENCH_INC
 BENCH_LIBS := BREW_BENCH_LIB
 
 # ==============================================================================
@@ -43,23 +51,18 @@ mkdir-bin:
 [private]
 @src-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
+    @set -e; for f in $(find src -name '*.c' ! -name 'main.c'); do \
+        base=$(basename "$f" .c); \
+        {{CC}} {{CFLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
 
 # Compile test runner binary
 @test-build: src-objs munit-obj
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_object.c -o {{BIN_DIR}}/test_object.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_frame.c -o {{BIN_DIR}}/test_frame.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_new.c -o {{BIN_DIR}}/test_new.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
-    {{CC}} {{CFLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
+    @set -e; for f in $(find tests -name '*.c'); do \
+        base=$(basename "$f" .c); \
+        {{CC}} {{CFLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
+    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{TEST_OBJS}} {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/test_runner
 
 # Run unit tests (only displaying errors, failures, and summary)
 @test *args="": test-build
@@ -109,32 +112,27 @@ coverage: mkdir-bin
     {{CC}} {{CFLAGS}} -c vendor/munit/munit.c -o {{BIN_DIR}}/munit.o
     {{CC}} {{COV_FLAGS}} -include bootlib.h -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bootlib.o
 
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/new.c -o {{BIN_DIR}}/new.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/object.c -o {{BIN_DIR}}/object.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/stack.c -o {{BIN_DIR}}/stack.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c src/vm.c -o {{BIN_DIR}}/vm.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_vm.c -o {{BIN_DIR}}/test_vm.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_mark.c -o {{BIN_DIR}}/test_mark.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_trace.c -o {{BIN_DIR}}/test_trace.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_object.c -o {{BIN_DIR}}/test_object.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_frame.c -o {{BIN_DIR}}/test_frame.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_new.c -o {{BIN_DIR}}/test_new.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_stack.c -o {{BIN_DIR}}/test_stack.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_refcount.c -o {{BIN_DIR}}/test_refcount.o
-    {{CC}} {{COV_FLAGS}} -include bootlib.h -c tests/test_runner.c -o {{BIN_DIR}}/test_runner.o
-    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/munit.o {{BIN_DIR}}/test_vm.o {{BIN_DIR}}/test_mark.o {{BIN_DIR}}/test_trace.o {{BIN_DIR}}/test_object.o {{BIN_DIR}}/test_frame.o {{BIN_DIR}}/test_new.o {{BIN_DIR}}/test_stack.o {{BIN_DIR}}/test_refcount.o {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
+    @set -e; for f in $(find src -name '*.c' ! -name 'main.c'); do \
+        base=$(basename "$f" .c); \
+        {{CC}} {{COV_FLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
+    @set -e; for f in $(find tests -name '*.c'); do \
+        base=$(basename "$f" .c); \
+        {{CC}} {{COV_FLAGS}} -include bootlib.h -c "$f" -o "{{BIN_DIR}}/${base}.o"; \
+    done
+    {{CC}} {{COV_FLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/munit.o {{TEST_OBJS}} {{BIN_DIR}}/test_runner.o -o {{BIN_DIR}}/cov_runner
     ./{{BIN_DIR}}/cov_runner > /dev/null
     @if command -v xcrun >/dev/null 2>&1; then \
-        xcrun llvm-cov gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/object.o {{BIN_DIR}}/new.o {{BIN_DIR}}/stack.o; \
+        xcrun llvm-cov gcov {{SRC_OBJS}}; \
     else \
-        gcov {{BIN_DIR}}/vm.o {{BIN_DIR}}/object.o {{BIN_DIR}}/new.o {{BIN_DIR}}/stack.o; \
+        gcov {{SRC_OBJS}}; \
     fi
     @rm -f *.gcov
 
 # Build the main sandbox executable
 build: src-objs
     {{CC}} {{CFLAGS}} -include bootlib.h -c src/main.c -o {{BIN_DIR}}/main.o
-    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{BIN_DIR}}/new.o {{BIN_DIR}}/object.o {{BIN_DIR}}/stack.o {{BIN_DIR}}/vm.o {{BIN_DIR}}/main.o -o {{BIN_DIR}}/main_app
+    {{CC}} {{CFLAGS}} {{BIN_DIR}}/bootlib.o {{SRC_OBJS}} {{BIN_DIR}}/main.o -o {{BIN_DIR}}/main_app
 
 # Run the main sandbox executable
 run: build
@@ -200,7 +198,7 @@ lint-docs:
 
 # Run static analysis on C source files using clang-tidy
 lint-c:
-    clang-tidy src/*.c -- -std={{C_STD}} -Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h
+    clang-tidy $(find src -name '*.c') -- -std={{C_STD}} -Iinclude {{SRC_INCS}} -Ivendor/munit -Ivendor/bootlib -include bootlib.h
 
 # Update Mermaid DAG in roadmap/README.md with transitive reduction
 update-dag:
@@ -230,14 +228,14 @@ install-deps:
 [private]
 bench-objs: mkdir-bin
     {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c vendor/bootlib/bootlib.c -o {{BIN_DIR}}/bench_bootlib.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/new.c -o {{BIN_DIR}}/bench_new.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/object.c -o {{BIN_DIR}}/bench_object.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/stack.c -o {{BIN_DIR}}/bench_stack.o
-    {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c src/vm.c -o {{BIN_DIR}}/bench_vm.o
+    @set -e; for f in $(find src -name '*.c' ! -name 'main.c'); do \
+        base=$(basename "$f" .c); \
+        {{CC}} {{CFLAGS}} -DBOOTLIB_NO_OVERRIDE -c "$f" -o "{{BIN_DIR}}/bench_${base}.o"; \
+    done
 
 # Compile benchmark runner binary
 bench-build: bench-objs
-    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BIN_DIR}}/bench_new.o {{BIN_DIR}}/bench_object.o {{BIN_DIR}}/bench_stack.o {{BIN_DIR}}/bench_vm.o {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
+    {{BENCH_CXX}} {{BENCH_FLAGS}} bench/bench_gc.cpp {{BIN_DIR}}/bench_bootlib.o {{BENCH_SRC_OBJS}} {{BENCH_LIBS}} -o {{BIN_DIR}}/bench_runner
 
 # Compile and run Google Benchmark performance benchmarks
 bench: bench-build

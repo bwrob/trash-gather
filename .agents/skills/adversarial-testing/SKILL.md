@@ -42,7 +42,7 @@ ______
 
 ### 1. Pointer & Boundary Safety
 
-- **NULL Handles**: Pass `NULL` to API functions (`refcount_inc(NULL)`, `refcount_dec(NULL)`, `array_set(NULL, 0, val)`, `array_get(NULL, 0)`, `add(NULL, NULL)`). Functions must safely return default/null values or error codes without segmentation faults.
+- **NULL Handles**: Pass `NULL` to API functions (`object_refcount_inc(NULL)`, `object_refcount_dec(NULL)`, `array_set(NULL, 0, val)`, `array_get(NULL, 0)`, `add(NULL, NULL)`). Functions must safely return default/null values or error codes without segmentation faults.
 - **Sparse Containers (NULL Slots)**: Construct arrays where only some slots are populated and others remain `NULL`. Verify that iteration, tracing, decref, and sweeping handle `NULL` without dereferencing invalid memory.
 - **Out-of-Bounds Access**: Attempt reading and writing past array bounds (`array_set(arr, arr->size + 5, val)`, `array_get(arr, 999)`).
 
@@ -57,7 +57,7 @@ ______
 
 - **Container Ownership & Reference Parity**: Whenever a function returns a container holding newly created elements (e.g. `add(tupleA, tupleB)`):
   - **The `vm_free()` Masking Trap**: Teardown via `vm_free()` unconditionally frees all objects tracked in `vm.objects`. Relying solely on `vm_free()` **masks reference count leaks**!
-  - **Mandatory Lifecycle Test**: Adversarial tests MUST assert that each newly created child element has `refcount == 1`. Tests MUST release the container via pure reference counting (`refcount_dec(container)`), call `vm_cleanup_after_refcount()`, and assert `boot_all_freed()`. If child elements were left with an extra reference, this test will fail immediately.
+  - **Mandatory Lifecycle Test**: Adversarial tests MUST assert that each newly created child element has `refcount == 1`. Tests MUST release the container via pure reference counting (`object_refcount_dec(container)`), call `vm_cleanup_after_refcount()`, and assert `boot_all_freed()`. If child elements were left with an extra reference, this test will fail immediately.
 - **Mutual Cycles ($A \\leftrightarrow B$)**: Two containers pointing to each other. Verify that pure reference counting traps them, but `vm_collect_garbage()` cleanly reclaims them.
 - **Self-Referencing Cycles ($A \\rightarrow A$)**: An array pointing to itself. Tests cycle self-loop detection during gray tracing and sweep deallocation.
 - **Dead Cycles with Live Escapes**: A dead cycle ($A \\leftrightarrow B$) holds an outgoing reference to a live, rooted object (`live_obj`).
@@ -88,7 +88,7 @@ When creating a new test file in `tests/` (e.g. `tests/test_<module>.c`), use th
 - **Template Path**: [resources/test_template.c](./resources/test_template.c)
 - **Included Scaffolding**:
   - Standard µnit headers and Doxygen file metadata.
-  - Lifecycle reference count parity probes (`refcount_dec` followed by `assert(boot_all_freed())`).
+  - Lifecycle reference count parity probes (`object_refcount_dec` followed by `assert(boot_all_freed())`).
   - Allocation failure injection loop with `boot_set_fail_alloc_after()`.
   - Munit test array registration (`MunitTest example_tests[]`).
 

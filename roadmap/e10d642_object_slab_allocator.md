@@ -18,7 +18,7 @@ ______
    - Implement arena teardown (`slab_arena_free(slab_arena_t *arena)`), deallocating the entire 64 KB arena in a single `boot_free()` call.
 1. **Scope Boundaries**:
    - Multi-arena dynamic expansion on exhaustion is deferred to Milestone `f682854_multi_arena_slab_chaining.md`.
-   - Global VM allocator redirection (`new_object()` integration) is deferred to Milestone `f682854_multi_arena_slab_chaining.md`.
+   - Global VM allocator redirection (`object_new()` integration) is deferred to Milestone `f682854_multi_arena_slab_chaining.md`.
 
 ______
 

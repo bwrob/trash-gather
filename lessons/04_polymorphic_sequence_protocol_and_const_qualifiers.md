@@ -84,7 +84,7 @@ When writing tests inside test harnesses that use macro blocks (e.g., µnit's `m
 // ❌ COMPILE ERROR: C Preprocessor splits macro arguments on commas!
 munit_case(RUN, test_tuples, {
     object_t *items[] = {i, f, s, i, f, s}; // Preprocessor sees 6 extra arguments!
-    object_t *t = new_tuple(items, 6);
+    object_t *t = tuple_new(items, 6);
 });
 ```
 

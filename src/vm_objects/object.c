@@ -1,12 +1,12 @@
 #include "object.h"
 
-#include "new.h"
-#include "vm.h"
+#include "vm/vm.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-void refcount_inc(
+void object_refcount_inc(
     object_t *obj
 )
 {
@@ -18,7 +18,7 @@ void refcount_inc(
     return;
 }
 
-void refcount_dec(
+void object_refcount_dec(
     object_t *obj
 )
 {
@@ -49,6 +49,7 @@ void object_free_payload(
         case INTEGER:
         case FLOAT:
         case NONE:
+        case INVALID:
             break;
         case TUPLE:
         {
@@ -68,7 +69,7 @@ void object_free_payload(
     }
 }
 
-static void _refcount_dec(
+static void object_refcount_dec_helper(
     object_t *obj,
     bool live_only
 )
@@ -79,7 +80,7 @@ static void _refcount_dec(
     }
     if (!live_only || obj->is_marked)
     {
-        refcount_dec(obj);
+        object_refcount_dec(obj);
     }
 }
 
@@ -94,13 +95,14 @@ void object_decref_children(
         case FLOAT:
         case STRING:
         case NONE:
+        case INVALID:
             break;
         case TUPLE:
         {
             tuple_t *t = obj->data.v_tuple;
             for (size_t i = 0; i < t->size; i++)
             {
-                _refcount_dec(t->elements[i], live_only);
+                object_refcount_dec_helper(t->elements[i], live_only);
             }
             break;
         }
@@ -109,7 +111,7 @@ void object_decref_children(
             list_t arr = obj->data.v_list;
             for (size_t i = 0; i < arr.size; i++)
             {
-                _refcount_dec(arr.elements[i], live_only);
+                object_refcount_dec_helper(arr.elements[i], live_only);
             }
             break;
         }
@@ -127,141 +129,111 @@ void object_free(
     free(obj);
 }
 
-bool list_set(
-    object_t *list,
-    size_t index,
-    object_t *value
-)
+object_t *object_new()
 {
-    if (list == NULL || value == NULL)
+    object_t *obj = calloc(1, sizeof(*obj));
+    if (obj == NULL)
     {
-        return false;
-    }
-    if (list->kind != LIST)
-    {
-        return false;
-    }
-    if (index >= list->data.v_list.size)
-    {
-        return false;
+        return NULL;
     }
 
-    if (list->data.v_list.elements[index] != NULL)
-    {
-        refcount_dec(list->data.v_list.elements[index]);
-    }
-    list->data.v_list.elements[index] = value;
-    refcount_inc(value);
-    return true;
+    obj->is_marked = false;
+    obj->refcount = 1;
+    vm_track_object(obj);
+
+    return obj;
 }
 
-object_t *list_get(
-    object_t *list,
-    size_t index
-)
+object_t *immortal_new()
 {
-    if (list == NULL)
-    {
-        return NULL;
-    }
-    if (list->kind != LIST)
-    {
-        return NULL;
-    }
-    if (index >= list->data.v_list.size)
+    object_t *obj = calloc(1, sizeof(*obj));
+    if (obj == NULL)
     {
         return NULL;
     }
 
-    // Get the value directly now (already checked size constraint)
-    return list->data.v_list.elements[index];
+    obj->is_marked = false;
+    obj->refcount = OBJECT_IMMORTAL_REFCOUNT;
+    return obj;
 }
 
-static object_t *_add_tuples(
-    object_t *a,
-    object_t *b
+object_t *integer_new(
+    int value
 )
 {
-    size_t a_len = a->data.v_tuple->size;
-    size_t b_len = b->data.v_tuple->size;
-    if (a_len != b_len)
-    {
-        return NULL;
-    }
-    if (a_len == 0)
-    {
-        return new_tuple_0();
-    }
-
-    object_t **added_objects = malloc(sizeof(object_t *) * a_len);
-    if (added_objects == NULL)
+    object_t *obj = object_new();
+    if (obj == NULL)
     {
         return NULL;
     }
 
-    size_t failure_index = SIZE_MAX;
-    for (size_t i = 0; i < a_len; i++)
-    {
-        added_objects[i] =
-            object_add(a->data.v_tuple->elements[i], b->data.v_tuple->elements[i]);
-        if (added_objects[i] == NULL)
-        {
-            failure_index = i;
-            break;
-        }
-    }
+    obj->kind = INTEGER;
+    obj->data.v_int = value;
 
-    // Mid-addition failure cleanup
-    if (failure_index < a_len)
-    {
-        for (size_t i = 0; i < failure_index; i++)
-        {
-            refcount_dec(added_objects[i]);
-        }
-        free(added_objects);
-        return NULL;
-    }
-
-    object_t *tuple = new_tuple(added_objects, a_len);
-
-    // Ownership was passed to the tuple, we need to release
-    // the reference and memory.
-    for (size_t i = 0; i < a_len; i++)
-    {
-        refcount_dec(added_objects[i]);
-    }
-    free(added_objects);
-
-    return tuple;
+    return obj;
 }
 
-static object_t *_add_lists(
-    object_t *a,
-    object_t *b
+object_t *float_new(
+    float value
 )
 {
-    size_t a_len = a->data.v_list.size;
-    size_t b_len = b->data.v_list.size;
-    size_t length = a_len + b_len;
-
-    object_t *list = new_list(length);
-    if (list == NULL)
+    object_t *obj = object_new();
+    if (obj == NULL)
     {
         return NULL;
     }
 
-    for (size_t i = 0; i < a_len; i++)
-    {
-        list_set(list, i, list_get(a, i));
-    }
-    for (size_t i = 0; i < b_len; i++)
-    {
-        list_set(list, i + a_len, list_get(b, i));
-    }
-    return list;
+    obj->kind = FLOAT;
+    obj->data.v_float = value;
+    return obj;
 }
 
-static object_t *_add_strings(
+object_t *string_new(
+    char *value
+)
+{
+    size_t len = strlen(value);
+    char *dst = malloc(len + 1);
+    if (dst == NULL)
+    {
+        return NULL;
+    }
+
+    object_t *obj = object_new();
+    if (obj == NULL)
+    {
+        free(dst);
+        return NULL;
+    }
+
+    strcpy(dst, value);
+
+    obj->kind = STRING;
+    obj->data.v_string = dst;
+    return obj;
+}
+
+object_t *none_create(
+    void
+)
+{
+    object_t *obj = immortal_new();
+    if (obj == NULL)
+    {
+        return NULL;
+    }
+    obj->kind = NONE;
+    return obj;
+}
+
+object_t *none_get(
+    void
+)
+{
+    return vm_get_none();
+}
+
+static object_t *add_strings(
     object_t *a,
     object_t *b
 )
@@ -280,7 +252,7 @@ static object_t *_add_strings(
     strcat(dst, a->data.v_string);
     strcat(dst, b->data.v_string);
 
-    object_t *obj = new_string(dst);
+    object_t *obj = string_new(dst);
     free(dst);
 
     return obj;
@@ -303,9 +275,9 @@ object_t *object_add(
             switch (b->kind)
             {
                 case INTEGER:
-                    return new_integer(a->data.v_int + b->data.v_int);
+                    return integer_new(a->data.v_int + b->data.v_int);
                 case FLOAT:
-                    return new_float((float)a->data.v_int + b->data.v_float);
+                    return float_new((float)a->data.v_int + b->data.v_float);
                 default:
                     return NULL;
             }
@@ -315,7 +287,7 @@ object_t *object_add(
             switch (b->kind)
             {
                 case FLOAT:
-                    return new_float(a->data.v_float + b->data.v_float);
+                    return float_new(a->data.v_float + b->data.v_float);
                 default:
                     return object_add(b, a);
             }
@@ -326,7 +298,7 @@ object_t *object_add(
             {
                 case STRING:
                 {
-                    return _add_strings(a, b);
+                    return add_strings(a, b);
                 }
                 default:
                     return NULL;
@@ -339,7 +311,7 @@ object_t *object_add(
             {
                 case TUPLE:
                 {
-                    return _add_tuples(a, b);
+                    return tuple_add(a, b);
                 }
                 default:
                     return NULL;
@@ -352,7 +324,7 @@ object_t *object_add(
             {
                 case LIST:
                 {
-                    return _add_lists(a, b);
+                    return list_add(a, b);
                 }
                 default:
                     return NULL;
@@ -373,6 +345,8 @@ int64_t object_len(
     }
     switch (obj->kind)
     {
+        case INVALID:
+            return -3;
         case INTEGER:
         case FLOAT:
         case NONE:

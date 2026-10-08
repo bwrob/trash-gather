@@ -6,7 +6,6 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "new.h"
 #include "object.h"
 #include "vm.h"
 
@@ -49,7 +48,7 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *lanes_wpm = new_integer(9);
+        object_t *lanes_wpm = integer_new(9);
         frame_reference_object(frame, lanes_wpm);
 
         assert_int(frame->references->count, ==, 1, "Only one reference");
@@ -70,8 +69,8 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *lanes_wpm = new_integer(9);
-        object_t *teej_wpm = new_integer(160);
+        object_t *lanes_wpm = integer_new(9);
+        object_t *teej_wpm = integer_new(160);
         frame_reference_object(frame, lanes_wpm);
         frame_reference_object(frame, teej_wpm);
 

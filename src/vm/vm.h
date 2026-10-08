@@ -1,7 +1,7 @@
 #pragma once
 
-#include "object.h"
-#include "stack.h"
+#include "vm/stack.h"
+#include "vm_objects/object.h"
 
 typedef struct Immortals
 {
@@ -21,11 +21,19 @@ typedef struct StackFrame
     vm_stack_t *references;
 } frame_t;
 
-void mark();
-void trace();
-void sweep();
+void vm_mark(
+    void
+);
+void vm_trace(
+    void
+);
+void vm_sweep(
+    void
+);
 
-void vm_collect_garbage();
+void vm_collect_garbage(
+    void
+);
 
 void trace_blacken_object(
     vm_stack_t *gray_objects,
@@ -39,7 +47,9 @@ void trace_mark_object(
 void vm_new(
     void
 );
-void vm_free();
+void vm_free(
+    void
+);
 
 void vm_track_object(
     object_t *obj
@@ -66,5 +76,9 @@ void frame_reference_object(
 vm_t *vm_get_current(
     void
 );
-object_t *vm_get_empty_tuple();
-object_t *vm_get_none();
+object_t *vm_get_empty_tuple(
+    void
+);
+object_t *vm_get_none(
+    void
+);

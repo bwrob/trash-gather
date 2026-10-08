@@ -1,16 +1,17 @@
 #include "vm.h"
 
-#include "new.h"
-#include "object.h"
 #include "stack.h"
+#include "vm_objects/object.h"
 
 static vm_t *CURRENT_VM = NULL;
 
-void vm_collect_garbage()
+void vm_collect_garbage(
+    void
+)
 {
-    mark();
-    trace();
-    sweep();
+    vm_mark();
+    vm_trace();
+    vm_sweep();
 }
 
 vm_t *vm_get_current(
@@ -20,7 +21,9 @@ vm_t *vm_get_current(
     return CURRENT_VM;
 }
 
-void sweep()
+void vm_sweep(
+    void
+)
 {
     vm_t *vm = vm_get_current();
     if (vm == NULL)
@@ -73,7 +76,9 @@ void sweep()
     }
 }
 
-void mark()
+void vm_mark(
+    void
+)
 {
     vm_t *vm = vm_get_current();
     if (vm == NULL)
@@ -97,7 +102,9 @@ void mark()
     }
 }
 
-void trace()
+void vm_trace(
+    void
+)
 {
     vm_t *vm = vm_get_current();
     if (vm == NULL)
@@ -152,6 +159,7 @@ void trace_blacken_object(
         case FLOAT:
         case STRING:
         case NONE:
+        case INVALID:
             break;
         case TUPLE:
         {
@@ -192,10 +200,10 @@ void frame_reference_object(
 )
 {
     stack_push(frame->references, obj);
-    refcount_inc(obj);
+    object_refcount_inc(obj);
 }
 
-void _immortals_free(
+static void immortals_free(
     immortals_t *imm
 )
 {
@@ -227,11 +235,11 @@ void vm_new(
     }
 
     immortals_t *imm = &vm->immortals;
-    imm->none = create_none_singleton();
+    imm->none = none_create();
     imm->empty_tuple = create_empty_tuple_singleton();
     if (imm->none == NULL || imm->empty_tuple == NULL)
     {
-        _immortals_free(imm);
+        immortals_free(imm);
         stack_free(vm->frames);
         stack_free(vm->objects);
         free(vm);
@@ -241,7 +249,9 @@ void vm_new(
     CURRENT_VM = vm;
 }
 
-void vm_free()
+void vm_free(
+    void
+)
 {
     vm_t *vm = vm_get_current();
     if (vm == NULL)
@@ -273,7 +283,7 @@ void vm_free()
     }
     stack_free(vm->objects);
 
-    _immortals_free(&vm->immortals);
+    immortals_free(&vm->immortals);
 
     free(vm);
     CURRENT_VM = NULL;
@@ -320,7 +330,7 @@ void frame_free(
         {
             continue;
         }
-        refcount_dec(frame->references->data[i]);
+        object_refcount_dec(frame->references->data[i]);
     }
     stack_free(frame->references);
     free(frame);

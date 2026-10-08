@@ -1,13 +1,14 @@
 /**
  * @file test_object.c
- * @brief Unit tests for object field properties, list bounds/mutation, and
- * polymorphic addition operations.
+ * @brief Unit tests for base object properties, scalar primitives, arithmetic
+ * operators, allocation failure injection, and polymorphic sequence length protocol.
  */
 
 #include "bootlib.h"
+#include "list.h"
 #include "munit.h"
-#include "new.h"
 #include "object.h"
+#include "tuple.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -21,8 +22,8 @@ munit_case(
     test_field_exists,
     {
         vm_new();
-        object_t *lane_courses = new_integer(20);
-        object_t *teej_courses = new_integer(1);
+        object_t *lane_courses = integer_new(20);
+        object_t *teej_courses = integer_new(1);
         (void)lane_courses->is_marked;
         (void)teej_courses->is_marked;
         vm_free();
@@ -38,8 +39,8 @@ munit_case(
     test_marked_is_false,
     {
         vm_new();
-        object_t *lane_courses = new_integer(20);
-        object_t *teej_courses = new_integer(1);
+        object_t *lane_courses = integer_new(20);
+        object_t *teej_courses = integer_new(1);
         assert_false(lane_courses->is_marked);
         assert_false(teej_courses->is_marked);
         vm_free();
@@ -53,7 +54,10 @@ munit_case(
 munit_case(
     RUN,
     test_integer_constant,
-    { assert_int(INTEGER, ==, 0, "INTEGER is defined as 0"); }
+    {
+        assert_int(INVALID, ==, 0, "INVALID is defined as 0");
+        assert_int(INTEGER, ==, 1, "INTEGER is defined as 1");
+    }
 );
 
 /**
@@ -74,17 +78,15 @@ munit_case(
 );
 
 /**
- * @brief Test list object creation with specified element capacity.
+ * @brief Test allocating positive integer objects.
  */
 munit_case(
     RUN,
-    test_create_empty_list,
+    test_positive_integer,
     {
         vm_new();
-        object_t *obj = new_list(2);
-
-        assert_int(obj->kind, ==, LIST, "Must set type to LIST");
-        assert_int(obj->data.v_list.size, ==, 2, "Must set size to 2");
+        object_t *int_object = integer_new(42);
+        assert_int(int_object->data.v_int, ==, 42, "must allow positive numbers");
 
         vm_free();
         assert(boot_all_freed());
@@ -92,17 +94,35 @@ munit_case(
 );
 
 /**
- * @brief Test zero-initialization of allocated list slots.
+ * @brief Test allocating zero integer objects.
+ */
+munit_case(
+    RUN,
+    test_zero_integer,
+    {
+        vm_new();
+        object_t *int_object = integer_new(0);
+
+        assert_int(int_object->kind, ==, INTEGER, "must be INTEGER type");
+        assert_int(int_object->data.v_int, ==, 0, "must equal zero");
+
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test allocating negative integer objects.
  */
 munit_case(
     SUBMIT,
-    test_used_calloc,
+    test_negative_integer,
     {
         vm_new();
-        object_t *obj = new_list(2);
+        object_t *int_object = integer_new(-5);
 
-        assert_ptr_null(obj->data.v_list.elements[0], "Should use calloc");
-        assert_ptr_null(obj->data.v_list.elements[1], "Should use calloc");
+        assert_int(int_object->kind, ==, INTEGER, "must be INTEGER type");
+        assert_int(int_object->data.v_int, ==, -5, "must allow negative numbers");
 
         vm_free();
         assert(boot_all_freed());
@@ -110,155 +130,37 @@ munit_case(
 );
 
 /**
- * @brief Test setting elements within valid list index bounds.
+ * @brief Test allocating floating-point objects.
  */
 munit_case(
     RUN,
-    test_list_set,
+    test_float_object,
     {
         vm_new();
-        object_t *obj = new_list(2);
-        object_t *first = new_string("First");
-        object_t *second = new_integer(3);
+        object_t *float_object = float_new(3.14f);
 
-        assert(list_set(obj, 0, first));
-        assert(list_set(obj, 1, second));
+        assert_int(float_object->kind, ==, FLOAT, "must be FLOAT type");
+        assert_double_equal((double)float_object->data.v_float, 3.14, 2);
 
-        assert_ptr(
-            obj->data.v_list.elements[0], ==, first, "Should set the first element"
+        vm_free();
+        assert(boot_all_freed());
+    }
+);
+
+/**
+ * @brief Test allocating copied string objects.
+ */
+munit_case(
+    RUN,
+    test_string_object,
+    {
+        vm_new();
+        object_t *string_object = string_new("Hello ");
+
+        assert_int(string_object->kind, ==, STRING, "must be STRING type");
+        assert_string_equal(
+            string_object->data.v_string, "Hello ", "must copy string content"
         );
-        assert_ptr(
-            obj->data.v_list.elements[1], ==, second, "Should set the second element"
-        );
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test list set rejection for out-of-bounds indices.
- */
-munit_case(
-    RUN,
-    test_list_set_outside_bounds,
-    {
-        vm_new();
-        object_t *obj = new_list(2);
-        object_t *outside = new_string("First");
-
-        assert(list_set(obj, 1, outside));
-        assert_false(list_set(obj, 2, outside));
-        assert_false(list_set(obj, 100, outside));
-        assert_ptr(
-            obj->data.v_list.elements[1], ==, outside,
-            "Should preserve existing elements"
-        );
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test list set error handling for NULL pointers or non-list inputs.
- */
-munit_case(
-    SUBMIT,
-    test_list_set_rejects_invalid_inputs,
-    {
-        vm_new();
-        object_t *list = new_list(1);
-        object_t *value = new_integer(3);
-        object_t *not_list = new_integer(5);
-
-        assert_false(list_set(NULL, 0, value));
-        assert_false(list_set(list, 0, NULL));
-        assert_false(list_set(not_list, 0, value));
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test retrieving elements from populated list slots.
- */
-munit_case(
-    RUN,
-    test_list_get,
-    {
-        vm_new();
-        object_t *obj = new_list(2);
-        object_t *first = new_string("First");
-        object_t *second = new_integer(3);
-
-        assert(list_set(obj, 0, first));
-        assert(list_set(obj, 1, second));
-
-        object_t *retrieved_first = list_get(obj, 0);
-        assert_not_null(retrieved_first, "Should find the first object");
-        assert_int(retrieved_first->kind, ==, STRING, "Should be a string");
-        assert_ptr(first, ==, retrieved_first, "Should be the same object");
-
-        object_t *retrieved_second = list_get(obj, 1);
-        assert_not_null(retrieved_second, "Should find the second object");
-        assert_int(retrieved_second->kind, ==, INTEGER, "Should be an integer");
-        assert_ptr(second, ==, retrieved_second, "Should be the same object");
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test retrieving elements from uninitialized empty list slots.
- */
-munit_case(
-    RUN,
-    test_list_get_empty_slot,
-    {
-        vm_new();
-        object_t *obj = new_list(2);
-
-        assert_null(list_get(obj, 1), "Empty list slots should be NULL");
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test list get rejection for out-of-bounds indices.
- */
-munit_case(
-    SUBMIT,
-    test_list_get_outside_bounds,
-    {
-        vm_new();
-        object_t *obj = new_list(1);
-        object_t *first = new_string("First");
-        assert(list_set(obj, 0, first));
-
-        assert_null(list_get(obj, 1), "Should not access outside the list");
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test list get rejection for NULL or non-list inputs.
- */
-munit_case(
-    SUBMIT,
-    test_list_get_rejects_invalid_inputs,
-    {
-        vm_new();
-        object_t *not_list = new_integer(5);
-
-        assert_null(list_get(NULL, 0), "Should reject NULL input");
-        assert_null(list_get(not_list, 0), "Should reject non-list input");
 
         vm_free();
         assert(boot_all_freed());
@@ -273,8 +175,8 @@ munit_case(
     test_add_integers,
     {
         vm_new();
-        object_t *a = new_integer(10);
-        object_t *b = new_integer(20);
+        object_t *a = integer_new(10);
+        object_t *b = integer_new(20);
         object_t *res = object_add(a, b);
 
         assert_not_null(res);
@@ -295,8 +197,8 @@ munit_case(
     test_add_integer_and_float,
     {
         vm_new();
-        object_t *a = new_integer(5);
-        object_t *b = new_float(2.5f);
+        object_t *a = integer_new(5);
+        object_t *b = float_new(2.5f);
         object_t *res1 = object_add(a, b);
         object_t *res2 = object_add(b, a);
 
@@ -321,8 +223,8 @@ munit_case(
     test_add_floats,
     {
         vm_new();
-        object_t *a = new_float(1.5f);
-        object_t *b = new_float(2.5f);
+        object_t *a = float_new(1.5f);
+        object_t *b = float_new(2.5f);
         object_t *res = object_add(a, b);
 
         assert_not_null(res);
@@ -339,11 +241,11 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_strings,
+    testadd_strings,
     {
         vm_new();
-        object_t *a = new_string("Hello ");
-        object_t *b = new_string("World!");
+        object_t *a = string_new("Hello ");
+        object_t *b = string_new("World!");
         object_t *res = object_add(a, b);
 
         assert_not_null(res);
@@ -360,13 +262,13 @@ munit_case(
  */
 munit_case(
     RUN,
-    test_add_strings_alloc_failure,
+    testadd_strings_alloc_failure,
     {
         for (int i = 0; i < 3; i++)
         {
             vm_new();
-            object_t *a = new_string("Hello ");
-            object_t *b = new_string("World!");
+            object_t *a = string_new("Hello ");
+            object_t *b = string_new("World!");
 
             boot_set_fail_alloc_after(i);
             object_t *res = object_add(a, b);
@@ -384,209 +286,6 @@ munit_case(
 );
 
 /**
- * @brief Test component-wise addition of tuple objects.
- */
-munit_case(
-    RUN,
-    test_add_tuples,
-    {
-        vm_new();
-        object_t *x1 = new_integer(1);
-        object_t *y1 = new_integer(2);
-        object_t *z1 = new_integer(3);
-        object_t *v1 = new_tuple_3(x1, y1, z1);
-
-        object_t *x2 = new_integer(4);
-        object_t *y2 = new_integer(5);
-        object_t *z2 = new_integer(6);
-        object_t *v2 = new_tuple_3(x2, y2, z2);
-
-        object_t *res = object_add(v1, v2);
-
-        assert_not_null(res);
-        assert_int(res->kind, ==, TUPLE);
-        assert_size(res->data.v_tuple->size, ==, 3);
-        assert_int(res->data.v_tuple->elements[0]->data.v_int, ==, 5);
-        assert_int(res->data.v_tuple->elements[1]->data.v_int, ==, 7);
-        assert_int(res->data.v_tuple->elements[2]->data.v_int, ==, 9);
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Adversarial test: adding tuples of differing lengths must be rejected.
- */
-munit_case(
-    RUN,
-    test_add_tuples_size_mismatch,
-    {
-        vm_new();
-        object_t *i1 = new_integer(1);
-        object_t *i2 = new_integer(2);
-        object_t *i3 = new_integer(3);
-
-        object_t *t2 = new_tuple_2(i1, i2);
-        object_t *t3 = new_tuple_3(i1, i2, i3);
-        object_t *t0 = new_tuple_0();
-
-        assert_null(object_add(t2, t3));
-        assert_null(object_add(t3, t2));
-        assert_null(object_add(t0, t2));
-        assert_null(object_add(t2, t0));
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test adding two empty tuples produces an empty tuple.
- */
-munit_case(
-    RUN,
-    test_add_tuples_empty,
-    {
-        vm_new();
-        object_t *t0_a = new_tuple_0();
-        object_t *t0_b = new_tuple_0();
-
-        object_t *res = object_add(t0_a, t0_b);
-        assert_not_null(res);
-        assert_ptr_equal(res, t0_a);
-        assert_ptr_equal(res, t0_b);
-        assert_int(res->kind, ==, TUPLE);
-        assert_size(res->data.v_tuple->size, ==, 0);
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Adversarial test: heap failure injection during tuple addition.
- */
-munit_case(
-    RUN,
-    test_add_tuples_alloc_failure,
-    {
-        for (int fail_idx = 0; fail_idx < 10; fail_idx++)
-        {
-            vm_new();
-            // Pre-expand objects stack so stack_push realloc isn't triggered
-            vm_get_current()->objects->data =
-                realloc(vm_get_current()->objects->data, 64 * sizeof(void *));
-            vm_get_current()->objects->capacity = 64;
-
-            object_t *t1 = new_tuple_2(new_integer(1), new_integer(2));
-            object_t *t2 = new_tuple_2(new_integer(3), new_integer(4));
-
-            boot_set_fail_alloc_after(fail_idx);
-            object_t *res = object_add(t1, t2);
-            if (res != NULL)
-            {
-                assert_int(res->kind, ==, TUPLE);
-            }
-            boot_set_fail_alloc_after(-1);
-
-            vm_free();
-            assert(boot_all_freed());
-        }
-    }
-);
-
-/**
- * @brief Test list concatenation via addition operator.
- */
-munit_case(
-    RUN,
-    test_add_lists,
-    {
-        vm_new();
-        object_t *arr1 = new_list(2);
-        object_t *elem1 = new_integer(10);
-        object_t *elem2 = new_integer(20);
-        list_set(arr1, 0, elem1);
-        list_set(arr1, 1, elem2);
-
-        object_t *arr2 = new_list(1);
-        object_t *elem3 = new_integer(30);
-        list_set(arr2, 0, elem3);
-
-        object_t *res = object_add(arr1, arr2);
-
-        assert_not_null(res);
-        assert_int(res->kind, ==, LIST);
-        assert_size(res->data.v_list.size, ==, 3);
-        assert_int(list_get(res, 0)->data.v_int, ==, 10);
-        assert_int(list_get(res, 1)->data.v_int, ==, 20);
-        assert_int(list_get(res, 2)->data.v_int, ==, 30);
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Adversarial test: list concatenation under heap allocation failures.
- */
-munit_case(
-    RUN,
-    test_add_lists_alloc_failure,
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            vm_new();
-            object_t *arr1 = new_list(2);
-            object_t *arr2 = new_list(2);
-
-            boot_set_fail_alloc_after(i);
-            object_t *res = object_add(arr1, arr2);
-            if (res != NULL)
-            {
-                assert_int(res->kind, ==, LIST);
-            }
-            boot_set_fail_alloc_after(-1);
-
-            vm_free();
-            assert(boot_all_freed());
-        }
-    }
-);
-
-/**
- * @brief Adversarial test: list concatenation preserving sparse NULL slots.
- */
-munit_case(
-    RUN,
-    test_add_lists_sparse_nulls,
-    {
-        vm_new();
-        object_t *arr1 = new_list(2);
-        object_t *elem1 = new_integer(10);
-        list_set(arr1, 0, elem1);
-
-        object_t *arr2 = new_list(2);
-        object_t *elem2 = new_integer(20);
-        list_set(arr2, 1, elem2);
-
-        object_t *res = object_add(arr1, arr2);
-        assert_not_null(res);
-        assert_int(res->kind, ==, LIST);
-        assert_size(res->data.v_list.size, ==, 4);
-
-        assert_ptr_equal(list_get(res, 0), elem1);
-        assert_null(list_get(res, 1));
-        assert_null(list_get(res, 2));
-        assert_ptr_equal(list_get(res, 3), elem2);
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
  * @brief Test addition rejection for invalid or mismatched object types.
  */
 munit_case(
@@ -594,11 +293,11 @@ munit_case(
     test_add_invalid_mismatched,
     {
         vm_new();
-        object_t *i = new_integer(1);
-        object_t *f = new_float(1.0f);
-        object_t *s = new_string("hi");
-        object_t *v = new_tuple_3(i, i, i);
-        object_t *a = new_list(1);
+        object_t *i = integer_new(1);
+        object_t *f = float_new(1.0f);
+        object_t *s = string_new("hi");
+        object_t *v = tuple_new_3(i, i, i);
+        object_t *a = list_new(1);
 
         assert_null(object_add(NULL, i));
         assert_null(object_add(i, NULL));
@@ -634,13 +333,15 @@ munit_case(
     test_object_len_non_sequence,
     {
         vm_new();
-        object_t *i = new_integer(42);
-        object_t *f = new_float(3.14f);
-        object_t invalid_obj = {.kind = (object_kind_t)999};
+        object_t *i = integer_new(42);
+        object_t *f = float_new(3.14f);
+        object_t invalid_obj = {.kind = INVALID};
+        object_t unknown_obj = {.kind = (object_kind_t)999};
 
         assert_int64(object_len(i), ==, -1);
         assert_int64(object_len(f), ==, -1);
         assert_int64(object_len(&invalid_obj), ==, -3);
+        assert_int64(object_len(&unknown_obj), ==, -3);
 
         assert_size(i->refcount, ==, 1);
         assert_size(f->refcount, ==, 1);
@@ -658,9 +359,9 @@ munit_case(
     test_object_len_empty_containers,
     {
         vm_new();
-        object_t *s = new_string("");
-        object_t *l = new_list(0);
-        object_t *t = new_tuple_0();
+        object_t *s = string_new("");
+        object_t *l = list_new(0);
+        object_t *t = tuple_new_0();
 
         assert_int64(object_len(s), ==, 0);
         assert_int64(object_len(l), ==, 0);
@@ -680,9 +381,9 @@ munit_case(
     test_object_len_strings,
     {
         vm_new();
-        object_t *s1 = new_string("a");
-        object_t *s2 = new_string("hello");
-        object_t *s3 = new_string("The quick brown fox jumps over the lazy dog.");
+        object_t *s1 = string_new("a");
+        object_t *s2 = string_new("hello");
+        object_t *s3 = string_new("The quick brown fox jumps over the lazy dog.");
 
         assert_int64(object_len(s1), ==, 1);
         assert_int64(object_len(s2), ==, 5);
@@ -690,66 +391,6 @@ munit_case(
 
         const object_t *const_s = s2;
         assert_int64(object_len(const_s), ==, 5);
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test object_len resolution on lists with populated and sparse elements.
- */
-munit_case(
-    RUN,
-    test_object_len_lists,
-    {
-        vm_new();
-        object_t *l1 = new_list(1);
-        object_t *l5 = new_list(5);
-        object_t *elem = new_integer(100);
-
-        assert_int64(object_len(l1), ==, 1);
-        assert_int64(object_len(l5), ==, 5);
-
-        list_set(l5, 0, elem);
-        list_set(l5, 4, elem);
-        assert_int64(object_len(l5), ==, 5);
-
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
-
-/**
- * @brief Test object_len resolution across variable-length tuples and element refcount
- * preservation.
- */
-munit_case(
-    RUN,
-    test_object_len_tuples,
-    {
-        vm_new();
-        object_t *i = new_integer(10);
-        object_t *f = new_float(2.5f);
-        object_t *s = new_string("data");
-
-        object_t *t1 = new_tuple_1(i);
-        object_t *t2 = new_tuple_2(i, f);
-        object_t *t3 = new_tuple_3(i, f, s);
-
-        assert_int64(object_len(t1), ==, 1);
-        assert_int64(object_len(t2), ==, 2);
-        assert_int64(object_len(t3), ==, 3);
-        object_t *items[6];
-        items[0] = i;
-        items[1] = f;
-        items[2] = s;
-        items[3] = i;
-        items[4] = f;
-        items[5] = s;
-        object_t *t6 = new_tuple(items, 6);
-        assert_int64(object_len(t6), ==, 6);
-        assert_size(t6->refcount, ==, 1);
 
         vm_free();
         assert(boot_all_freed());
@@ -767,13 +408,13 @@ munit_case(
         vm_new();
 
         // 1. Self-referencing cycle: list pointing to itself
-        object_t *self_list = new_list(1);
+        object_t *self_list = list_new(1);
         list_set(self_list, 0, self_list);
         assert_int64(object_len(self_list), ==, 1);
 
         // 2. Mutual cycle: list A <-> list B
-        object_t *list_a = new_list(2);
-        object_t *list_b = new_list(3);
+        object_t *list_a = list_new(2);
+        object_t *list_b = list_new(3);
         list_set(list_a, 0, list_b);
         list_set(list_b, 0, list_a);
 
@@ -781,9 +422,9 @@ munit_case(
         assert_int64(object_len(list_b), ==, 3);
 
         // Discard local roots so cycles are unreferenced from outside
-        refcount_dec(self_list);
-        refcount_dec(list_a);
-        refcount_dec(list_b);
+        object_refcount_dec(self_list);
+        object_refcount_dec(list_a);
+        object_refcount_dec(list_b);
 
         // Run cycle collector to sweep cyclic garbage
         vm_collect_garbage();
@@ -807,11 +448,11 @@ munit_case(
         vm_new();
 
         // 1. Deeply nested hierarchy: Tuple -> Tuple -> List -> String
-        object_t *s = new_string("deep");
-        object_t *l = new_list(1);
+        object_t *s = string_new("deep");
+        object_t *l = list_new(1);
         list_set(l, 0, s);
-        object_t *inner_tuple = new_tuple_1(l);
-        object_t *outer_tuple = new_tuple_2(inner_tuple, s);
+        object_t *inner_tuple = tuple_new_1(l);
+        object_t *outer_tuple = tuple_new_2(inner_tuple, s);
 
         assert_int64(object_len(outer_tuple), ==, 2);
         assert_int64(object_len(inner_tuple), ==, 1);
@@ -820,7 +461,7 @@ munit_case(
 
         // 2. Large list sequence
         const size_t large_size = 2000;
-        object_t *large_list = new_list(large_size);
+        object_t *large_list = list_new(large_size);
         assert_int64(object_len(large_list), ==, (int64_t)large_size);
 
         // 3. Large tuple sequence
@@ -830,7 +471,7 @@ munit_case(
         {
             items[idx] = s;
         }
-        object_t *large_tuple = new_tuple(items, tuple_size);
+        object_t *large_tuple = tuple_new(items, tuple_size);
         assert_int64(object_len(large_tuple), ==, (int64_t)tuple_size);
 
         vm_free();
@@ -848,12 +489,12 @@ munit_case(
         assert_false(object_is_immortal(NULL));
 
         vm_new();
-        object_t *i = new_integer(10);
-        object_t *f = new_float(2.5f);
-        object_t *s = new_string("mortal");
-        object_t *l = new_list(1);
-        object_t *none = new_none();
-        object_t *empty_t = new_tuple_0();
+        object_t *i = integer_new(10);
+        object_t *f = float_new(2.5f);
+        object_t *s = string_new("mortal");
+        object_t *l = list_new(1);
+        object_t *none = none_get();
+        object_t *empty_t = tuple_new_0();
 
         assert_false(object_is_immortal(i));
         assert_false(object_is_immortal(f));
@@ -869,91 +510,99 @@ munit_case(
 );
 
 /**
- * @brief Test None object kind, len, and payload free safety.
+ * @brief Test memory allocation failure simulation across object constructors.
  */
 munit_case(
     RUN,
-    test_none_properties,
+    test_alloc_failures,
     {
         vm_new();
-        object_t *none = new_none();
-        assert_not_null(none);
-        assert_int(none->kind, ==, NONE, "kind must be NONE");
-        assert_int64(object_len(none), ==, -1);
 
-        object_free_payload(none);
-        object_free_payload(NULL);
+        boot_set_fail_alloc_after(0);
+        assert_null(integer_new(1));
+        assert_true(boot_fail_alloc_triggered());
 
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
+        boot_set_fail_alloc_after(0);
+        assert_null(float_new(1.0f));
+        assert_true(boot_fail_alloc_triggered());
 
-/**
- * @brief Test list_set and list_get mutations with None objects.
- */
-munit_case(
-    RUN,
-    test_none_in_list_mutation,
-    {
-        vm_new();
-        object_t *lst = new_list(3);
-        object_t *none = new_none();
+        boot_set_fail_alloc_after(0);
+        assert_null(string_new("test"));
+        assert_true(boot_fail_alloc_triggered());
 
-        assert_true(list_set(lst, 0, none));
-        assert_true(list_set(lst, 1, none));
-        assert_ptr_equal(list_get(lst, 0), none);
-        assert_ptr_equal(list_get(lst, 1), none);
-        assert_null(list_get(lst, 2));
+        boot_set_fail_alloc_after(1);
+        assert_null(string_new("test"));
+        assert_true(boot_fail_alloc_triggered());
 
-        object_t *replacement = new_integer(123);
-        assert_true(list_set(lst, 0, replacement));
-        assert_ptr_equal(list_get(lst, 0), replacement);
-        assert_ptr_equal(list_get(lst, 1), none);
+        boot_set_fail_alloc_after(0);
+        assert_null(list_new(5));
+        assert_true(boot_fail_alloc_triggered());
 
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
+        boot_set_fail_alloc_after(1);
+        assert_null(list_new(5));
+        assert_true(boot_fail_alloc_triggered());
 
-/**
- * @brief Test that arithmetic addition with None safely returns NULL.
- */
-munit_case(
-    RUN,
-    test_none_add_operations,
-    {
-        vm_new();
-        object_t *none = new_none();
-        object_t *num = new_integer(42);
-        object_t *empty_t = new_tuple_0();
+        object_t *x = integer_new(1);
+        object_t *y = integer_new(2);
+        object_t *z = integer_new(3);
 
-        assert_null(object_add(none, none));
-        assert_null(object_add(none, num));
-        assert_null(object_add(num, none));
-        assert_null(object_add(none, empty_t));
-        assert_null(object_add(empty_t, none));
+        boot_set_fail_alloc_after(0);
+        assert_null(create_empty_tuple_singleton());
+        assert_true(boot_fail_alloc_triggered());
 
-        vm_free();
-        assert(boot_all_freed());
-    }
-);
+        boot_set_fail_alloc_after(1);
+        assert_null(create_empty_tuple_singleton());
+        assert_true(boot_fail_alloc_triggered());
 
-/**
- * @brief Test that adding empty tuple to non-empty tuple returns NULL due to size
- * mismatch.
- */
-munit_case(
-    RUN,
-    test_tuple_add_empty_with_nonempty,
-    {
-        vm_new();
-        object_t *t0 = new_tuple_0();
-        object_t *elem = new_integer(42);
-        object_t *t1 = new_tuple_1(elem);
+        boot_set_fail_alloc_after(0);
+        assert_null(none_create());
+        assert_true(boot_fail_alloc_triggered());
 
-        assert_null(object_add(t0, t1));
-        assert_null(object_add(t1, t0));
+        boot_set_fail_alloc_after(0);
+        assert_null(tuple_new_1(x));
+        assert_true(boot_fail_alloc_triggered());
+
+        boot_set_fail_alloc_after(1);
+        assert_null(tuple_new_1(x));
+        assert_true(boot_fail_alloc_triggered());
+
+        boot_set_fail_alloc_after(0);
+        assert_null(tuple_new_2(x, y));
+        assert_true(boot_fail_alloc_triggered());
+
+        boot_set_fail_alloc_after(1);
+        assert_null(tuple_new_2(x, y));
+        assert_true(boot_fail_alloc_triggered());
+
+        boot_set_fail_alloc_after(0);
+        assert_null(tuple_new_3(x, y, z));
+        assert_true(boot_fail_alloc_triggered());
+
+        boot_set_fail_alloc_after(1);
+        assert_null(tuple_new_3(x, y, z));
+        assert_true(boot_fail_alloc_triggered());
+
+        object_t *items[3];
+        items[0] = x;
+        items[1] = y;
+        items[2] = z;
+        boot_set_fail_alloc_after(0);
+        assert_null(tuple_new(items, 3));
+        assert_true(boot_fail_alloc_triggered());
+
+        boot_set_fail_alloc_after(1);
+        assert_null(tuple_new(items, 3));
+        assert_true(boot_fail_alloc_triggered());
+
+        // Persistent OOM failure simulation: every allocation fails
+        boot_set_fail_alloc_repeat(0, -1);
+        assert_null(integer_new(100));
+        assert_null(float_new(2.0f));
+        assert_null(string_new("oom"));
+        assert_null(list_new(10));
+        assert_null(tuple_new_1(x));
+        assert_size(boot_fail_alloc_injected_count(), >=, 5);
+        boot_reset_fail_alloc();
 
         vm_free();
         assert(boot_all_freed());
@@ -965,40 +614,24 @@ MunitTest object_tests[] = {
     munit_test("/marked_is_false", test_marked_is_false),
     munit_test("/integer_constant", test_integer_constant),
     munit_test("/integer_obj", test_integer_obj),
-    munit_test("/create_empty_list", test_create_empty_list),
-    munit_test("/used_calloc", test_used_calloc),
-    munit_test("/list_set", test_list_set),
-    munit_test("/list_set_outside", test_list_set_outside_bounds),
-    munit_test("/list_set_invalid", test_list_set_rejects_invalid_inputs),
-    munit_test("/list_get", test_list_get),
-    munit_test("/list_get_empty", test_list_get_empty_slot),
-    munit_test("/list_get_outside", test_list_get_outside_bounds),
-    munit_test("/list_get_invalid", test_list_get_rejects_invalid_inputs),
+    munit_test("/integer_positive", test_positive_integer),
+    munit_test("/integer_zero", test_zero_integer),
+    munit_test("/integer_negative", test_negative_integer),
+    munit_test("/float_object", test_float_object),
+    munit_test("/string_object", test_string_object),
     munit_test("/add_integers", test_add_integers),
     munit_test("/add_integer_and_float", test_add_integer_and_float),
     munit_test("/add_floats", test_add_floats),
-    munit_test("/add_strings", test_add_strings),
-    munit_test("/add_strings_alloc_failure", test_add_strings_alloc_failure),
-    munit_test("/add_tuples", test_add_tuples),
-    munit_test("/add_tuples_size_mismatch", test_add_tuples_size_mismatch),
-    munit_test("/add_tuples_empty", test_add_tuples_empty),
-    munit_test("/add_tuples_alloc_failure", test_add_tuples_alloc_failure),
-    munit_test("/add_lists", test_add_lists),
-    munit_test("/add_lists_alloc_failure", test_add_lists_alloc_failure),
-    munit_test("/add_lists_sparse_nulls", test_add_lists_sparse_nulls),
+    munit_test("/add_strings", testadd_strings),
+    munit_test("/add_strings_alloc_failure", testadd_strings_alloc_failure),
     munit_test("/add_invalid_mismatched", test_add_invalid_mismatched),
     munit_test("/len_null", test_object_len_null),
     munit_test("/len_non_sequence", test_object_len_non_sequence),
     munit_test("/len_empty_containers", test_object_len_empty_containers),
     munit_test("/len_strings", test_object_len_strings),
-    munit_test("/len_lists", test_object_len_lists),
-    munit_test("/len_tuples", test_object_len_tuples),
     munit_test("/len_cyclic_containers", test_object_len_cyclic_containers),
     munit_test("/len_deep_and_large", test_object_len_deep_and_large_sequences),
     munit_test("/object_is_immortal_predicate", test_object_is_immortal_predicate),
-    munit_test("/none_properties", test_none_properties),
-    munit_test("/none_in_list_mutation", test_none_in_list_mutation),
-    munit_test("/none_add_operations", test_none_add_operations),
-    munit_test("/tuple_add_empty_with_nonempty", test_tuple_add_empty_with_nonempty),
+    munit_test("/alloc_failures", test_alloc_failures),
     munit_null_test,
 };

@@ -38,16 +38,17 @@ flowchart TD
 
   subgraph Tier1 ["Tier 1: Foundational Ergonomics & Singletons (Difficulty 1)"]
     direction TB
-    subgraph T1_Ergo ["Core Ergonomics"]
+    subgraph T1_Ergo ["Core Ergonomics & Runtime Hardening"]
       direction TB
       m_negidx["b0c1d8b: Sequence Negative<br/>Indexing (Diff: 1)"]:::planned
       m_variadic_pack["5b538ed: Variadic Object<br/>Constructors (Diff: 1)"]:::planned
+      m_fallible_stack_and_frame_allocation["509705c: Fallible Stack &<br/>Frame Allocation (Diff: 1)"]:::planned
     end
     subgraph T1_Data ["Singletons & Lists"]
       direction TB
       m_bool["6c3a989: Boolean Singletons<br/>& Truthiness (Diff: 1)"]:::planned
       m_smallint["70b20d3: Small Integer<br/>Caching (Diff: 1)"]:::planned
-      m_dynamic_resizable_list["d7b5feb: Dynamic Resizable<br/>List Mutations (Diff: 1)"]:::planned
+      m_dynamic_resizable_list["d7b5feb: Dynamic Resizable<br/>List Mutations (Diff: 1)"]:::inProgress
     end
   end
 
@@ -153,6 +154,7 @@ flowchart TD
   m_negidx --> m_mul
   m_negidx --> m_slice
   m_none --> m_bool
+  m_none --> m_fallible_stack_and_frame_allocation
   m_none --> m_smallint
   m_none --> m_telem
   m_offset0 --> m_dll
@@ -262,7 +264,7 @@ ______
 1. **[Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md)**
 
    - **ID:** `d7b5feb`
-   - **Status:** 📋 Planned
+   - **Status:** ⏳ In Progress
    - **Difficulty:** 1 / 5
    - **Prerequisites:** [`b81f9a7`](b81f9a7_polymorphic_sequence_length.md)
    - **Focus:** Transform `list_t` into a dynamically resizable sequence supporting `list_append()`, `list_insert()`, and `list_pop()` with amortized $O(1)$ geometric growth and `memmove` overlapping memory shifts.
@@ -273,7 +275,15 @@ ______
    - **Status:** 📋 Planned
    - **Difficulty:** 1 / 5
    - **Prerequisites:** [`f9c475f`](f9c475f_heap_allocated_variable_length_tuple.md)
-   - **Focus:** Introduce variadic constructors (`new_tuple_pack`, `new_list_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors and mastering variadic unpacking and cleanup safety.
+   - **Focus:** Introduce variadic constructors (`tuple_new_pack`, `list_new_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors and mastering variadic unpacking and cleanup safety.
+
+1. **[Fallible Stack and Frame Allocation Hardening](509705c_fallible_stack_and_frame_allocation.md)**
+
+   - **ID:** `509705c`
+   - **Status:** 📋 Planned
+   - **Difficulty:** 1 / 5
+   - **Prerequisites:** [`fc1cc81`](fc1cc81_none_immortal_singleton.md)
+   - **Focus:** Harden VM stack, object tracking, and execution frame allocators against memory exhaustion, ensuring fallible push operations and frame creations propagate errors without memory leaks or premature garbage collection sweeps.
 
 ______
 

@@ -16,9 +16,14 @@ def generate_compile_commands() -> None:
     c_std = get_c_standard()
     cpp_std = get_cpp_standard()
 
+    src_dirs = [
+        os.path.relpath(d[0], workspace_root) for d in os.walk(os.path.join(workspace_root, "src"))
+    ]
+    src_inc = " ".join([f"-I{d}" for d in sorted(src_dirs)])
+
     cflags = (
         f"gcc -Wall -Wextra -std={c_std} -g -fsanitize=address,undefined "
-        "-Iinclude -Isrc -Ivendor/munit -Ivendor/bootlib -include bootlib.h"
+        f"-Iinclude {src_inc} -Ivendor/munit -Ivendor/bootlib -include bootlib.h"
     )
     bench_paths = [
         "/opt/homebrew/opt/google-benchmark/include",
@@ -30,14 +35,14 @@ def generate_compile_commands() -> None:
 
     bench_flags = (
         f"clang++ -O3 -std={cpp_std} -fsanitize=address,undefined "
-        f"-Iinclude -Isrc -Ivendor/bootlib {extra_inc}"
+        f"-Iinclude {src_inc} -Ivendor/bootlib {extra_inc}"
     )
 
     entries: list[dict[str, str]] = []
 
     # C source files in src, tests, vendor
     c_files = (
-        glob.glob(os.path.join(workspace_root, "src", "*.c"))
+        glob.glob(os.path.join(workspace_root, "src", "**", "*.c"), recursive=True)
         + glob.glob(os.path.join(workspace_root, "tests", "*.c"))
         + [
             os.path.join(workspace_root, "vendor", "bootlib", "bootlib.c"),

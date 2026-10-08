@@ -13,21 +13,32 @@ import sys
 from project_config import get_c_standard, get_cpp_standard
 
 
+def _get_src_inc_flags() -> list[str]:
+    """Return -I flags for src and all of its subdirectories."""
+    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return [f"-I{d[0]}" for d in sorted(os.walk(os.path.join(workspace_root, "src")))]
+
+
 def _run_clang_c(c_files: list[str]) -> int:
     """Run clang -Wdocumentation on C source and header files."""
     print("=== Running Clang -Wdocumentation Linting (C) ===")
-    cmd_c = [
-        "clang",
-        "-fsyntax-only",
-        "-Wdocumentation",
-        "-Wdocumentation-unknown-command",
-        "-Wdocumentation-pedantic",
-        f"-std={get_c_standard()}",
-        "-Iinclude",
-        "-Isrc",
-        "-Ivendor/munit",
-        "-Ivendor/bootlib",
-    ] + c_files
+    cmd_c = (
+        [
+            "clang",
+            "-fsyntax-only",
+            "-Wdocumentation",
+            "-Wdocumentation-unknown-command",
+            "-Wdocumentation-pedantic",
+            f"-std={get_c_standard()}",
+            "-Iinclude",
+        ]
+        + _get_src_inc_flags()
+        + [
+            "-Ivendor/munit",
+            "-Ivendor/bootlib",
+        ]
+        + c_files
+    )
 
     try:
         res = subprocess.run(cmd_c, capture_output=True, text=True, check=False)
@@ -65,7 +76,9 @@ def _run_clang_cpp(cpp_files: list[str]) -> int:
             "-Wdocumentation-pedantic",
             f"-std={get_cpp_standard()}",
             "-Iinclude",
-            "-Isrc",
+        ]
+        + _get_src_inc_flags()
+        + [
             "-Ivendor/bootlib",
         ]
         + extra_inc

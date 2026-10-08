@@ -78,7 +78,7 @@ In a runtime where the VM tracks all allocated objects in an internal registry, 
 
 ```c
 // ANTI-PATTERN: Registration before payload verification
-object_t *obj = _new_object(); // Immediately calls vm_track_object(obj)
+object_t *obj = _object_new(); // Immediately calls vm_track_object(obj)
 if (obj == NULL) return NULL;
 
 tuple_t *tuple = malloc(sizeof(*tuple) + (tuple_size * sizeof(tuple->elements[0])));
@@ -101,12 +101,12 @@ READ of size 4 at 0x6040000007a8 thread T0
 ...
 0x6040000007a8 was freed by thread T0 here:
     #0 free (libclang_rt.asan_osx_dynamic.dylib)
-    #1 _new_tuple_obj new.c:66
+    #1 tuple_new_obj new.c:66
 ```
 
 ### Why Naive Unwinding Fails
 
-When `_new_object()` executes `vm_track_object(obj)`, `obj` is appended to `CURRENT_VM->objects`.
+When `_object_new()` executes `vm_track_object(obj)`, `obj` is appended to `CURRENT_VM->objects`.
 If the subsequent payload allocation fails and the caller invokes `free(obj)`:
 
 - The heap block is returned to the OS allocator.
@@ -124,7 +124,7 @@ if (tuple == NULL) {
     return NULL; // Failed before any global state was altered
 }
 
-object_t *obj = _new_object();
+object_t *obj = _object_new();
 if (obj == NULL) {
     free(tuple); // Safely clean up unshared buffer; VM has no dangling reference
     return NULL;
@@ -148,14 +148,14 @@ ______
 When a container operation creates new child elements to populate a new parent container (such as component-wise tuple addition `add(tupleA, tupleB)`):
 
 1. `add(a[i], b[i])` produces a new element with **`refcount = 1`** (owned by the local frame).
-1. `new_tuple(added_objects, N)` loops over elements and calls **`refcount_inc(objects[i])`**, raising each child's refcount to **`2`**.
+1. `tuple_new(added_objects, N)` loops over elements and calls **`object_refcount_inc(objects[i])`**, raising each child's refcount to **`2`**.
 1. The function returns `tuple` to the caller.
 
 ### The Problem: Zombie Objects
 
 If the creator function does not explicitly relinquish its temporary references:
 
-- When the caller later destroys `tuple` via `refcount_dec(tuple)`, `object_decref_children` decrements each element from **2 to 1**.
+- When the caller later destroys `tuple` via `object_refcount_dec(tuple)`, `object_decref_children` decrements each element from **2 to 1**.
 - Because their refcount is still 1, **the child elements are never freed by reference counting**. They remain orphaned in memory until swept by a full GC pass or program termination.
 
 ### The Solution: Ownership Transfer Handshake
@@ -163,17 +163,17 @@ If the creator function does not explicitly relinquish its temporary references:
 Whenever a function creates objects purely to insert them into a container that increments reference counts, ownership is transferred to the container. The creator must drop its local references:
 
 ```c
-object_t *tuple = new_tuple(added_objects, a_len);
+object_t *tuple = tuple_new(added_objects, a_len);
 
 // Ownership was passed to the tuple: release local temporary references
 for (size_t i = 0; i < a_len; i++) {
-    refcount_dec(added_objects[i]);
+    object_refcount_dec(added_objects[i]);
 }
 free(added_objects);
 return tuple;
 ```
 
-Now each child element goes: `1 (created) -> 2 (new_tuple) -> 1 (refcount_dec)`. When `tuple` is decremented to 0, its children cascade to 0 and are freed immediately.
+Now each child element goes: `1 (created) -> 2 (tuple_new) -> 1 (object_refcount_dec)`. When `tuple` is decremented to 0, its children cascade to 0 and are freed immediately.
 
 ### Why Initial Tests Missed It: The `vm_free()` Masking Trap
 
@@ -189,7 +189,7 @@ assert(boot_all_freed());
 To detect reference leaks, tests must explicitly drop the parent container via pure reference counting:
 
 ```c
-refcount_dec(res);
+object_refcount_dec(res);
 vm_cleanup_after_refcount(); // Clears tracking array so only refcount drops free memory
 assert(boot_all_freed());    // Fails if any child refcount was 2 instead of 1!
 ```
@@ -274,7 +274,7 @@ If the failure cleanup loop attempts to iterate across all $N$ elements:
 ```c
 // DANGEROUS: Dereferences uninitialized pointers in slots k+1 .. N-1
 for (size_t i = 0; i < a_len; i++) {
-    refcount_dec(added_objects[i]); // CRASH / Wild pointer dereference!
+    object_refcount_dec(added_objects[i]); // CRASH / Wild pointer dereference!
 }
 ```
 
@@ -285,7 +285,7 @@ Failure cleanup must strictly unwind only the range of elements that were succes
 ```c
 if (failure_index < a_len) {
     for (size_t i = 0; i < failure_index; i++) {
-        refcount_dec(added_objects[i]); // Safely drops only allocated items
+        object_refcount_dec(added_objects[i]); // Safely drops only allocated items
     }
     free(added_objects);
     return NULL;
@@ -301,7 +301,7 @@ ______
 When constructing containers from variable-length pointer arrays, API functions must validate both the **container array pointer itself** and its **individual elements**:
 
 ```c
-object_t *new_tuple(object_t **objects, size_t size);
+object_t *tuple_new(object_t **objects, size_t size);
 ```
 
 #### The Naive Implementation
@@ -316,14 +316,14 @@ for (size_t i = 0; i < size; i++) {
 ```
 
 In C, array indexing `objects[i]` is identical to `*(objects + i)`.
-If a caller passes `new_tuple(NULL, 3)`:
+If a caller passes `tuple_new(NULL, 3)`:
 `i = 0` calculates `*(NULL + 0)` $\\rightarrow$ **Page 0 Read Segfault (`SEGV on unknown address 0x000000000000`)**.
 
 ### The Invariant: Container Bounds Precede Content Inspection
 
 Validation must occur in strict logical hierarchy:
 
-1. If `size == 0 && objects == NULL`, return an empty container (`new_tuple_0()`).
+1. If `size == 0 && objects == NULL`, return an empty container (`tuple_new_0()`).
 1. If `size > 0 && objects == NULL`, reject immediately (`return NULL;`).
 1. Only once the array pointer is verified valid may individual slots (`objects[i]`) be probed.
 
@@ -333,17 +333,17 @@ ______
 
 ### Why Line Coverage Was an Illusion
 
-Early in this milestone, `gcov` reported **100% line coverage** on `_add_tuples`, even though:
+Early in this milestone, `gcov` reported **100% line coverage** on `_tuple_add`, even though:
 
 1. Child elements had incorrect reference counts (`refcount == 2` instead of `1`).
 1. Mid-loop failures leaked intermediate allocations.
 
-A single happy-path test executed every line in the function sequentially (`malloc`, `for`, `new_tuple`, `free`, `return`), satisfying line coverage while testing zero edge cases.
+A single happy-path test executed every line in the function sequentially (`malloc`, `for`, `tuple_new`, `free`, `return`), satisfying line coverage while testing zero edge cases.
 
 ### The Obligatory Adversarial Heuristics
 
 To prevent coverage illusions, test generation is governed by three non-negotiable heuristics derived from [`c-expert`](../.agents/skills/c-expert/SKILL.md):
 
-1. **The Container Lifecycle Probe:** Always test container destruction via `refcount_dec()` with `vm_cleanup_after_refcount(); assert(boot_all_freed())`. Never rely solely on `vm_free()`.
+1. **The Container Lifecycle Probe:** Always test container destruction via `object_refcount_dec()` with `vm_cleanup_after_refcount(); assert(boot_all_freed())`. Never rely solely on `vm_free()`.
 1. **The $K$-of-$N$ Mid-Loop Probe:** Always construct inputs where element $0$ succeeds and element $1$ fails, verifying early abort and clean unwinding.
 1. **Heap Exhaustion Sweeps:** Sweep `boot_set_fail_alloc_after(i)` across all fallible allocation steps to verify rollback.
