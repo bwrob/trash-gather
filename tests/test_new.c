@@ -111,7 +111,7 @@ munit_case(
     test_tuple_0_empty,
     {
         vm_new();
-        object_t *tuple = new_tuple_0();
+        object_t *tuple = tuple_new_0();
 
         assert_not_null(tuple);
         assert_int(tuple->kind, ==, TUPLE);
@@ -132,7 +132,7 @@ munit_case(
     {
         vm_new();
         object_t *x = new_integer(42);
-        object_t *tuple = new_tuple_1(x);
+        object_t *tuple = tuple_new_1(x);
 
         assert_not_null(tuple);
         assert_int(tuple->kind, ==, TUPLE);
@@ -155,7 +155,7 @@ munit_case(
         vm_new();
         object_t *x = new_integer(10);
         object_t *y = new_integer(20);
-        object_t *tuple = new_tuple_2(x, y);
+        object_t *tuple = tuple_new_2(x, y);
 
         assert_not_null(tuple);
         assert_int(tuple->kind, ==, TUPLE);
@@ -181,7 +181,7 @@ munit_case(
         object_t *x = new_integer(1);
         object_t *y = new_integer(2);
         object_t *z = new_integer(3);
-        object_t *tuple = new_tuple_3(x, y, z);
+        object_t *tuple = tuple_new_3(x, y, z);
 
         assert_not_null(tuple);
         assert_int(tuple->kind, ==, TUPLE);
@@ -208,21 +208,21 @@ munit_case(
         vm_new();
         object_t *val = new_integer(1);
 
-        assert_null(new_tuple_1(NULL));
-        assert_null(new_tuple_2(NULL, val));
-        assert_null(new_tuple_2(val, NULL));
-        assert_null(new_tuple_2(NULL, NULL));
-        assert_null(new_tuple_3(NULL, val, val));
-        assert_null(new_tuple_3(val, NULL, val));
-        assert_null(new_tuple_3(val, val, NULL));
-        assert_null(new_tuple_3(NULL, NULL, NULL));
-        assert_null(new_tuple(NULL, 1));
-        assert_null(new_tuple(NULL, 5));
+        assert_null(tuple_new_1(NULL));
+        assert_null(tuple_new_2(NULL, val));
+        assert_null(tuple_new_2(val, NULL));
+        assert_null(tuple_new_2(NULL, NULL));
+        assert_null(tuple_new_3(NULL, val, val));
+        assert_null(tuple_new_3(val, NULL, val));
+        assert_null(tuple_new_3(val, val, NULL));
+        assert_null(tuple_new_3(NULL, NULL, NULL));
+        assert_null(tuple_new(NULL, 1));
+        assert_null(tuple_new(NULL, 5));
 
         object_t *arr_with_null[2];
         arr_with_null[0] = val;
         arr_with_null[1] = NULL;
-        assert_null(new_tuple(arr_with_null, 2));
+        assert_null(tuple_new(arr_with_null, 2));
 
         vm_free();
         assert(boot_all_freed());
@@ -230,14 +230,14 @@ munit_case(
 );
 
 /**
- * @brief Test allocating a 0-element tuple via new_tuple.
+ * @brief Test allocating a 0-element tuple via tuple_new.
  */
 munit_case(
     RUN,
     test_tuple_0_from_array,
     {
         vm_new();
-        object_t *tuple = new_tuple(NULL, 0);
+        object_t *tuple = tuple_new(NULL, 0);
 
         assert_not_null(tuple);
         assert_int(tuple->kind, ==, TUPLE);
@@ -262,7 +262,7 @@ munit_case(
             items[i] = new_integer(i * 10);
         }
 
-        object_t *tuple = new_tuple(items, 5);
+        object_t *tuple = tuple_new(items, 5);
         assert_not_null(tuple);
         assert_int(tuple->kind, ==, TUPLE);
         assert_size(tuple->data.v_tuple->size, ==, 5);
@@ -279,7 +279,7 @@ munit_case(
 );
 
 /**
- * @brief Test allocating a large tuple (100 elements) via new_tuple.
+ * @brief Test allocating a large tuple (100 elements) via tuple_new.
  */
 munit_case(
     RUN,
@@ -293,7 +293,7 @@ munit_case(
             items[i] = new_integer((int)i);
         }
 
-        object_t *tuple = new_tuple(items, n);
+        object_t *tuple = tuple_new(items, n);
         assert_not_null(tuple);
         assert_size(tuple->data.v_tuple->size, ==, n);
 
@@ -316,7 +316,7 @@ munit_case(
     test_list_object,
     {
         vm_new();
-        object_t *arr = new_list(5);
+        object_t *arr = list_new(5);
 
         assert_int(arr->kind, ==, LIST, "must be LIST type");
         assert_size(arr->data.v_list.size, ==, 5, "size must be 5");
@@ -340,7 +340,7 @@ munit_case(
     test_list_empty,
     {
         vm_new();
-        object_t *arr = new_list(0);
+        object_t *arr = list_new(0);
 
         assert_int(arr->kind, ==, LIST, "must be LIST type");
         assert_size(arr->data.v_list.size, ==, 0, "size must be 0");
@@ -376,11 +376,11 @@ munit_case(
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
-        assert_null(new_list(5));
+        assert_null(list_new(5));
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
-        assert_null(new_list(5));
+        assert_null(list_new(5));
         assert_true(boot_fail_alloc_triggered());
 
         object_t *x = new_integer(1);
@@ -400,27 +400,27 @@ munit_case(
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
-        assert_null(new_tuple_1(x));
+        assert_null(tuple_new_1(x));
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
-        assert_null(new_tuple_1(x));
+        assert_null(tuple_new_1(x));
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
-        assert_null(new_tuple_2(x, y));
+        assert_null(tuple_new_2(x, y));
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
-        assert_null(new_tuple_2(x, y));
+        assert_null(tuple_new_2(x, y));
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(0);
-        assert_null(new_tuple_3(x, y, z));
+        assert_null(tuple_new_3(x, y, z));
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
-        assert_null(new_tuple_3(x, y, z));
+        assert_null(tuple_new_3(x, y, z));
         assert_true(boot_fail_alloc_triggered());
 
         object_t *items[3];
@@ -428,11 +428,11 @@ munit_case(
         items[1] = y;
         items[2] = z;
         boot_set_fail_alloc_after(0);
-        assert_null(new_tuple(items, 3));
+        assert_null(tuple_new(items, 3));
         assert_true(boot_fail_alloc_triggered());
 
         boot_set_fail_alloc_after(1);
-        assert_null(new_tuple(items, 3));
+        assert_null(tuple_new(items, 3));
         assert_true(boot_fail_alloc_triggered());
 
         // Persistent OOM failure simulation: every allocation fails
@@ -440,8 +440,8 @@ munit_case(
         assert_null(new_integer(100));
         assert_null(new_float(2.0f));
         assert_null(new_string("oom"));
-        assert_null(new_list(10));
-        assert_null(new_tuple_1(x));
+        assert_null(list_new(10));
+        assert_null(tuple_new_1(x));
         assert_size(boot_fail_alloc_injected_count(), >=, 5);
         boot_reset_fail_alloc();
 
@@ -481,7 +481,7 @@ munit_case(
 );
 
 /**
- * @brief Test that new_none, new_tuple_0, and new_tuple(..., 0) return NULL safely when
+ * @brief Test that new_none, tuple_new_0, and tuple_new(..., 0) return NULL safely when
  * no VM is active.
  */
 munit_case(
@@ -491,20 +491,20 @@ munit_case(
         object_t *none = new_none();
         assert_null(none);
 
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
         assert_null(t0);
 
-        object_t *t_null = new_tuple(NULL, 0);
+        object_t *t_null = tuple_new(NULL, 0);
         assert_null(t_null);
 
         object_t *dummy[] = {NULL};
-        object_t *t_dummy = new_tuple(dummy, 0);
+        object_t *t_dummy = tuple_new(dummy, 0);
         assert_null(t_dummy);
     }
 );
 
 /**
- * @brief Test that new_tuple_0 and new_tuple(..., 0) return the singleton empty tuple.
+ * @brief Test that tuple_new_0 and tuple_new(..., 0) return the singleton empty tuple.
  */
 munit_case(
     RUN,
@@ -512,43 +512,43 @@ munit_case(
     {
         vm_new();
         size_t allocs_before = boot_total_alloc_count();
-        object_t *t1 = new_tuple_0();
+        object_t *t1 = tuple_new_0();
         assert_not_null(t1);
         assert_int(t1->kind, ==, TUPLE, "empty tuple must have TUPLE kind");
         assert_int(t1->data.v_tuple->size, ==, 0, "empty tuple must have size 0");
         assert_size(
             boot_total_alloc_count(), ==, allocs_before,
-            "new_tuple_0 must perform zero heap allocations"
+            "tuple_new_0 must perform zero heap allocations"
         );
 
-        object_t *t2 = new_tuple_0();
+        object_t *t2 = tuple_new_0();
         assert_ptr_equal(t1, t2);
         assert_size(
             boot_total_alloc_count(), ==, allocs_before,
-            "repeated new_tuple_0 must perform zero heap allocations"
+            "repeated tuple_new_0 must perform zero heap allocations"
         );
 
-        object_t *t3 = new_tuple(NULL, 0);
+        object_t *t3 = tuple_new(NULL, 0);
         assert_ptr_equal(t1, t3);
         assert_size(
             boot_total_alloc_count(), ==, allocs_before,
-            "new_tuple(NULL, 0) must perform zero heap allocations"
+            "tuple_new(NULL, 0) must perform zero heap allocations"
         );
 
         object_t *dummy[] = {NULL};
-        object_t *t4 = new_tuple(dummy, 0);
+        object_t *t4 = tuple_new(dummy, 0);
         assert_ptr_equal(t1, t4);
         assert_size(
             boot_total_alloc_count(), ==, allocs_before,
-            "new_tuple(dummy, 0) must perform zero heap allocations"
+            "tuple_new(dummy, 0) must perform zero heap allocations"
         );
 
         object_t *items[] = {t1};
-        object_t *t5 = new_tuple(items, 0);
+        object_t *t5 = tuple_new(items, 0);
         assert_ptr_equal(t1, t5);
         assert_size(
             boot_total_alloc_count(), ==, allocs_before,
-            "new_tuple(items, 0) must perform zero heap allocations"
+            "tuple_new(items, 0) must perform zero heap allocations"
         );
 
         vm_free();

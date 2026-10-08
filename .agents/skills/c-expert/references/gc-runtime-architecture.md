@@ -124,7 +124,7 @@ ______
 When an operation requires multiple sequential allocations (e.g., allocating an `object_t` envelope followed by a `tuple_t` payload):
 
 ```c
-object_t *new_tuple(size_t size) {
+object_t *tuple_new(size_t size) {
   object_t *obj = new_object(TUPLE);
   if (obj == NULL) {
     return NULL;

@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-object_t *new_list(
+object_t *list_new(
     size_t size
 )
 {
@@ -87,7 +87,7 @@ object_t *list_add(
     size_t b_len = b->data.v_list.size;
     size_t length = a_len + b_len;
 
-    object_t *list = new_list(length);
+    object_t *list = list_new(length);
     if (list == NULL)
     {
         return NULL;

@@ -273,7 +273,7 @@ ______
    - **Status:** 📋 Planned
    - **Difficulty:** 1 / 5
    - **Prerequisites:** [`f9c475f`](f9c475f_heap_allocated_variable_length_tuple.md)
-   - **Focus:** Introduce variadic constructors (`new_tuple_pack`, `new_list_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors and mastering variadic unpacking and cleanup safety.
+   - **Focus:** Introduce variadic constructors (`tuple_new_pack`, `list_new_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors and mastering variadic unpacking and cleanup safety.
 
 ______
 

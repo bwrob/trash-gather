@@ -10,7 +10,7 @@ ______
 
 ## 1. Objective & Technical Scope
 
-1. **Primary Goals**: Replace the fixed 3-element tuple representation with an arbitrary-capacity, heap-allocated `tuple_t` payload using a C99 flexible array member (struct hack), implement `new_tuple(size_t size)`, and integrate into GC tracing and sweeping.
+1. **Primary Goals**: Replace the fixed 3-element tuple representation with an arbitrary-capacity, heap-allocated `tuple_t` payload using a C99 flexible array member (struct hack), implement `tuple_new(size_t size)`, and integrate into GC tracing and sweeping.
 1. **Scope Boundaries**: Eliminating the tagged union and unifying `object_t` with the tuple payload into a single allocation is deferred to Milestone 04.
 
 ______
@@ -52,7 +52,7 @@ ______
 1. **Step-by-Step Execution Sequence**:
    - Update `tuple_t` in `src/object.h` with `size_t size;` and `object_t *items[];`.
    - Update `object_data_t` in `src/object.h` to declare `tuple_t *v_tuple;`.
-   - Implement `new_tuple(size_t size)` in `src/new.c` and `src/new.h`.
+   - Implement `tuple_new(size_t size)` in `src/new.c` and `src/new.h`.
    - Implement `tuple_set()` and `tuple_get()` accessors in `src/object.c` and `src/object.h`.
    - Update `trace_blacken_object()` in `src/vm.c` to iterate over tuple items.
    - Update `object_decref_children()` and `object_free_payload()` in `src/object.c`.

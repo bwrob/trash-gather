@@ -4,7 +4,7 @@
 #include "object.h"
 #include "vm/vm.h"
 
-static object_t *_new_tuple_obj(
+static object_t *_tuple_new_obj(
     size_t tuple_size
 )
 {
@@ -48,39 +48,39 @@ object_t *create_empty_tuple_singleton()
     return obj;
 }
 
-object_t *new_tuple_0()
+object_t *tuple_new_0()
 {
-    return new_tuple(NULL, 0);
+    return tuple_new(NULL, 0);
 }
 
-object_t *new_tuple_1(
+object_t *tuple_new_1(
     object_t *x
 )
 {
     object_t *items[] = {x};
-    return new_tuple(items, 1);
+    return tuple_new(items, 1);
 }
 
-object_t *new_tuple_2(
+object_t *tuple_new_2(
     object_t *x,
     object_t *y
 )
 {
     object_t *items[] = {x, y};
-    return new_tuple(items, 2);
+    return tuple_new(items, 2);
 }
 
-object_t *new_tuple_3(
+object_t *tuple_new_3(
     object_t *x,
     object_t *y,
     object_t *z
 )
 {
     object_t *items[] = {x, y, z};
-    return new_tuple(items, 3);
+    return tuple_new(items, 3);
 }
 
-object_t *new_tuple(
+object_t *tuple_new(
     object_t **objects,
     size_t size
 )
@@ -101,7 +101,7 @@ object_t *new_tuple(
         }
     }
 
-    object_t *obj = _new_tuple_obj(size);
+    object_t *obj = _tuple_new_obj(size);
     if (obj == NULL)
     {
         return NULL;
@@ -128,7 +128,7 @@ object_t *tuple_add(
     }
     if (a_len == 0)
     {
-        return new_tuple_0();
+        return tuple_new_0();
     }
 
     object_t **added_objects = malloc(sizeof(object_t *) * a_len);
@@ -160,7 +160,7 @@ object_t *tuple_add(
         return NULL;
     }
 
-    object_t *tuple = new_tuple(added_objects, a_len);
+    object_t *tuple = tuple_new(added_objects, a_len);
 
     // Ownership was passed to the tuple, we need to release
     // the reference and memory.

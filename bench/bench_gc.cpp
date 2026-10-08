@@ -127,7 +127,7 @@ static void BM_NestedVectorTracing(
         {
             object_t *a = new_integer(i);
             object_t *b = new_integer(i + 1);
-            root = new_tuple_3(root, a, b);
+            root = tuple_new_3(root, a, b);
         }
         state.ResumeTiming();
 

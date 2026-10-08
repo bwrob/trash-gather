@@ -57,7 +57,7 @@ ______
 
 1. **Step-by-Step Execution Sequence**:
    - Define `list_node_t` and `linked_list_t` in `src/object.h`.
-   - Implement `new_list_node()` and `new_linked_list()` in `src/new.c` and `src/new.h`.
+   - Implement `list_new_node()` and `new_linked_list()` in `src/new.c` and `src/new.h`.
    - Implement `linked_list_push_back()`, `push_front()`, `pop_back()`, and `pop_front()` in `src/object.c`.
    - Integrate node types into `trace_blacken_object()` in `src/vm.c`.
    - Integrate decref and payload reclamation in `src/object.c`.

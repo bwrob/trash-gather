@@ -68,7 +68,7 @@ ______
 
 1. **Step-by-Step Execution Sequence**:
    - Update `list_t` in `src/object.h` to add `size_t capacity;`.
-   - Update `new_list(size_t size)` in `src/new.c` to initialize `capacity >= size`.
+   - Update `list_new(size_t size)` in `src/new.c` to initialize `capacity >= size`.
    - Implement geometric growth helper `static bool list_ensure_capacity(list_t *list, size_t min_capacity)` in `src/object.c`.
    - Implement `bool list_append(object_t *list, object_t *item);` in `src/object.h` and `src/object.c`.
    - Implement `bool list_insert(object_t *list, int64_t index, object_t *item);` supporting negative offsets and `memmove` shifts.

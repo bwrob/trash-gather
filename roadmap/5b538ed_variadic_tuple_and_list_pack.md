@@ -3,7 +3,7 @@
 **ID:** `5b538ed`\
 **Status:** Planned\
 **Difficulty:** 1 / 5\
-**Focus:** Introduce variadic constructors (`new_tuple_pack`, `new_list_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors (`new_tuple_1`, `new_tuple_2`, `new_tuple_3`) and mastering variadic unpacking and cleanup safety.\
+**Focus:** Introduce variadic constructors (`tuple_new_pack`, `list_new_pack`) using `<stdarg.h>`, replacing hardcoded fixed-arity constructors (`tuple_new_1`, `tuple_new_2`, `tuple_new_3`) and mastering variadic unpacking and cleanup safety.\
 **Prerequisites:** [Heap-Allocated Variable-Length Tuple](f9c475f_heap_allocated_variable_length_tuple.md)
 
 ______
@@ -11,9 +11,9 @@ ______
 ## 1. Objective & Technical Scope
 
 1. **Primary Goals**:
-   - Implement `object_t *new_tuple_pack(size_t count, ...);` accepting an arbitrary number of `object_t*` arguments.
-   - Implement `object_t *new_list_pack(size_t count, ...);` packing an arbitrary number of elements into a resizable list.
-   - Deprecate or refactor hardcoded `new_tuple_1()`, `new_tuple_2()`, and `new_tuple_3()` as light inline wrappers around `new_tuple_pack()`.
+   - Implement `object_t *tuple_new_pack(size_t count, ...);` accepting an arbitrary number of `object_t*` arguments.
+   - Implement `object_t *list_new_pack(size_t count, ...);` packing an arbitrary number of elements into a resizable list.
+   - Deprecate or refactor hardcoded `tuple_new_1()`, `tuple_new_2()`, and `tuple_new_3()` as light inline wrappers around `tuple_new_pack()`.
 1. **Scope Boundaries**:
    - Keyword argument packing (dictionaries) is deferred to Milestone `5895af9_hash_maps_and_dictionaries.md`.
    - Formatted string packing is handled in Milestone `4911b8b_dynamic_string_builder.md`.
@@ -31,7 +31,7 @@ ______
            |             |           |           |
            |             \-----------+-----------/
            v                         v
-     new_tuple_pack:             va_arg(args, object_t*) -> element slots
+     tuple_new_pack:             va_arg(args, object_t*) -> element slots
      ```
 
 1. **Core Systems Invariants**:
@@ -57,10 +57,10 @@ ______
 
 1. **Step-by-Step Execution Sequence**:
    - Include `<stdarg.h>` in `src/new.h` and `src/new.c`.
-   - Declare `object_t *new_tuple_pack(size_t count, ...);` and `object_t *new_list_pack(size_t count, ...);` in `src/new.h`.
-   - Implement `new_tuple_pack` in `src/new.c` using `va_start`, looping `count` times with `va_arg(args, object_t*)`, and concluding with `va_end`.
-   - Implement `new_list_pack` in `src/new.c` similarly.
-   - Refactor `new_tuple_1`, `new_tuple_2`, and `new_tuple_3` to delegate to `new_tuple_pack`.
+   - Declare `object_t *tuple_new_pack(size_t count, ...);` and `object_t *list_new_pack(size_t count, ...);` in `src/new.h`.
+   - Implement `tuple_new_pack` in `src/new.c` using `va_start`, looping `count` times with `va_arg(args, object_t*)`, and concluding with `va_end`.
+   - Implement `list_new_pack` in `src/new.c` similarly.
+   - Refactor `tuple_new_1`, `tuple_new_2`, and `tuple_new_3` to delegate to `tuple_new_pack`.
    - Add unit tests in `tests/test_tuple.c` testing packs of size 0, 1, 5, and 10.
 1. **File Touchpoints**:
    - `src/new.h`, `src/new.c`

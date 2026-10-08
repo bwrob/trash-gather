@@ -13,7 +13,7 @@ typedef struct
     object_t **elements;
 } list_t;
 
-object_t *new_list(
+object_t *list_new(
     size_t size
 );
 

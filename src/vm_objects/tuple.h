@@ -10,22 +10,22 @@ typedef struct
     object_t *elements[];
 } tuple_t;
 
-object_t *new_tuple_0(
+object_t *tuple_new_0(
     void
 );
-object_t *new_tuple_1(
+object_t *tuple_new_1(
     object_t *x
 );
-object_t *new_tuple_2(
+object_t *tuple_new_2(
     object_t *x,
     object_t *y
 );
-object_t *new_tuple_3(
+object_t *tuple_new_3(
     object_t *x,
     object_t *y,
     object_t *z
 );
-object_t *new_tuple(
+object_t *tuple_new(
     object_t **objects,
     size_t size
 );

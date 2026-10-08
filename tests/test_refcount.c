@@ -153,7 +153,7 @@ munit_case(
     {
         vm_new();
         object_t *foo = new_integer(1);
-        object_t *list = new_list(1);
+        object_t *list = list_new(1);
 
         list_set(list, 0, foo);
         assert_int(foo->refcount, ==, 2, "foo is now referenced by list");
@@ -180,7 +180,7 @@ munit_case(
         object_t *bar = new_integer(2);
         object_t *baz = new_integer(3);
 
-        object_t *list = new_list(2);
+        object_t *list = list_new(2);
         list_set(list, 0, foo);
         list_set(list, 1, bar);
         assert_int(foo->refcount, ==, 2, "foo is now referenced by list");
@@ -216,7 +216,7 @@ munit_case(
         object_t *bar = new_integer(2);
         object_t *baz = new_integer(3);
 
-        object_t *vec = new_tuple_3(foo, bar, baz);
+        object_t *vec = tuple_new_3(foo, bar, baz);
         assert_int(foo->refcount, ==, 2, "foo is now referenced by vec");
         assert_int(bar->refcount, ==, 2, "bar is now referenced by vec");
         assert_int(baz->refcount, ==, 2, "baz is now referenced by vec");
@@ -251,8 +251,8 @@ munit_case(
         vm_new();
         object_t *leaf1 = new_integer(10);
         object_t *leaf2 = new_string("hello");
-        object_t *inner = new_tuple_2(leaf1, leaf2);
-        object_t *outer = new_tuple_1(inner);
+        object_t *inner = tuple_new_2(leaf1, leaf2);
+        object_t *outer = tuple_new_1(inner);
 
         assert_int(leaf1->refcount, ==, 2);
         assert_int(leaf2->refcount, ==, 2);
@@ -304,8 +304,8 @@ munit_case(
     test_cycle_refcount_limitation,
     {
         vm_new();
-        object_t *arr_a = new_list(1);
-        object_t *arr_b = new_list(1);
+        object_t *arr_a = list_new(1);
+        object_t *arr_b = list_new(1);
 
         // arr_a -> arr_b and arr_b -> arr_a
         list_set(arr_a, 0, arr_b);
@@ -346,11 +346,11 @@ munit_case(
         vm_new();
         object_t *i1 = new_integer(1);
         object_t *i2 = new_integer(2);
-        object_t *t1 = new_tuple_2(i1, i2);
+        object_t *t1 = tuple_new_2(i1, i2);
 
         object_t *i3 = new_integer(10);
         object_t *i4 = new_integer(20);
-        object_t *t2 = new_tuple_2(i3, i4);
+        object_t *t2 = tuple_new_2(i3, i4);
 
         object_t *res = object_add(t1, t2);
         assert_not_null(res);
@@ -395,11 +395,11 @@ munit_case(
         vm_new();
         object_t *i1 = new_integer(1);
         object_t *s1 = new_string("cannot_add_to_int");
-        object_t *t1 = new_tuple_2(i1, s1);
+        object_t *t1 = tuple_new_2(i1, s1);
 
         object_t *i2 = new_integer(2);
         object_t *i3 = new_integer(3);
-        object_t *t2 = new_tuple_2(i2, i3);
+        object_t *t2 = tuple_new_2(i2, i3);
 
         // Element 0 (1 + 2) succeeds; Element 1 ("cannot_add_to_int" + 3) fails
         object_t *res = object_add(t1, t2);
@@ -432,28 +432,28 @@ munit_case(
         // Inner tuple 1: (1, 2)
         object_t *i1 = new_integer(1);
         object_t *i2 = new_integer(2);
-        object_t *inner1 = new_tuple_2(i1, i2);
+        object_t *inner1 = tuple_new_2(i1, i2);
 
         // Inner tuple 2: (3, "unsupported")
         object_t *i3 = new_integer(3);
         object_t *s1 = new_string("unsupported");
-        object_t *inner2 = new_tuple_2(i3, s1);
+        object_t *inner2 = tuple_new_2(i3, s1);
 
         // Outer tuple A: ((1, 2), (3, "unsupported"))
-        object_t *outer_a = new_tuple_2(inner1, inner2);
+        object_t *outer_a = tuple_new_2(inner1, inner2);
 
         // Inner tuple 3: (10, 20)
         object_t *i4 = new_integer(10);
         object_t *i5 = new_integer(20);
-        object_t *inner3 = new_tuple_2(i4, i5);
+        object_t *inner3 = tuple_new_2(i4, i5);
 
         // Inner tuple 4: (30, 40)
         object_t *i6 = new_integer(30);
         object_t *i7 = new_integer(40);
-        object_t *inner4 = new_tuple_2(i6, i7);
+        object_t *inner4 = tuple_new_2(i6, i7);
 
         // Outer tuple B: ((10, 20), (30, 40))
-        object_t *outer_b = new_tuple_2(inner3, inner4);
+        object_t *outer_b = tuple_new_2(inner3, inner4);
 
         // Outer addition:
         // index 0: add((1, 2), (10, 20)) -> succeeds! (allocates new inner tuple (11,
@@ -498,11 +498,11 @@ munit_case(
         object_t *elem2 = new_string("hello");
         object_t *elem3 = new_float(3.14f);
 
-        object_t *list_a = new_list(2);
+        object_t *list_a = list_new(2);
         list_set(list_a, 0, elem1);
         list_set(list_a, 1, elem2);
 
-        object_t *list_b = new_list(1);
+        object_t *list_b = list_new(1);
         list_set(list_b, 0, elem3);
 
         object_t *res = object_add(list_a, list_b);
@@ -568,7 +568,7 @@ munit_case(
     test_empty_tuple_refcount_immunity,
     {
         vm_new();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
         assert_not_null(t0);
         assert_size(t0->refcount, ==, OBJECT_IMMORTAL_REFCOUNT);
 
@@ -594,7 +594,7 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *lst = new_list(2);
+        object_t *lst = list_new(2);
 
         list_set(lst, 0, none);
         list_set(lst, 1, none);
@@ -621,7 +621,7 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *t = new_tuple_1(none);
+        object_t *t = tuple_new_1(none);
 
         assert_ptr_equal(t->data.v_tuple->elements[0], none);
         assert_size(none->refcount, ==, OBJECT_IMMORTAL_REFCOUNT);
@@ -644,16 +644,16 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
 
-        object_t *l_inner = new_list(2);
+        object_t *l_inner = list_new(2);
         list_set(l_inner, 0, none);
         list_set(l_inner, 1, t0);
 
-        object_t *t_mid = new_tuple_1(l_inner);
+        object_t *t_mid = tuple_new_1(l_inner);
         refcount_dec(l_inner);
 
-        object_t *l_outer = new_list(1);
+        object_t *l_outer = list_new(1);
         list_set(l_outer, 0, t_mid);
         refcount_dec(t_mid);
 
@@ -678,10 +678,10 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
 
-        object_t *t_inner = new_tuple_2(none, t0);
-        object_t *t_outer = new_tuple_2(t_inner, none);
+        object_t *t_inner = tuple_new_2(none, t0);
+        object_t *t_outer = tuple_new_2(t_inner, none);
 
         assert_size(none->refcount, ==, OBJECT_IMMORTAL_REFCOUNT);
         assert_size(t0->refcount, ==, OBJECT_IMMORTAL_REFCOUNT);
@@ -708,15 +708,15 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
         object_t *elem1 = new_integer(10);
         object_t *elem2 = new_integer(20);
 
-        object_t *list_a = new_list(2);
+        object_t *list_a = list_new(2);
         list_set(list_a, 0, none);
         list_set(list_a, 1, elem1);
 
-        object_t *list_b = new_list(2);
+        object_t *list_b = list_new(2);
         list_set(list_b, 0, t0);
         list_set(list_b, 1, elem2);
 
@@ -773,9 +773,9 @@ munit_case(
         object_t *i2 = new_integer(200);
 
         // Tuple 1: (100, None)
-        object_t *t1 = new_tuple_2(i1, none);
+        object_t *t1 = tuple_new_2(i1, none);
         // Tuple 2: (200, None)
-        object_t *t2 = new_tuple_2(i2, none);
+        object_t *t2 = tuple_new_2(i2, none);
 
         // Element 0: 100 + 200 = 300 (succeeds)
         // Element 1: None + None = NULL (fails)
@@ -806,7 +806,7 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
 
         // Establish checkpoint: VM and singletons are already alive
         boot_checkpoint_t cp = boot_checkpoint();
@@ -814,12 +814,12 @@ munit_case(
         // Allocate local hierarchy of mortal objects and containers
         object_t *val1 = new_integer(42);
         object_t *val2 = new_string("checkpoint_test");
-        object_t *lst = new_list(3);
+        object_t *lst = list_new(3);
         list_set(lst, 0, val1);
         list_set(lst, 1, val2);
         list_set(lst, 2, none);
 
-        object_t *tup = new_tuple_2(lst, t0);
+        object_t *tup = tuple_new_2(lst, t0);
 
         // Caller releases their owned references
         refcount_dec(val1);
@@ -841,7 +841,7 @@ munit_case(
         // The VM and singletons remain completely healthy and active
         assert_not_null(vm_get_current());
         assert_ptr_equal(new_none(), none);
-        assert_ptr_equal(new_tuple_0(), t0);
+        assert_ptr_equal(tuple_new_0(), t0);
 
         vm_cleanup_after_refcount();
         assert(boot_all_freed());

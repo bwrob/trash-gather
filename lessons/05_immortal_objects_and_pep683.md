@@ -140,7 +140,7 @@ flowchart TD
 
 1. `vm_new()` allocates `none` and `empty_tuple` during VM initialization.
 1. If any singleton allocation fails under memory pressure, `vm_new()` executes a clean multi-stage rollback (`_immortals_free`, `stack_free`, `free(vm)`), leaving zero memory leaks and `CURRENT_VM == NULL`.
-1. Once initialized, `new_none()` and `new_tuple_0()` are **100% infallible, zero-allocation accessors**.
+1. Once initialized, `new_none()` and `tuple_new_0()` are **100% infallible, zero-allocation accessors**.
 
 ### 3.2 Scoped Memory Verification with Checkpoints
 
@@ -150,7 +150,7 @@ Previously, leak verification relied solely on `boot_all_freed()`, requiring tes
 boot_checkpoint_t cp = boot_checkpoint();
 
 // Run local operations
-object_t *lst = new_list(2);
+object_t *lst = list_new(2);
 list_set(lst, 0, new_none());
 refcount_dec(lst);
 
@@ -164,7 +164,7 @@ ______
 ## 4. Tooling Insights & Workflow Takeaways
 
 1. **Empirical Zero-Allocation Verification**:
-   Using `boot_total_alloc_count()`, unit tests now mathematically prove that accessing `new_none()` or `new_tuple_0()` does not allocate:
+   Using `boot_total_alloc_count()`, unit tests now mathematically prove that accessing `new_none()` or `tuple_new_0()` does not allocate:
 
    ```c
    size_t allocs_before = boot_total_alloc_count();

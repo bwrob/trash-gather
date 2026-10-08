@@ -65,7 +65,7 @@ munit_case(
         object_t *i1 = new_integer(69);
         object_t *i2 = new_integer(420);
         object_t *i3 = new_integer(1337);
-        object_t *v = new_tuple_3(i1, i2, i3);
+        object_t *v = tuple_new_3(i1, i2, i3);
         frame_reference_object(f2, v);
         frame_reference_object(f3, v);
 
@@ -123,7 +123,7 @@ munit_case(
     test_list_freed,
     {
         vm_new();
-        new_list(3);
+        list_new(3);
         vm_free();
         assert(boot_all_freed());
     }
@@ -218,8 +218,8 @@ munit_case(
         vm_t *vm = vm_get_current();
         frame_t *f = vm_new_frame();
 
-        object_t *arr_a = new_list(1);
-        object_t *arr_b = new_list(1);
+        object_t *arr_a = list_new(1);
+        object_t *arr_b = list_new(1);
         frame_reference_object(f, arr_a);
         frame_reference_object(f, arr_b);
 
@@ -258,7 +258,7 @@ munit_case(
         vm_t *vm = vm_get_current();
         frame_t *f = vm_new_frame();
 
-        object_t *self_arr = new_list(1);
+        object_t *self_arr = list_new(1);
         frame_reference_object(f, self_arr);
         list_set(self_arr, 0, self_arr);
 
@@ -290,8 +290,8 @@ munit_case(
         frame_reference_object(live_frame, live_str);
 
         frame_t *dead_frame = vm_new_frame();
-        object_t *a = new_list(2);
-        object_t *b = new_list(1);
+        object_t *a = list_new(2);
+        object_t *b = list_new(1);
         frame_reference_object(dead_frame, a);
         frame_reference_object(dead_frame, b);
 
@@ -325,7 +325,7 @@ munit_case(
     {
         vm_new();
         frame_t *f = vm_new_frame();
-        object_t *arr = new_list(5);
+        object_t *arr = list_new(5);
         frame_reference_object(f, arr);
 
         // Set only slots 0 and 3; slots 1, 2, 4 remain NULL
@@ -356,9 +356,9 @@ munit_case(
         vm_new();
         frame_t *f = vm_new_frame();
 
-        object_t *n1 = new_list(1);
-        object_t *n2 = new_list(1);
-        object_t *n3 = new_list(2);
+        object_t *n1 = list_new(1);
+        object_t *n2 = list_new(1);
+        object_t *n3 = list_new(2);
         object_t *tail = new_integer(999);
 
         frame_reference_object(f, n1);
@@ -397,8 +397,8 @@ munit_case(
         vm_new();
         frame_t *f = vm_new_frame();
 
-        object_t *list = new_list(1);
-        object_t *tup = new_tuple_1(list);
+        object_t *list = list_new(1);
+        object_t *tup = tuple_new_1(list);
         list_set(list, 0, tup);
 
         frame_reference_object(f, list);
@@ -493,14 +493,14 @@ munit_case(
     test_empty_tuple_survives_gc_sweep,
     {
         vm_new();
-        object_t *t1 = new_tuple_0();
+        object_t *t1 = tuple_new_0();
         assert_not_null(t1);
 
         // Run garbage collection when empty tuple has no frame references
         vm_collect_garbage();
 
         assert(!boot_is_freed(t1));
-        object_t *t2 = new_tuple_0();
+        object_t *t2 = tuple_new_0();
         assert_ptr_equal(t1, t2);
 
         vm_free();
@@ -519,8 +519,8 @@ munit_case(
         object_t *none = new_none();
 
         // Construct cyclic mesh A <-> B where A also holds None
-        object_t *list_a = new_list(2);
-        object_t *list_b = new_list(1);
+        object_t *list_a = list_new(2);
+        object_t *list_b = list_new(1);
 
         list_set(list_a, 0, list_b);
         list_set(list_a, 1, none);
@@ -550,7 +550,7 @@ munit_case(
         {
             vm_new();
             object_t *none = new_none();
-            object_t *t0 = new_tuple_0();
+            object_t *t0 = tuple_new_0();
             assert_not_null(none);
             assert_not_null(t0);
 
@@ -570,7 +570,7 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
 
         const size_t num_frames = 5;
         for (size_t i = 0; i < num_frames; i++)
@@ -643,14 +643,14 @@ munit_case(
     {
         vm_new();
         object_t *none = new_none();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
 
         // Node A: holds B and None
-        object_t *node_a = new_list(2);
+        object_t *node_a = list_new(2);
         // Node B: holds C and ()
-        object_t *node_b = new_list(2);
+        object_t *node_b = list_new(2);
         // Node C: holds A, None, and live_tail
-        object_t *node_c = new_list(3);
+        object_t *node_c = list_new(3);
 
         object_t *live_tail = new_integer(999);
 

@@ -81,7 +81,7 @@ munit_case(
     test_create_empty_list,
     {
         vm_new();
-        object_t *obj = new_list(2);
+        object_t *obj = list_new(2);
 
         assert_int(obj->kind, ==, LIST, "Must set type to LIST");
         assert_int(obj->data.v_list.size, ==, 2, "Must set size to 2");
@@ -99,7 +99,7 @@ munit_case(
     test_used_calloc,
     {
         vm_new();
-        object_t *obj = new_list(2);
+        object_t *obj = list_new(2);
 
         assert_ptr_null(obj->data.v_list.elements[0], "Should use calloc");
         assert_ptr_null(obj->data.v_list.elements[1], "Should use calloc");
@@ -117,7 +117,7 @@ munit_case(
     test_list_set,
     {
         vm_new();
-        object_t *obj = new_list(2);
+        object_t *obj = list_new(2);
         object_t *first = new_string("First");
         object_t *second = new_integer(3);
 
@@ -144,7 +144,7 @@ munit_case(
     test_list_set_outside_bounds,
     {
         vm_new();
-        object_t *obj = new_list(2);
+        object_t *obj = list_new(2);
         object_t *outside = new_string("First");
 
         assert(list_set(obj, 1, outside));
@@ -168,7 +168,7 @@ munit_case(
     test_list_set_rejects_invalid_inputs,
     {
         vm_new();
-        object_t *list = new_list(1);
+        object_t *list = list_new(1);
         object_t *value = new_integer(3);
         object_t *not_list = new_integer(5);
 
@@ -189,7 +189,7 @@ munit_case(
     test_list_get,
     {
         vm_new();
-        object_t *obj = new_list(2);
+        object_t *obj = list_new(2);
         object_t *first = new_string("First");
         object_t *second = new_integer(3);
 
@@ -219,7 +219,7 @@ munit_case(
     test_list_get_empty_slot,
     {
         vm_new();
-        object_t *obj = new_list(2);
+        object_t *obj = list_new(2);
 
         assert_null(list_get(obj, 1), "Empty list slots should be NULL");
 
@@ -236,7 +236,7 @@ munit_case(
     test_list_get_outside_bounds,
     {
         vm_new();
-        object_t *obj = new_list(1);
+        object_t *obj = list_new(1);
         object_t *first = new_string("First");
         assert(list_set(obj, 0, first));
 
@@ -394,12 +394,12 @@ munit_case(
         object_t *x1 = new_integer(1);
         object_t *y1 = new_integer(2);
         object_t *z1 = new_integer(3);
-        object_t *v1 = new_tuple_3(x1, y1, z1);
+        object_t *v1 = tuple_new_3(x1, y1, z1);
 
         object_t *x2 = new_integer(4);
         object_t *y2 = new_integer(5);
         object_t *z2 = new_integer(6);
-        object_t *v2 = new_tuple_3(x2, y2, z2);
+        object_t *v2 = tuple_new_3(x2, y2, z2);
 
         object_t *res = object_add(v1, v2);
 
@@ -427,9 +427,9 @@ munit_case(
         object_t *i2 = new_integer(2);
         object_t *i3 = new_integer(3);
 
-        object_t *t2 = new_tuple_2(i1, i2);
-        object_t *t3 = new_tuple_3(i1, i2, i3);
-        object_t *t0 = new_tuple_0();
+        object_t *t2 = tuple_new_2(i1, i2);
+        object_t *t3 = tuple_new_3(i1, i2, i3);
+        object_t *t0 = tuple_new_0();
 
         assert_null(object_add(t2, t3));
         assert_null(object_add(t3, t2));
@@ -449,8 +449,8 @@ munit_case(
     test_tuple_add_empty,
     {
         vm_new();
-        object_t *t0_a = new_tuple_0();
-        object_t *t0_b = new_tuple_0();
+        object_t *t0_a = tuple_new_0();
+        object_t *t0_b = tuple_new_0();
 
         object_t *res = object_add(t0_a, t0_b);
         assert_not_null(res);
@@ -479,8 +479,8 @@ munit_case(
                 realloc(vm_get_current()->objects->data, 64 * sizeof(void *));
             vm_get_current()->objects->capacity = 64;
 
-            object_t *t1 = new_tuple_2(new_integer(1), new_integer(2));
-            object_t *t2 = new_tuple_2(new_integer(3), new_integer(4));
+            object_t *t1 = tuple_new_2(new_integer(1), new_integer(2));
+            object_t *t2 = tuple_new_2(new_integer(3), new_integer(4));
 
             boot_set_fail_alloc_after(fail_idx);
             object_t *res = object_add(t1, t2);
@@ -504,13 +504,13 @@ munit_case(
     test_list_add,
     {
         vm_new();
-        object_t *arr1 = new_list(2);
+        object_t *arr1 = list_new(2);
         object_t *elem1 = new_integer(10);
         object_t *elem2 = new_integer(20);
         list_set(arr1, 0, elem1);
         list_set(arr1, 1, elem2);
 
-        object_t *arr2 = new_list(1);
+        object_t *arr2 = list_new(1);
         object_t *elem3 = new_integer(30);
         list_set(arr2, 0, elem3);
 
@@ -538,8 +538,8 @@ munit_case(
         for (int i = 0; i < 4; i++)
         {
             vm_new();
-            object_t *arr1 = new_list(2);
-            object_t *arr2 = new_list(2);
+            object_t *arr1 = list_new(2);
+            object_t *arr2 = list_new(2);
 
             boot_set_fail_alloc_after(i);
             object_t *res = object_add(arr1, arr2);
@@ -563,11 +563,11 @@ munit_case(
     test_list_add_sparse_nulls,
     {
         vm_new();
-        object_t *arr1 = new_list(2);
+        object_t *arr1 = list_new(2);
         object_t *elem1 = new_integer(10);
         list_set(arr1, 0, elem1);
 
-        object_t *arr2 = new_list(2);
+        object_t *arr2 = list_new(2);
         object_t *elem2 = new_integer(20);
         list_set(arr2, 1, elem2);
 
@@ -597,8 +597,8 @@ munit_case(
         object_t *i = new_integer(1);
         object_t *f = new_float(1.0f);
         object_t *s = new_string("hi");
-        object_t *v = new_tuple_3(i, i, i);
-        object_t *a = new_list(1);
+        object_t *v = tuple_new_3(i, i, i);
+        object_t *a = list_new(1);
 
         assert_null(object_add(NULL, i));
         assert_null(object_add(i, NULL));
@@ -659,8 +659,8 @@ munit_case(
     {
         vm_new();
         object_t *s = new_string("");
-        object_t *l = new_list(0);
-        object_t *t = new_tuple_0();
+        object_t *l = list_new(0);
+        object_t *t = tuple_new_0();
 
         assert_int64(object_len(s), ==, 0);
         assert_int64(object_len(l), ==, 0);
@@ -704,8 +704,8 @@ munit_case(
     test_object_len_lists,
     {
         vm_new();
-        object_t *l1 = new_list(1);
-        object_t *l5 = new_list(5);
+        object_t *l1 = list_new(1);
+        object_t *l5 = list_new(5);
         object_t *elem = new_integer(100);
 
         assert_int64(object_len(l1), ==, 1);
@@ -733,9 +733,9 @@ munit_case(
         object_t *f = new_float(2.5f);
         object_t *s = new_string("data");
 
-        object_t *t1 = new_tuple_1(i);
-        object_t *t2 = new_tuple_2(i, f);
-        object_t *t3 = new_tuple_3(i, f, s);
+        object_t *t1 = tuple_new_1(i);
+        object_t *t2 = tuple_new_2(i, f);
+        object_t *t3 = tuple_new_3(i, f, s);
 
         assert_int64(object_len(t1), ==, 1);
         assert_int64(object_len(t2), ==, 2);
@@ -747,7 +747,7 @@ munit_case(
         items[3] = i;
         items[4] = f;
         items[5] = s;
-        object_t *t6 = new_tuple(items, 6);
+        object_t *t6 = tuple_new(items, 6);
         assert_int64(object_len(t6), ==, 6);
         assert_size(t6->refcount, ==, 1);
 
@@ -767,13 +767,13 @@ munit_case(
         vm_new();
 
         // 1. Self-referencing cycle: list pointing to itself
-        object_t *self_list = new_list(1);
+        object_t *self_list = list_new(1);
         list_set(self_list, 0, self_list);
         assert_int64(object_len(self_list), ==, 1);
 
         // 2. Mutual cycle: list A <-> list B
-        object_t *list_a = new_list(2);
-        object_t *list_b = new_list(3);
+        object_t *list_a = list_new(2);
+        object_t *list_b = list_new(3);
         list_set(list_a, 0, list_b);
         list_set(list_b, 0, list_a);
 
@@ -808,10 +808,10 @@ munit_case(
 
         // 1. Deeply nested hierarchy: Tuple -> Tuple -> List -> String
         object_t *s = new_string("deep");
-        object_t *l = new_list(1);
+        object_t *l = list_new(1);
         list_set(l, 0, s);
-        object_t *inner_tuple = new_tuple_1(l);
-        object_t *outer_tuple = new_tuple_2(inner_tuple, s);
+        object_t *inner_tuple = tuple_new_1(l);
+        object_t *outer_tuple = tuple_new_2(inner_tuple, s);
 
         assert_int64(object_len(outer_tuple), ==, 2);
         assert_int64(object_len(inner_tuple), ==, 1);
@@ -820,7 +820,7 @@ munit_case(
 
         // 2. Large list sequence
         const size_t large_size = 2000;
-        object_t *large_list = new_list(large_size);
+        object_t *large_list = list_new(large_size);
         assert_int64(object_len(large_list), ==, (int64_t)large_size);
 
         // 3. Large tuple sequence
@@ -830,7 +830,7 @@ munit_case(
         {
             items[idx] = s;
         }
-        object_t *large_tuple = new_tuple(items, tuple_size);
+        object_t *large_tuple = tuple_new(items, tuple_size);
         assert_int64(object_len(large_tuple), ==, (int64_t)tuple_size);
 
         vm_free();
@@ -851,9 +851,9 @@ munit_case(
         object_t *i = new_integer(10);
         object_t *f = new_float(2.5f);
         object_t *s = new_string("mortal");
-        object_t *l = new_list(1);
+        object_t *l = list_new(1);
         object_t *none = new_none();
-        object_t *empty_t = new_tuple_0();
+        object_t *empty_t = tuple_new_0();
 
         assert_false(object_is_immortal(i));
         assert_false(object_is_immortal(f));
@@ -897,7 +897,7 @@ munit_case(
     test_none_in_list_mutation,
     {
         vm_new();
-        object_t *lst = new_list(3);
+        object_t *lst = list_new(3);
         object_t *none = new_none();
 
         assert_true(list_set(lst, 0, none));
@@ -926,7 +926,7 @@ munit_case(
         vm_new();
         object_t *none = new_none();
         object_t *num = new_integer(42);
-        object_t *empty_t = new_tuple_0();
+        object_t *empty_t = tuple_new_0();
 
         assert_null(object_add(none, none));
         assert_null(object_add(none, num));
@@ -948,9 +948,9 @@ munit_case(
     test_tuple_add_empty_with_nonempty,
     {
         vm_new();
-        object_t *t0 = new_tuple_0();
+        object_t *t0 = tuple_new_0();
         object_t *elem = new_integer(42);
-        object_t *t1 = new_tuple_1(elem);
+        object_t *t1 = tuple_new_1(elem);
 
         assert_null(object_add(t0, t1));
         assert_null(object_add(t1, t0));

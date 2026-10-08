@@ -101,7 +101,7 @@ READ of size 4 at 0x6040000007a8 thread T0
 ...
 0x6040000007a8 was freed by thread T0 here:
     #0 free (libclang_rt.asan_osx_dynamic.dylib)
-    #1 _new_tuple_obj new.c:66
+    #1 _tuple_new_obj new.c:66
 ```
 
 ### Why Naive Unwinding Fails
@@ -148,7 +148,7 @@ ______
 When a container operation creates new child elements to populate a new parent container (such as component-wise tuple addition `add(tupleA, tupleB)`):
 
 1. `add(a[i], b[i])` produces a new element with **`refcount = 1`** (owned by the local frame).
-1. `new_tuple(added_objects, N)` loops over elements and calls **`refcount_inc(objects[i])`**, raising each child's refcount to **`2`**.
+1. `tuple_new(added_objects, N)` loops over elements and calls **`refcount_inc(objects[i])`**, raising each child's refcount to **`2`**.
 1. The function returns `tuple` to the caller.
 
 ### The Problem: Zombie Objects
@@ -163,7 +163,7 @@ If the creator function does not explicitly relinquish its temporary references:
 Whenever a function creates objects purely to insert them into a container that increments reference counts, ownership is transferred to the container. The creator must drop its local references:
 
 ```c
-object_t *tuple = new_tuple(added_objects, a_len);
+object_t *tuple = tuple_new(added_objects, a_len);
 
 // Ownership was passed to the tuple: release local temporary references
 for (size_t i = 0; i < a_len; i++) {
@@ -173,7 +173,7 @@ free(added_objects);
 return tuple;
 ```
 
-Now each child element goes: `1 (created) -> 2 (new_tuple) -> 1 (refcount_dec)`. When `tuple` is decremented to 0, its children cascade to 0 and are freed immediately.
+Now each child element goes: `1 (created) -> 2 (tuple_new) -> 1 (refcount_dec)`. When `tuple` is decremented to 0, its children cascade to 0 and are freed immediately.
 
 ### Why Initial Tests Missed It: The `vm_free()` Masking Trap
 
@@ -301,7 +301,7 @@ ______
 When constructing containers from variable-length pointer arrays, API functions must validate both the **container array pointer itself** and its **individual elements**:
 
 ```c
-object_t *new_tuple(object_t **objects, size_t size);
+object_t *tuple_new(object_t **objects, size_t size);
 ```
 
 #### The Naive Implementation
@@ -316,14 +316,14 @@ for (size_t i = 0; i < size; i++) {
 ```
 
 In C, array indexing `objects[i]` is identical to `*(objects + i)`.
-If a caller passes `new_tuple(NULL, 3)`:
+If a caller passes `tuple_new(NULL, 3)`:
 `i = 0` calculates `*(NULL + 0)` $\\rightarrow$ **Page 0 Read Segfault (`SEGV on unknown address 0x000000000000`)**.
 
 ### The Invariant: Container Bounds Precede Content Inspection
 
 Validation must occur in strict logical hierarchy:
 
-1. If `size == 0 && objects == NULL`, return an empty container (`new_tuple_0()`).
+1. If `size == 0 && objects == NULL`, return an empty container (`tuple_new_0()`).
 1. If `size > 0 && objects == NULL`, reject immediately (`return NULL;`).
 1. Only once the array pointer is verified valid may individual slots (`objects[i]`) be probed.
 
@@ -338,7 +338,7 @@ Early in this milestone, `gcov` reported **100% line coverage** on `_tuple_add`,
 1. Child elements had incorrect reference counts (`refcount == 2` instead of `1`).
 1. Mid-loop failures leaked intermediate allocations.
 
-A single happy-path test executed every line in the function sequentially (`malloc`, `for`, `new_tuple`, `free`, `return`), satisfying line coverage while testing zero edge cases.
+A single happy-path test executed every line in the function sequentially (`malloc`, `for`, `tuple_new`, `free`, `return`), satisfying line coverage while testing zero edge cases.
 
 ### The Obligatory Adversarial Heuristics
 

@@ -25,7 +25,7 @@ munit_case(
         vm_new();
 
         // Pass NULL to operations; verify graceful failure without segfaults
-        object_t *result = new_tuple(NULL, 1);
+        object_t *result = tuple_new(NULL, 1);
         assert_null(result);
 
         vm_free();
@@ -47,7 +47,7 @@ munit_case(
         assert_size(elem->refcount, ==, 1);
 
         // Container takes ownership/reference of child
-        object_t *container = new_tuple_1(elem);
+        object_t *container = tuple_new_1(elem);
         assert_not_null(container);
         assert_size(elem->refcount, ==, 2);
 
@@ -80,7 +80,7 @@ munit_case(
         for (size_t fail_after = 0; fail_after <= 5; fail_after++)
         {
             boot_set_fail_alloc_after(fail_after);
-            object_t *obj = new_list(10);
+            object_t *obj = list_new(10);
             (void)obj;
         }
 
