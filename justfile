@@ -180,11 +180,11 @@ format-toml-check:
 
 # Format justfile using just --fmt
 format-just:
-    just --fmt
+    just --unstable --fmt
 
 # Check justfile formatting without modifying files
 format-just-check:
-    just --fmt --check
+    just --unstable --fmt --check
 
 # Check all formatting without modifying files
 format-check: format-c-check format-md-check format-toml-check format-just-check
