@@ -158,6 +158,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 2, Chapter 13 (Storage, §13.2 Storage Duration, Lifetime, and Visibility), explaining static storage duration, file-scope singletons, and boolean logic in C.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 3 (Data, §3.3 Properties of Variables), detailing static linkage, lifetime persistence, and boolean evaluation.
    - [Python Truth Value Testing Specification](https://docs.python.org/3/library/stdtypes.html#truth-value-testing): The formal definition of truthiness across numbers, singletons, and empty collections.
    - [Boolean Type Support in C99/C17 (stdbool.h)](https://en.cppreference.com/w/c/types/boolean_type): Standard ISO C boolean semantics, integer promotion, and true/false macros.
 1. **After Implementation (Deep Dives & Systems Context)**:

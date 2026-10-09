@@ -83,6 +83,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 2 (Objects, Functions, and Types, §Derived Types & Tags), explaining ISO C17 struct layout, offset-0 subobject alignment, and pointer upcasting safety.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 10 (Structures and Unions, §10.1–10.3 Structure Storage Allocation), detailing memory offsets and simulated single-inheritance via header structs.
    - [C99 Struct Pointer Casting and Common Initial Sequence](https://en.cppreference.com/w/c/language/struct): Official standard guarantees for casting between pointers to structs sharing initial members.
    - [CPython PyObject Base Header Definition](https://docs.python.org/3/c-api/structures.html#c.PyObject): How Python achieves single-allocation polymorphism by embedding PyObject at offset 0.
 1. **After Implementation (Deep Dives & Systems Context)**:

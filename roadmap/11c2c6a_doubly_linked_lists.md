@@ -81,6 +81,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 12 (Using Structures and Pointers, §12.3 Doubly Linked Lists), pp. 336–348, detailing node allocation, bidirectional pointer linking, insertion invariants, and sentinel nodes.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on explicit node lifecycle management and leak-free destruction loops.
    - [Doubly Linked Lists Structure and Sentinel Nodes](https://en.wikipedia.org/wiki/Doubly_linked_list): Bidirectional pointer linking, head/tail sentinels, and boundary condition safety.
    - [Pointer Cycle Hazards in Reference Counted Systems](https://en.wikipedia.org/wiki/Reference_counting#Dealing_with_reference_cycles): Why doubly-linked node pairs create immediate reference cycles requiring cyclic GC collection.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -105,6 +105,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 6 (Pointers, §6.9–6.14 Pointer Arithmetic) and Chapter 8 (Arrays), explaining interior pointers, non-owning offsets, and bounds safety.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory, §Memory States), covering shared ownership and avoiding dangling references.
    - [Python Slice Objects and Indices Resolution](https://docs.python.org/3/c-api/slice.html): The C-API specification for evaluating `[start:stop:step]` slice parameters.
    - [Non-Owning String Views and Buffer Windows](https://en.wikipedia.org/wiki/String_view): Borrowed references, interior offset calculations, and lifetime bounds in systems languages.
 1. **After Implementation (Deep Dives & Systems Context)**:

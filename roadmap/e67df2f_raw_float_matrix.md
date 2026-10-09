@@ -87,6 +87,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 8 (Arrays, §8.4 Multidimensional Arrays), pp. 222–235, detailing row-major contiguous memory flattening, stride calculations, and pointer offsets.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 2, Chapter 12 (The C Memory Model) and Chapter 16 (Performance), explaining spatial cache locality and contiguous linear buffer access.
    - [Row-Major vs Column-Major Memory Layouts](https://en.wikipedia.org/wiki/Row-_and_column-major_order): Memory address mapping for 2D matrices and cache-friendly linear traversal.
    - [Locality of Reference and CPU Cache Lines](https://en.wikipedia.org/wiki/Locality_of_reference): Understanding spatial locality and stride access performance impacts on modern hardware.
 1. **After Implementation (Deep Dives & Systems Context)**:

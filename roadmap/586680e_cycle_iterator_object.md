@@ -144,6 +144,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 12 (Using Structures and Pointers), covering circular pointer traversal, modular arithmetic indexing, and terminating conditions.
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 5 (Reference Counting, §5.3 Cyclic Reference Counting), explaining how cyclic references create uncollectible garbage under pure reference counting.
    - [Python Iterator Protocol Specification](https://docs.python.org/3/c-api/iterator.html): Standard language contracts for `__iter__` and `__next__` traversal in C runtimes.
    - [Circular Buffers and Modular Arithmetic](https://en.wikipedia.org/wiki/Circular_buffer): Implementing cyclic index wrapping via modular arithmetic in finite sequences.
 1. **After Implementation (Deep Dives & Systems Context)**:

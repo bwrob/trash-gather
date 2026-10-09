@@ -92,6 +92,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 20 (Hash Tables, §20.4 Deleting Elements), detailing tombstone markers, probe chain preservation, and full table rehashing.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 17 (Classic Abstract Data Types), covering dynamic dictionary invariants and sentinel nodes.
    - [Deletion in Open Addressing: Tombstones vs Backward Shifts](https://en.wikipedia.org/wiki/Open_addressing#Deletion): Why setting deleted buckets to empty breaks probe chains and how tombstone sentinels resolve it.
    - [Amortized Dynamic Table Resizing and Load Factors](https://en.wikipedia.org/wiki/Dynamic_array#Geometric_resizing): Triggering table growth and full rehashing before load factor compromises search speed.
 1. **After Implementation (Deep Dives & Systems Context)**:

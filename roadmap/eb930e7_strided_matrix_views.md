@@ -97,6 +97,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 8 (Arrays, §8.4 Multidimensional Arrays), covering non-contiguous stride arithmetic, row and column offset computation, and interior pointer manipulation.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on shared buffer retention and managing non-owning view references.
    - [NumPy Internal Memory Layout and Strides](https://numpy.org/doc/stable/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray): Understanding how row and column strides represent transposed matrices without copying data.
    - [Zero-Copy Networking and Data Processing](https://en.wikipedia.org/wiki/Zero-copy): Principles of sharing underlying storage buffers across multiple non-owning handles.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -81,6 +81,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 12 (Weak References and Finalization, §12.1 Weak Pointers), detailing non-owning references, referent invalidation, and dead pointer clearing during GC.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on preventing dangling pointers and managing non-owning lifecycle observers.
    - [Weak Reference Semantics in Managed Runtimes](https://en.wikipedia.org/wiki/Weak_reference): Non-owning pointer handles observing target objects without prolonging lifetime.
    - [Python weakref Module Specification](https://docs.python.org/3/library/weakref.html): Language specification for dead referee notifications and weak reference dereferencing.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -92,6 +92,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 20 (Hash Tables), pp. 380–405, providing the canonical implementation of open-addressed hash tables with linear probing and load factor tracking in C.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on allocating bucket arrays and handling allocation failure rollbacks.
    - [Open Addressing with Linear Probing](https://en.wikipedia.org/wiki/Open_addressing): Hash table collision resolution using contiguous bucket probe sequences.
    - [Primary Clustering and Load Factors](https://en.wikipedia.org/wiki/Primary_clustering): Mathematical analysis of probe degradation as hash table occupancy increases.
 1. **After Implementation (Deep Dives & Systems Context)**:

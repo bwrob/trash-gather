@@ -86,6 +86,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on dynamic arena management, chunk chaining, and bulk allocator deallocation.
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 2 (§2.4 Allocator Integration) and Chapter 3 (Mark-Compact), on multi-arena chunk chaining and pointer validity.
    - [Region-Based Memory Management and Arenas](https://en.wikipedia.org/wiki/Region-based_memory_management): Structuring memory into fixed-size blocks chained dynamically on demand.
    - [Untangling Lifetimes: The Arena Allocator](https://www.rfleury.com/p/untangling-lifetimes-the-arena-allocator): Practical systems guide to building high-performance chained arena allocators.
 1. **After Implementation (Deep Dives & Systems Context)**:

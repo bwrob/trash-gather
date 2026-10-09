@@ -79,6 +79,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 15 (Input/Output Functions, §15.1–15.16 Standard I/O), detailing formatted terminal rendering, character buffering, and memory inspection.
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 2 (Mark-Sweep Garbage Collection), illustrating graphical heap block states (free, marked, allocated).
    - [Directed Graph ASCII Rendering Techniques](https://en.wikipedia.org/wiki/Graph_drawing): Algorithms for rendering trees, DAGs, and pointer relationships in plain text consoles.
    - [Depth-First and Breadth-First Tree Traversal](https://en.wikipedia.org/wiki/Tree_traversal): Visiting complex heap graphs and suppressing recursive loops during visualization.
 1. **After Implementation (Deep Dives & Systems Context)**:

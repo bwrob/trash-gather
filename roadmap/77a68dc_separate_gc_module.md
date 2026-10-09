@@ -112,6 +112,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 10 (Program Structure, §Componentization & Linkage), detailing modular translation unit design, opaque struct pointers, and decoupling runtime subsystems.
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 1 (Introduction, §1.2 Mutators and Collectors), defining the formal interface boundary between mutator VM and collector.
    - [The Garbage Collection Handbook (Jones, Hosking, Moss)](https://gchandbook.org/): Chapters 1-3 on Mark-Sweep collector decoupling from runtime state.
    - [CPython Internal GC Architecture (`Modules/gcmodule.c`)](https://github.com/python/cpython/blob/main/Modules/gcmodule.c): Study how CPython isolates cyclic garbage collection into a dedicated module that inspects interpreter state.
 2. **After Implementation (Deep Dives & Systems Context)**:
