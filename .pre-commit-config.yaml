@@ -86,6 +86,13 @@ repos:
         pass_filenames: false
         files: ^(roadmap/.*|README\.md)$
 
+      - id: lint-resources
+        name: lint resources parity
+        entry: just lint-resources
+        language: system
+        pass_filenames: false
+        files: ^resources/.*
+
       - id: lint-header-dag
         name: lint header dag
         entry: just lint-header-dag

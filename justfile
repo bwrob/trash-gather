@@ -246,8 +246,12 @@ new-milestone slug title="" difficulty="3":
 new-skill name desc="":
     uv run python .agents/skills/skill-creator/scripts/scaffold_skill.py {{ name }} {{ if desc != "" { "--description \"" + desc + "\"" } else { "" } }}
 
-# Run static analysis and formatting checks (clang-tidy, docstrings, roadmap, Python, Markdown, and justfile)
-lint: lint-c lint-docs lint-roadmap lint-py lint-md format-just-check
+# Validate parity between resources directory, references.bib, and INDEX.md
+lint-resources:
+    uv run python scripts/lint_resources.py
+
+# Run static analysis and formatting checks (clang-tidy, docstrings, roadmap, resources, Python, Markdown, and justfile)
+lint: lint-c lint-docs lint-roadmap lint-resources lint-py lint-md format-just-check
 
 # Install development dependencies via Homebrew Brewfile (macOS)
 install-deps:
