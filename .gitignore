@@ -72,3 +72,7 @@ __pycache__/
 .vscode/
 .failures/
 .sources/
+
+# Tracked project resources (never gitignore resources directories or files)
+!resources/
+!**/resources/**
