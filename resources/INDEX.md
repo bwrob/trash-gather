@@ -14,6 +14,8 @@ ______
 | **Richard Jones, Antony Hosking, Eliot Moss**<br>*The Garbage Collection Handbook (2nd Ed, 2023)* | PDF, 13.0 MB | Comprehensive theory and practice of automatic memory management, mark-sweep, copying, generational, and cycle collection. | **Mark-and-Sweep**, Tri-color reachability, cycle collection, weak references, allocation pacing. |
 | **Robert Nystrom**<br>*Crafting Interpreters (2021)* | PDF, 29.0 MB | Practical implementation of bytecode VMs, tagged unions, dynamic arrays, Pratt parsers, and mark-sweep GC in C. | **Dynamic Arrays (List Append)**, Tagged union object representation, value stacks, and mark-sweep GC. |
 | **Robert Sedgewick**<br>*Algorithms in C, Parts 1–4 (3rd Ed, 1998)* | DjVu, 15.2 MB | Definitive reference on data structures, sorting, searching, and memory layouts in C. | **Dynamic Arrays & ADTs**, QuickSort, MergeSort, Priority Queues, Binary Search Trees, and Hash Tables. |
+| **Randal E. Bryant, David R. O'Hallaron**<br>*Computer Systems: A Programmer's Perspective (3rd Ed, 2015)* | PDF, 18.6 MB | Hardware/software interface, machine-level representations, processor architecture, cache hierarchies, virtual memory, dynamic memory allocation. | **Hardware Memory Model**, Cache line alignment, spatial/temporal locality, virtual memory page tables, explicit dynamic allocators (`malloc`/`free` implementation). |
+| **W. Richard Stevens, Stephen A. Rago**<br>*Advanced Programming in the UNIX Environment (3rd Ed, 2013)* | PDF, 19.3 MB | Authoritative systems programming on POSIX/UNIX: memory layout, file descriptors, standard I/O, process environment, signals, memory mapping (`mmap`). | **System-Level Memory Management**, Virtual memory layouts, process memory regions, file I/O streams, heap inspection and signal safety. |
 
 ______
 
@@ -313,3 +315,59 @@ ______
 - **Part 4: Searching (Chapters 12–16)**:
   - **Chapter 12: Symbol-Table Abstract Data Type**: Key-value associations, sequential search, binary search in ordered arrays.
   - **Chapter 14: Hashing**: Hash functions, modular hashing, collision resolution: separate chaining vs. open addressing (linear probing and double hashing), load factors, dynamic rehashing.
+
+______
+
+## 7. Computer Systems: A Programmer's Perspective (3rd Edition)
+
+- **Author(s)**: Randal E. Bryant, David R. O'Hallaron
+- **Publisher / Year / Edition**: Pearson (2015, 3rd Edition)
+- **File**: `resources/bryant_2015_computer_systems.pdf` (1,120 pages)
+- **Pedagogical Scope**: The undisputed masterpiece linking software abstractions to physical execution. Demystifies data representation at the bit level, assembly-level calling conventions and stack activation records, the memory hierarchy, cache performance, virtual memory address translation, and explicit dynamic memory allocator design (`malloc`/`free`).
+
+### Key Chapter Highlights
+
+- **Chapter 2: Representing and Manipulating Information (pp. 53–190)**:
+  - **2.1 Information Storage**: Hexadecimal, words, byte ordering (little vs. big endian), bit-level operations, bitmasks.
+  - **2.2 Integer Representations & Conversions**: Two's complement encoding, signed vs. unsigned conversions, sign extension, truncation.
+  - **2.3 Integer Arithmetic**: Unsigned and two's complement addition, negation, multiplication, and detecting arithmetic overflow before allocating buffers.
+  - **2.4 Floating Point**: Fractional binary numbers, IEEE 754 floating-point standard, rounding, and precision boundaries.
+- **Chapter 3: Machine-Level Representation of Programs (pp. 191–356)**:
+  - **3.4 Accessing Information**: Integer registers, operand specifiers, instruction encodings.
+  - **3.7 Procedures & Stack Frames**: Passing data, register saving conventions (`%rdi`, `%rsi`, `%rdx`), activation records on the stack, allocating local storage.
+  - **3.8–3.9 Array & Structure Allocation**: Pointer arithmetic on the machine level, structure alignment holes, padding rules, and union overlaying.
+- **Chapter 6: The Memory Hierarchy (pp. 617–690)**:
+  - **6.2 Locality**: Principle of locality: temporal locality (reusing recent data) vs. spatial locality (accessing adjacent memory addresses). Stride-1 cache access patterns.
+  - **6.3 Memory Hierarchy**: Registers, L1/L2/L3 caches, main memory (DRAM), and disk storage.
+  - **6.4 Cache Memories**: Cache organization (direct-mapped, set-associative), cache lines (64 bytes), hits and misses, cache-friendly code patterns for matrix and container traversals.
+- **Chapter 9: Virtual Memory (pp. 825–920)**:
+  - **9.1–9.3 Physical vs. Virtual Addressing**: Address spaces, page tables, page hits, page faults, and multi-level page tables.
+  - **9.6 Address Translation & TLBs**: Translation lookaside buffers, memory management units (MMUs), page sizes (4 KB / 2 MB huge pages).
+  - **9.9 Dynamic Memory Allocation (pp. 871–912)**: **Crucial systems implementation guide.** Anatomy of dynamic storage allocators: explicit vs. implicit free lists, boundary tags for constant-time bidirectional block coalescing, finding free blocks (first-fit, next-fit, best-fit), splitting blocks, internal vs. external fragmentation, and writing a production `malloc`/`free` package in C.
+
+______
+
+## 8. Advanced Programming in the UNIX Environment (3rd Edition)
+
+- **Author(s)**: W. Richard Stevens, Stephen A. Rago
+- **Publisher / Year / Edition**: Addison-Wesley Professional (2013, 3rd Edition)
+- **File**: `resources/stevens_2013_advanced_programming_unix.pdf` (1,034 pages)
+- **Pedagogical Scope**: The standard authority on systems programming for UNIX/POSIX platforms. Covers low-level system call boundaries, virtual process address space layouts, standard buffered I/O, process lifecycles, signal handling reentrancy, and memory-mapped files (`mmap`).
+
+### Key Chapter Highlights
+
+- **Chapter 3: File I/O (pp. 67–104)**:
+  - **3.2–3.6 File Descriptors, open, read, write**: Unbuffered I/O, system call overhead, buffer sizes, file offsets (`lseek`).
+  - **3.10 File Sharing & Data Structures**: Kernel table entries: file table, v-node table, descriptor flags.
+- **Chapter 5: Standard I/O Library (pp. 143–178)**:
+  - **5.2 Streams and FILE Objects**: Fully buffered, line buffered, and unbuffered streams.
+  - **5.4–5.7 Buffer Allocation & I/O**: `setvbuf`, formatted I/O (`printf`, `snprintf`), and memory safety bounds.
+  - **5.8 Binary I/O**: Direct page-level memory block writing via `fread`/`fwrite`, structured record serialization.
+- **Chapter 7: Process Environment (pp. 197–230)**:
+  - **7.3 Process Termination**: Exit handlers (`atexit`), cleanup contracts, flushing open buffers.
+  - **7.6 Memory Layout of a C Program (pp. 207–210)**: **Essential hardware mental model.** Detailed anatomy of a process address space: text segment, initialized data segment, uninitialized data segment (BSS), heap (growing upward via `brk`/`sbrk`), stack (growing downward), and environment variables.
+  - **7.8 Memory Allocation (pp. 211–216)**: `malloc`, `calloc`, `realloc`, `free` system call abstractions, heap boundary expansion, and memory corruption traps.
+- **Chapter 10: Signals (pp. 313–384)**:
+  - **10.6 Reentrant Functions**: Async-signal safety, why memory allocators (`malloc`) cannot be called inside signal handlers, atomic sigatomic_t flags.
+- **Chapter 14: Advanced I/O (pp. 499–546)**:
+  - **14.8 Memory-Mapped I/O (pp. 531–541)**: Mapping file storage directly into process virtual memory pages via `mmap()`, page fault demand paging, shared vs. private mappings, zero-copy buffer processing, and flushing via `msync`.

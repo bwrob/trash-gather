@@ -95,6 +95,7 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Randal E. Bryant, David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 3rd Ed, 2015)](../resources/bryant_2015_computer_systems.pdf): Chapter 9 (Virtual Memory, §9.9 Dynamic Memory Allocation), pp. 871–912, detailing explicit free lists, segregated storage, and custom allocator implementation in C.
    - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory, §The Heap and Memory Managers), covering custom memory allocators, fixed-size block pooling, and eliminating heap fragmentation.
    - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 2 (Mark-Sweep Garbage Collection, §2.4 The Sweep Phase), illustrating segregated free lists, slab memory pools, and intrusive free pointers.
    - [The Slab Allocator: An Object-Caching Kernel Memory Allocator (Bonwick)](https://people.eecs.berkeley.edu/~kubitron/cs262/handouts/papers/bonwick.pdf): The seminal paper introducing fixed-size slab memory caching and eliminating malloc fragmentation.

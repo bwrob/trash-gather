@@ -33,3 +33,5 @@ ______
 - **`seacord2020effective`**: *Effective C: An Introduction to Professional C Programming* (2020) by Robert C. Seacord. No Starch Press. [`seacord_2020_effective_c.pdf`](./seacord_2020_effective_c.pdf)
 - **`gustedt2023modern`**: *Modern C* (3rd Edition, 2023) by Jens Gustedt. Manning Publications. [`gustedt_2023_modern_c.epub`](./gustedt_2023_modern_c.epub)
 - **`sedgewick1998algorithms`**: *Algorithms in C, Parts 1--4: Fundamentals, Data Structures, Sorting, Searching* (3rd Edition, 1998) by Robert Sedgewick. Addison-Wesley Professional. [`sedgewick_1998_algorithms_in_c.djvu`](./sedgewick_1998_algorithms_in_c.djvu)
+- **`bryant2015computer`**: *Computer Systems: A Programmer's Perspective* (3rd Edition, 2015) by Randal E. Bryant, David R. O'Hallaron. Pearson. [`bryant_2015_computer_systems.pdf`](./bryant_2015_computer_systems.pdf)
+- **`stevens2013advanced`**: *Advanced Programming in the UNIX Environment* (3rd Edition, 2013) by W. Richard Stevens, Stephen A. Rago. Addison-Wesley Professional. [`stevens_2013_advanced_programming_unix.pdf`](./stevens_2013_advanced_programming_unix.pdf)
