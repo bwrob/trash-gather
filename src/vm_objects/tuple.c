@@ -1,7 +1,7 @@
 #include "tuple.h"
 
 #include "object.h"
-#include "vm/vm.h"
+#include "vm.h"
 
 static object_t *tuple_new_obj(
     size_t tuple_size

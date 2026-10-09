@@ -11,11 +11,17 @@ Automates the creation of new roadmap milestones by:
 
 from __future__ import annotations
 
-import argparse
 import hashlib
 import re
-import sys
 from pathlib import Path
+from typing import Annotated
+
+import typer
+
+app = typer.Typer(
+    add_completion=False,
+    help="Scaffold a new roadmap milestone with deterministic hash ID and template.",
+)
 
 
 def slugify(text: str) -> str:
@@ -31,38 +37,35 @@ def title_case(slug: str) -> str:
     return " ".join(word.capitalize() for word in slug.split("_"))
 
 
-def main() -> int:
+@app.command()
+def main(
+    slug: Annotated[
+        str,
+        typer.Argument(help="Milestone slug in snake_case (e.g., 'string_interning')."),
+    ],
+    title: Annotated[
+        str | None,
+        typer.Argument(help="Human-readable milestone title (defaults to Title Cased Slug)."),
+    ] = None,
+    difficulty: Annotated[
+        int,
+        typer.Option(
+            "--difficulty",
+            "-d",
+            min=1,
+            max=5,
+            help="Difficulty level from 1 (entry) to 5 (expert), default: 3.",
+        ),
+    ] = 3,
+) -> None:
     """Scaffold a new roadmap milestone file."""
-    parser = argparse.ArgumentParser(
-        description="Scaffold a new roadmap milestone with deterministic hash ID and template."
-    )
-    parser.add_argument(
-        "slug",
-        help="Milestone slug in snake_case (e.g., 'string_interning')",
-    )
-    parser.add_argument(
-        "title",
-        nargs="?",
-        default=None,
-        help="Human-readable milestone title (defaults to Title Cased Slug)",
-    )
-    parser.add_argument(
-        "--difficulty",
-        "-d",
-        type=int,
-        choices=[1, 2, 3, 4, 5],
-        default=3,
-        help="Difficulty level from 1 (entry) to 5 (expert), default: 3",
-    )
+    clean_slug = slugify(slug)
+    if not clean_slug:
+        typer.echo("ERROR: Slug cannot be empty.", err=True)
+        raise typer.Exit(code=1)
 
-    args = parser.parse_args()
-    slug = slugify(args.slug)
-    if not slug:
-        print("ERROR: Slug cannot be empty.", file=sys.stderr)
-        return 1
-
-    title = args.title.strip() if args.title else title_case(slug)
-    hash_id = hashlib.sha256(slug.encode("utf-8")).hexdigest()[:7]
+    clean_title = title.strip() if title else title_case(clean_slug)
+    hash_id = hashlib.sha256(clean_slug.encode("utf-8")).hexdigest()[:7]
 
     repo_root = Path(__file__).resolve().parent.parent
     roadmap_dir = repo_root / "roadmap"
@@ -71,39 +74,37 @@ def main() -> int:
     )
 
     if not template_path.exists():
-        print(f"ERROR: Template file not found at '{template_path}'", file=sys.stderr)
-        return 1
+        typer.echo(f"ERROR: Template file not found at '{template_path}'", err=True)
+        raise typer.Exit(code=1)
 
-    target_file = roadmap_dir / f"{hash_id}_{slug}.md"
+    target_file = roadmap_dir / f"{hash_id}_{clean_slug}.md"
     if target_file.exists():
-        print(
+        typer.echo(
             f"ERROR: Milestone file '{target_file}' already exists!",
-            file=sys.stderr,
+            err=True,
         )
-        return 1
+        raise typer.Exit(code=1)
 
     template_content = template_path.read_text(encoding="utf-8")
     content = template_content.replace("<hash_id>", hash_id)
-    content = content.replace("<Milestone Title>", title)
-    content = content.replace("<1-5>", str(args.difficulty))
+    content = content.replace("<Milestone Title>", clean_title)
+    content = content.replace("<1-5>", str(difficulty))
 
     target_file.write_text(content, encoding="utf-8")
-    print(f"✨ Created milestone writeup: {target_file}")
-    print(f"   ID:         {hash_id}")
-    print(f"   Slug:       {slug}")
-    print(f"   Title:      {title}")
-    print(f"   Difficulty: {args.difficulty} / 5\n")
-    print("Next Steps:")
-    print(f"1. Open '{target_file}' and fill out Sections 1 through 6.")
-    print("2. Open 'roadmap/README.md':")
-    node_str = f'm_{slug}["{hash_id}: {title} (Diff: {args.difficulty})"]:::planned'
-    print(f"   - Add node: {node_str} to the matching difficulty tier.")
-    print(f"   - Connect prerequisite edges (e.g., m_parent --> m_{slug}).")
-    print("   - Add milestone entry to the Tier progression index.")
-    print("3. Run 'just lint-roadmap' to verify DAG integrity and link consistency.")
-
-    return 0
+    typer.echo(f"✨ Created milestone writeup: {target_file}")
+    typer.echo(f"   ID:         {hash_id}")
+    typer.echo(f"   Slug:       {clean_slug}")
+    typer.echo(f"   Title:      {clean_title}")
+    typer.echo(f"   Difficulty: {difficulty} / 5\n")
+    typer.echo("Next Steps:")
+    typer.echo(f"1. Open '{target_file}' and fill out Sections 1 through 6.")
+    typer.echo("2. Open 'roadmap/README.md':")
+    node_str = f'm_{clean_slug}["{hash_id}: {clean_title} (Diff: {difficulty})"]:::planned'
+    typer.echo(f"   - Add node: {node_str} to the matching difficulty tier.")
+    typer.echo(f"   - Connect prerequisite edges (e.g., m_parent --> m_{clean_slug}).")
+    typer.echo("   - Add milestone entry to the Tier progression index.")
+    typer.echo("3. Run 'just lint-roadmap' to verify DAG integrity and link consistency.")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    app()
