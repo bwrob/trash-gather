@@ -43,6 +43,7 @@ flowchart TD
       m_negidx["b0c1d8b: Sequence Negative<br/>Indexing (Diff: 1)"]:::planned
       m_variadic_pack["5b538ed: Variadic Object<br/>Constructors (Diff: 1)"]:::planned
       m_fallible_stack_and_frame_allocation["509705c: Fallible Stack &<br/>Frame Allocation (Diff: 1)"]:::planned
+      m_separate_gc_module["77a68dc: Separate GC from<br/>VM Module (Diff: 1)"]:::planned
     end
     subgraph T1_Data ["Singletons & Lists"]
       direction TB
@@ -146,6 +147,7 @@ flowchart TD
   m_gen_barrier --> m_repl
   m_gen_track --> m_gen_barrier
   m_hash --> m_dict_fixed
+  m_hybrid --> m_separate_gc_module
   m_hybrid --> m_tuple
   m_matrix --> m_repr
   m_matrix --> m_strided_matrix
@@ -284,6 +286,14 @@ ______
    - **Difficulty:** 1 / 5
    - **Prerequisites:** [`fc1cc81`](fc1cc81_none_immortal_singleton.md)
    - **Focus:** Harden VM stack, object tracking, and execution frame allocators against memory exhaustion, ensuring fallible push operations and frame creations propagate errors without memory leaks or premature garbage collection sweeps.
+
+1. **[Separate Garbage Collection from Virtual Machine Module](77a68dc_separate_gc_module.md)**
+
+   - **ID:** `77a68dc`
+   - **Status:** 📋 Planned
+   - **Difficulty:** 1 / 5
+   - **Prerequisites:** [`393f420`](393f420_hybrid_gc_runtime.md)
+   - **Focus:** Decouple cyclic mark-and-sweep garbage collection routines into a dedicated `gc.h` and `gc.c` module, separating memory reclamation mechanics from virtual machine runtime state and execution frame management.
 
 ______
 
