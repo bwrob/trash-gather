@@ -92,10 +92,10 @@ Provide a high-density, comprehensive structural breakdown of what is being buil
    - **Rollback Invariant $\\mathcal{I}\_{\\text{rollback}}$**: Proving that if step $k \\in {0, \\dots, N-1}$ fails, steps ${0, \\dots, k-1}$ are cleanly unwound with zero leaks and no double-free.
 1. **Incremental Micro-Loop Decomposition**:
    - For multi-operation milestones, decompose into sequential micro-loops: implement operation $A$ in `src/` $\\to$ test $A$ $\\to$ achieve green $\\to$ proceed to operation $B$.
-1. **Before-Goal References & Targeted Book Readings (`.sources/`)**:
+1. **Before-Goal References & Targeted Book Readings (`resources/`)**:
    - **External & Standard Specifications**: Extract and prominently present the **"Before Implementation (Conceptual Foundations)"** references from Section 6 of the milestone file (ISO C standard rules, SEI CERT C rules, CPython references, and ABI specifications).
-   - **Source Book Indexing (`.sources/INDEX.md`)**: Check if `.sources/` exists. If `.sources/INDEX.md` does not exist, create it following \[`.agents/skills/initialize/resources/index_template.md`\](file:///Users/bwrob/dev/trash-gather/.agents/skills/initialize/resources/index_template.md) to index all available volumes with chapter outlines and descriptions.
-   - **Targeted Reading Recommendations**: Cross-reference the active milestone's technical concepts against `.sources/INDEX.md`. Present specific book titles, chapter numbers, section titles, and exact page ranges (or Level/Chapter identifiers) that the developer should read to acquire the requisite mental capital before writing C code.
+   - **Source Book Indexing (`resources/INDEX.md`)**: Check if `resources/` exists. If `resources/INDEX.md` does not exist, create it following \[`.agents/skills/initialize/resources/index_template.md`\](file:///Users/bwrob/dev/trash-gather/.agents/skills/initialize/resources/index_template.md) to index all available volumes with chapter outlines and descriptions.
+   - **Targeted Reading Recommendations**: Cross-reference the active milestone's technical concepts against `resources/INDEX.md`. Present specific book titles, chapter numbers, section titles, and exact page ranges (or Level/Chapter identifiers) that the developer should read to acquire the requisite mental capital before writing C code.
 1. **MANDATORY: Unconditional Stop**:
    - The AI agent **MUST UNCONDITIONALLY STOP** at the end of this message.
    - **NEVER** call `ask_question` in this turn.

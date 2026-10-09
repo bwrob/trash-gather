@@ -1,15 +1,15 @@
-# Sources Index Template (`.sources/INDEX.md`)
+# Sources Index Template (`resources/INDEX.md`)
 
-This template defines the mandatory structure and schema for `.sources/INDEX.md`. When books, manuals, or standard references are added to `.sources/`, they must be cataloged in `.sources/INDEX.md` following this structure.
+This template defines the mandatory structure and schema for `resources/INDEX.md`. When books, manuals, or standard references are added to `resources/`, they must be cataloged in `resources/INDEX.md` following this structure.
 
 ______
 
 ## Schema Specification
 
 ```markdown
-# Bibliography & Reference Sources Index (`.sources/INDEX.md`)
+# Bibliography & Reference Sources Index (`resources/INDEX.md`)
 
-This index catalogs reference volumes, technical manuals, and standard specifications available in `.sources/`. Each entry provides a high-level focus summary, complete Table of Contents, and concise pedagogical descriptions of each chapter/section to guide pre-flight milestone reading.
+This index catalogs reference volumes, technical manuals, and standard specifications available in `resources/`. Each entry provides a high-level focus summary, complete Table of Contents, and concise pedagogical descriptions of each chapter/section to guide pre-flight milestone reading.
 
 ______________________________________________________________________
 
@@ -25,7 +25,7 @@ ______________________________________________________________________
 
 - **Author(s)**: <Full author name(s)>
 - **Publisher / Year / Edition**: <Metadata>
-- **File**: `.sources/<filename>`
+- **File**: `resources/<filename>`
 - **Pedagogical Scope**: <2-3 sentence overview of the book's philosophy and systems engineering value.>
 
 ### Chapter Guides & Descriptive Table of Contents
