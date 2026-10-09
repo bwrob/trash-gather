@@ -63,6 +63,14 @@ repos:
         pass_filenames: false
         files: \.toml$
 
+      - id: just-fmt
+        name: just format
+        entry: just format-just-check
+        language: system
+        pass_filenames: false
+        files: ^justfile$
+
+
       - id: lint-docs
         name: lint docstrings
         entry: just lint-docs
