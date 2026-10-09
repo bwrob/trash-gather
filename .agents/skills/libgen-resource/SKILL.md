@@ -50,8 +50,8 @@ To fetch the book, save it to `resources/`, and register its BibTeX entry:
 uv run python .agents/skills/libgen-resource/scripts/libgen_fetch.py download "<Title or Keywords>" --preferred-format pdf
 ```
 
-- Target file is saved to `resources/<author>_<title>.<ext>`.
-- Formatted `@book{...}` entry is appended to [`resources/references.bib`](file:///Users/bwrob/dev/trash-gather/resources/references.bib).
+- Target file is saved strictly as `resources/<author_surname>_<year>_<short_title_slug>.<ext>` (e.g. `seacord_2020_effective_c.pdf`).
+- Formatted `@book{...}` entry is appended to [`resources/references.bib`](file:///Users/bwrob/dev/trash-gather/resources/references.bib) with matching key `<author_surname><year><short_title>` (e.g. `seacord2020effective`).
 
 ______
 

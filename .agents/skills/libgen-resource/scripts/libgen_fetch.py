@@ -31,10 +31,16 @@ BROWSER_HEADERS = {
 }
 
 
-def sanitize_filename(name: str) -> str:
-    """Sanitize a string for safe filesystem usage."""
-    cleaned = re.sub(r"[^\w\s-]", "", name).strip()
-    return re.sub(r"[-\s]+", "_", cleaned)
+def format_resource_filename(author: str, year: str, title: str, extension: str) -> str:
+    """Format filename strictly as <author_surname>_<year>_<short_title_slug>.<ext>."""
+    first_author = author.split(";")[0].split(",")[0].strip()
+    author_surname = re.sub(r"[^\w]", "", first_author).lower() or "author"
+    year_digits = re.sub(r"\D", "", year)[:4] or "nodate"
+    # Take first 1-4 key title words
+    words = [w.lower() for w in re.findall(r"\b[A-Za-z0-9]+\b", title)[:4]]
+    title_slug = "_".join(words) or "resource"
+    ext_clean = extension.lstrip(".").lower()
+    return f"{author_surname}_{year_digits}_{title_slug}.{ext_clean}"
 
 
 def generate_bibtex_key(author: str, year: str, title: str) -> str:
@@ -195,8 +201,12 @@ def download(
                 break
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    slug = sanitize_filename(f"{target['author'][:30]}_{target['title'][:40]}")
-    filename = f"{slug}.{target['extension']}"
+    filename = format_resource_filename(
+        author=target["author"],
+        year=target["year"],
+        title=target["title"],
+        extension=target["extension"],
+    )
     dest_path = output_dir / filename
 
     bib_key = generate_bibtex_key(target["author"], target["year"], target["title"])

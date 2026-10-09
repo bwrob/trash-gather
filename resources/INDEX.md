@@ -18,7 +18,7 @@ ______
 
 - **Author**: Kenneth A. Reek
 - **Publisher / Edition**: Addison-Wesley (1998)
-- **File**: `resources/pointers-on-c_compress.pdf` (624 pages)
+- **File**: `resources/reek_1998_pointers_on_c.pdf` (624 pages)
 - **Pedagogical Scope**: The quintessential systems-level text on pointer mechanics and runtime memory in C. It demystifies how the C abstract machine maps onto physical silicon, hardware stack frames, and heap allocators.
 
 ### Chapter Guides & Descriptive Table of Contents
@@ -119,7 +119,7 @@ ______
 
 - **Author**: Robert C. Seacord
 - **Publisher / Edition**: No Starch Press (2020)
-- **File**: `resources/Robert C. Seacord - Effective C_ An Introduction to Professional C Programming-No Starch Press (2020).pdf` (274 pages)
+- **File**: `resources/seacord_2020_effective_c.pdf` (274 pages)
 - **Pedagogical Scope**: An authoritative, modern guide to ISO C17 systems programming written by the former chair of the SEI CERT C coding standard committee. Emphasizes undefined behavior elimination, dynamic memory safety, object models, and robust verification.
 
 ### Chapter Guides & Descriptive Table of Contents
@@ -191,7 +191,7 @@ ______
 
 - **Author**: Jens Gustedt
 - **Publisher / Edition**: Manning Publications (3rd Edition, 2024)
-- **File**: `resources/dokumen.pub_modern-c-third-edition-covers-the-c23-standard-3.epub` (Level 0 through Level 3)
+- **File**: `resources/gustedt_2023_modern_c.epub` (Level 0 through Level 3)
 - **Pedagogical Scope**: A rigorous, modern conceptual treatment of C that trains the programmer to think in terms of the C abstract state machine, strict typing, modern language idioms, and low-level execution invariants.
 
 ### Level Guides & Descriptive Table of Contents

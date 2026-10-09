@@ -7,9 +7,27 @@ This directory houses referenced literature, books, papers, and BibTeX citations
 
 ______
 
-## 📚 Bibliography Summary (`references.bib`)
+## 📏 Naming Convention
+
+All literature files stored in this directory strictly adhere to the following convention:
+
+```text
+resources/<author_surname>_<year>_<short_title_slug>.<ext>
+```
+
+- **`<author_surname>`**: Lowercase ASCII last name of primary author (e.g. `reek`, `seacord`, `gustedt`, `jones`).
+- **`<year>`**: 4-digit publication year (e.g. `1998`, `2020`, `2023`).
+- **`<short_title_slug>`**: Concise title slug separated by underscores (e.g. `pointers_on_c`, `effective_c`, `modern_c`).
+- **`<ext>`**: Document format extension (`.pdf`, `.epub`, `.djvu`).
+- **Character Invariant**: Strictly lowercase alphanumeric and underscores (`[a-z0-9_]`). No spaces, punctuation, parentheses, or scraper prefixes.
+
+Each file corresponds 1:1 with an entry in [`references.bib`](./references.bib) where the citation key is `<author_surname><year><short_title>`.
+
+______
+
+## 📚 Bibliography Catalog (`references.bib`)
 
 - **`jones2023garbage`**: *The Garbage Collection Handbook: The Art of Automatic Memory Management* (2nd Edition, 2023) by Richard Jones, Antony Hosking, Eliot Moss. CRC Press.
-- **`reek1998pointers`**: *Pointers on C* (1998) by Kenneth A. Reek. Addison-Wesley. [`pointers-on-c_compress.pdf`](./pointers-on-c_compress.pdf)
-- **`seacord2020effective`**: *Effective C: An Introduction to Professional C Programming* (2020) by Robert C. Seacord. No Starch Press. [`Robert C. Seacord - Effective C...pdf`](./Robert%20C.%20Seacord%20-%20Effective%20C_%20An%20Introduction%20to%20Professional%20C%20Programming-No%20Starch%20Press%20%282020%29.pdf)
-- **`gustedt2023modern`**: *Modern C* (3rd Edition, 2023) by Jens Gustedt. Manning Publications. [`dokumen.pub_modern-c...epub`](./dokumen.pub_modern-c-third-edition-covers-the-c23-standard-3.epub)
+- **`reek1998pointers`**: *Pointers on C* (1998) by Kenneth A. Reek. Addison-Wesley. [`reek_1998_pointers_on_c.pdf`](./reek_1998_pointers_on_c.pdf)
+- **`seacord2020effective`**: *Effective C: An Introduction to Professional C Programming* (2020) by Robert C. Seacord. No Starch Press. [`seacord_2020_effective_c.pdf`](./seacord_2020_effective_c.pdf)
+- **`gustedt2023modern`**: *Modern C* (3rd Edition, 2023) by Jens Gustedt. Manning Publications. [`gustedt_2023_modern_c.epub`](./gustedt_2023_modern_c.epub)
