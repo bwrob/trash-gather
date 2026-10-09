@@ -44,6 +44,7 @@ def check_header(header_path: Path, inc_flags: list[str], c_std: str) -> bool:
         "-Wall",
         "-Wextra",
         "-Werror",
+        "-Wno-pragma-once-outside-header",
         f"-std={c_std}",
         "-fsyntax-only",
         *inc_flags,
