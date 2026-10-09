@@ -32,3 +32,4 @@ ______
 - **`reek1998pointers`**: *Pointers on C* (1998) by Kenneth A. Reek. Addison-Wesley. [`reek_1998_pointers_on_c.pdf`](./reek_1998_pointers_on_c.pdf)
 - **`seacord2020effective`**: *Effective C: An Introduction to Professional C Programming* (2020) by Robert C. Seacord. No Starch Press. [`seacord_2020_effective_c.pdf`](./seacord_2020_effective_c.pdf)
 - **`gustedt2023modern`**: *Modern C* (3rd Edition, 2023) by Jens Gustedt. Manning Publications. [`gustedt_2023_modern_c.epub`](./gustedt_2023_modern_c.epub)
+- **`sedgewick1998algorithms`**: *Algorithms in C, Parts 1--4: Fundamentals, Data Structures, Sorting, Searching* (3rd Edition, 1998) by Robert Sedgewick. Addison-Wesley Professional. [`sedgewick_1998_algorithms_in_c.djvu`](./sedgewick_1998_algorithms_in_c.djvu)

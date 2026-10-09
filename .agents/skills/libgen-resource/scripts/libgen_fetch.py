@@ -90,7 +90,13 @@ def fetch_search_results(query: str, mirror: str = "https://libgen.li") -> list[
         "filesuns": "all",
     }
     url = f"{mirror}/index.php"
-    response = requests.get(url, params=params, headers=BROWSER_HEADERS, timeout=15)
+    response = requests.get(
+        url,
+        params=params,
+        cookies={"covers": "on"},
+        headers=BROWSER_HEADERS,
+        timeout=15,
+    )
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")

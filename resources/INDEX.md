@@ -13,6 +13,7 @@ ______
 | **Jens Gustedt**<br>*Modern C (3rd Edition)* | EPUB, 6.11 MB | Modern ISO C (C17/C23) abstract state machine, formal memory model, type-generic programming, atomics. | Formal memory model, variable-length argument lists, object lifecycles, undefined behavior prevention. |
 | **Richard Jones, Antony Hosking, Eliot Moss**<br>*The Garbage Collection Handbook (2nd Ed, 2023)* | PDF, 13.0 MB | Comprehensive theory and practice of automatic memory management, mark-sweep, copying, generational, and cycle collection. | **Mark-and-Sweep**, Tri-color reachability, cycle collection, weak references, allocation pacing. |
 | **Robert Nystrom**<br>*Crafting Interpreters (2021)* | PDF, 29.0 MB | Practical implementation of bytecode VMs, tagged unions, dynamic arrays, Pratt parsers, and mark-sweep GC in C. | **Dynamic Arrays (List Append)**, Tagged union object representation, value stacks, and mark-sweep GC. |
+| **Robert Sedgewick**<br>*Algorithms in C, Parts 1–4 (3rd Ed, 1998)* | DjVu, 15.2 MB | Definitive reference on data structures, sorting, searching, and memory layouts in C. | **Dynamic Arrays & ADTs**, QuickSort, MergeSort, Priority Queues, Binary Search Trees, and Hash Tables. |
 
 ______
 
@@ -284,3 +285,31 @@ ______
   - **26.3 Mark-Sweep in C**: Tri-color marking, gray worklists, blackening objects.
   - **26.4 Sweeping Unused Objects**: Freeing unreferenced memory and unmarking survivors.
   - **26.5 Automatic GC Pacing & Headroom**: Triggering collections based on allocated byte thresholds.
+
+______
+
+## 6. Algorithms in C, Parts 1–4: Fundamentals, Data Structures, Sorting, Searching (3rd Edition)
+
+- **Author**: Robert Sedgewick
+- **Publisher / Year / Edition**: Addison-Wesley Professional (1998, 3rd Edition)
+- **File**: `resources/sedgewick_1998_algorithms_in_c.djvu` (706 pages)
+- **Pedagogical Scope**: The premier reference on fundamental data structures and concrete algorithmic implementations in C. Focuses on abstract data types (ADTs), linked lists, memory representations, tree structures, sorting algorithms, and hash tables.
+
+### Key Chapter Highlights
+
+- **Part 1: Fundamentals (Chapters 1–2)**:
+  - **Chapter 1: Introduction**: Algorithmic thinking, mathematical analysis, union-find problem.
+  - **Chapter 2: Principles of Algorithm Analysis**: Empirical analysis, mathematical analysis of running time, Big-Oh asymptotic notation.
+- **Part 2: Data Structures (Chapters 3–5)**:
+  - **Chapter 3: Elementary Data Structures**: Building blocks in C: arrays, dynamic memory allocation, pointer dereferencing, singly and doubly linked lists, circular lists, and compound data structures.
+  - **Chapter 4: Abstract Data Types (ADTs)**: Pushdown stack ADT, FIFO queue ADT, first-class ADT interfaces, implementation hiding via opaque pointers (`void *` and incomplete structs).
+  - **Chapter 5: Recursion and Trees**: Recursive algorithms, divide-and-conquer, binary trees, mathematical properties of trees, and tree traversal (preorder, inorder, postorder, level-order).
+- **Part 3: Sorting (Chapters 6–11)**:
+  - **Chapter 6: Elementary Sorting Methods**: Selection sort, insertion sort, bubble sort.
+  - **Chapter 7: Quicksort**: Partitioning, recursive subproblems, stack depth mitigation, median-of-three, three-way partitioning.
+  - **Chapter 8: Mergesort**: Two-way merging, top-down and bottom-up mergesort, linked-list sorting.
+  - **Chapter 9: Priority Queues and Heapsort**: Heap property, sink/swim heap operations, priority queue ADTs.
+  - **Chapter 10: Radix Sorting**: Bitwise and byte-wise key extraction, binary quicksort, MSD and LSD radix sorts.
+- **Part 4: Searching (Chapters 12–16)**:
+  - **Chapter 12: Symbol-Table Abstract Data Type**: Key-value associations, sequential search, binary search in ordered arrays.
+  - **Chapter 14: Hashing**: Hash functions, modular hashing, collision resolution: separate chaining vs. open addressing (linear probing and double hashing), load factors, dynamic rehashing.

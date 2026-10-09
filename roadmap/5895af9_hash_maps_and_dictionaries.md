@@ -93,6 +93,7 @@ ______
 
 1. **Before Implementation (Conceptual Foundations)**:
    - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 20 (Hash Tables), pp. 380–405, providing the canonical implementation of open-addressed hash tables with linear probing and load factor tracking in C.
+   - [Robert Sedgewick — *Algorithms in C, Parts 1–4* (Addison-Wesley, 3rd Ed, 1998)](../resources/sedgewick_1998_algorithms_in_c.djvu): Part 4 (Searching, Chapter 14: Hashing), covering hash functions, modular arithmetic, linear probing collision resolution, and clustering.
    - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on allocating bucket arrays and handling allocation failure rollbacks.
    - [Open Addressing with Linear Probing](https://en.wikipedia.org/wiki/Open_addressing): Hash table collision resolution using contiguous bucket probe sequences.
    - [Primary Clustering and Load Factors](https://en.wikipedia.org/wiki/Primary_clustering): Mathematical analysis of probe degradation as hash table occupancy increases.
