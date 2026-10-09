@@ -71,4 +71,5 @@ Before finalizing a lesson, verify that it meets these standards:
 - [ ] **Diagnostic Fidelity**: Quotes real sanitizer errors or test failures that guided the investigation.
 - [ ] **Explains the "Why"**: Compares architectural alternatives and explains the performance/safety trade-offs.
 - [ ] **Hardware Intuition**: Documents the underlying physical machine mechanics (cache lines, CPU word alignment, branch predictor, or virtual memory paging).
+- [ ] **Literature & Bibliography Integration**: If any external book or paper is mentioned, download it using the `libgen-resource` skill (`uv run python .agents/skills/libgen-resource/scripts/libgen_fetch.py download "<Title>"`) if available, and ensure it is registered in `resources/references.bib`.
 - [ ] **Formatting**: Markdown is clean and formatted compliant with pre-commit checks (`just check`).

@@ -111,6 +111,9 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Randal E. Bryant, David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 3rd Ed, 2015)](../resources/bryant_2015_computer_systems.pdf): Chapter 9 (Virtual Memory, §9.6 Address Translation & TLBs, §9.9 Dynamic Memory Allocation), explaining page-aligned boundaries, memory fragmentation, and pointer address masking.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 2 (Objects, Functions, and Types, §Alignment) and Chapter 6 (§Standard Allocator Functions, `aligned_alloc`), covering page boundaries, memory alignment, and pointer masking.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 2, Chapter 13 (Storage, §13.5 Digression: A Machine Model), detailing MMU pages, hardware cache line alignment, and pointer bitmask operations.
    - [Virtual Memory Page Alignment and POSIX memalign](<https://en.wikipedia.org/wiki/Page_(computer_memory)>): Allocating page-aligned heap memory (`posix_memalign`) and hardware memory boundaries.
    - [Bitmask Address Arithmetic for Header Recovery](<https://en.wikipedia.org/wiki/Mask_(computing)>): Using `ptr & ~0xFFF` to recover 4 KB pool headers in O(1) time without lookup tables.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -146,6 +146,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 3 (Arithmetic Types, §Integers), covering integer multiplication overflow detection, and Chapter 6 (§Memory Byte Operations) for `memcpy` repetitions.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 1, Chapter 4 (Expressing Computations), detailing arithmetic conversions and sequence point guarantees.
    - [Emulating Numeric Types in Dynamic Languages](https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types): Protocol rules for binary operations, reflected operands (`__rmul__`), and type coercion.
    - [IEEE 754 Floating-Point Multiplication](https://en.wikipedia.org/wiki/IEEE_754): Understanding roundoff, infinities, NaNs, and mixed-mode int/float arithmetic.
 1. **After Implementation (Deep Dives & Systems Context)**:

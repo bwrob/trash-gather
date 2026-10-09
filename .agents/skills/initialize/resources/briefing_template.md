@@ -77,7 +77,7 @@ ______
 
 - **Standard & External References**:
   - [Title](URL) — Short summary.
-- **Targeted Book Readings from `.sources/INDEX.md`**:
+- **Targeted Book Readings from `resources/INDEX.md`**:
   - **\<Author\> — *\<Title\>***: Chapter X, Section Y (pp. A–B) — \<Why read this\>.
 
 ```text

@@ -78,6 +78,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 25 (Closures), pp. 485–512, covering Upvalues, heap-promoted closed-over variables, and lexical environment capture.
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 2 (Mark-Sweep Garbage Collection), on tracing closure environments and root reachability.
    - [Lexical Scoping and Closures in Programming Languages](<https://en.wikipedia.org/wiki/Closure_(computer_programming)>): First-class functions, lexical environments, and capturing variables beyond stack scope.
    - [Call Stacks and Activation Records](https://en.wikipedia.org/wiki/Call_stack): Stack frames, activation lifetimes, and moving captured variables from stack to heap.
 1. **After Implementation (Deep Dives & Systems Context)**:

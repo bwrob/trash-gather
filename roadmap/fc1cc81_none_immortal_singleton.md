@@ -77,6 +77,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 2, Chapter 13 (Storage, §13.2 Storage Duration, Lifetime, and Visibility), explaining static storage duration, file-scope lifetimes, and immutable global state.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 3 (Data, §3.3 Properties of Variables), detailing static linkage and lifetime persistence across execution scopes.
    - [PEP 683 – Immortal Objects, Using a Fixed Reference Count](https://peps.python.org/pep-0683/): Architectural rationale for immortal singletons with saturated reference counts immune to GC sweeps.
    - [The Singleton Pattern in Systems Programming](https://en.wikipedia.org/wiki/Singleton_pattern): Memory lifecycle, thread-safety considerations, and global accessibility of shared immutable instances.
 1. **After Implementation (Deep Dives & Systems Context)**:

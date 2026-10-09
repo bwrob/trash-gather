@@ -75,6 +75,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 1 (Introduction, §1.3 Allocator Dynamics) and Chapter 2 (§2.1 The Classic Mark-Sweep Algorithm), covering allocation pacing, threshold triggers, and collector invocation heuristics.
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 26 (Garbage Collection, §26.5 Automatic GC Pacing & Headroom), detailing dynamic threshold scaling based on survivor volume.
    - [Python gc.set_threshold() Pacing Mechanics](https://docs.python.org/3/library/gc.html#gc.set_threshold): Understanding allocation-to-deallocation net thresholds for triggering garbage collections.
    - [Adaptive Allocation Pacing in Managed Runtimes](<https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)>): Balancing throughput against memory footprint by pacing collection cycles.
 1. **After Implementation (Deep Dives & Systems Context)**:

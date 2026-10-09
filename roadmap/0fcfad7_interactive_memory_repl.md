@@ -81,6 +81,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 3 (The Lox Language) and Chapter 14 (Chunks of Bytecode), detailing REPL loop implementation, prompt input reading, and incremental bytecode execution.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 15 (Input/Output Functions, §Standard I/O), explaining line-buffered input reading via `fgets`, tokenization, and command dispatch.
    - [Building Read-Eval-Print Loops in C Systems](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop): Designing clean command dispatch, input line parsing, and execution loop state.
    - [Standard I/O Streams and Line Buffering in C](https://en.cppreference.com/w/c/io): Safely reading user input, handling EOF, and emitting formatted error diagnostics.
 1. **After Implementation (Deep Dives & Systems Context)**:

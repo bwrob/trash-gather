@@ -76,6 +76,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamic Memory Allocation), covering flexible array members, trailing element sizing, and avoiding struct padding calculation errors.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 10 (Structures and Unions, §10.3 Structure Storage Allocation), detailing hardware word alignment and contiguous memory offsets.
    - [C99 Flexible Array Members (ISO/IEC 9899:1999 §6.7.2.1)](https://en.cppreference.com/w/c/language/struct): Official standard rules governing trailing zero-size array members in contiguous structures.
    - [Struct Memory Alignment and offsetof in C](https://en.cppreference.com/w/c/types/offsetof): Hardware alignment requirements and calculating exact contiguous allocation byte sizes.
 1. **After Implementation (Deep Dives & Systems Context)**:

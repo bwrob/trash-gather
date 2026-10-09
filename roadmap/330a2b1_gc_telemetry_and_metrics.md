@@ -86,6 +86,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 1 (Introduction, §1.4 Measuring Collector Performance), covering pause times, mark duration, allocation throughput, and survivor tracking.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 3, Chapter 16 (Performance), detailing high-resolution time measurement, counter aggregation, and performance benchmarking.
    - [Memory Profiling and Instrumentation Techniques in C](<https://en.wikipedia.org/wiki/Profiling_(computer_programming)>): Techniques for non-intrusive runtime metric collection and memory footprint tracking.
    - [Python gc.get_stats() Documentation](https://docs.python.org/3/library/gc.html#gc.get_stats): Standard API contracts for exposing collections, allocations, and survivor counts.
 1. **After Implementation (Deep Dives & Systems Context)**:

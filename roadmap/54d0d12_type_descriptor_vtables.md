@@ -90,6 +90,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 13 (Advanced Pointers Topics, §13.3 Function Pointers), pp. 360–375, covering jump tables, callbacks, and polymorphic dispatch via function pointer structs.
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 19 (Strings) and Chapter 26 (Garbage Collection), explaining runtime type dispatch, object tagging, and virtual method emulation in pure C.
    - [Function Pointers and Callback Signatures in C](https://en.cppreference.com/w/c/language/pointer#Pointers_to_functions): Syntax, type declarations, calling conventions, and typedef idioms for function pointers.
    - [Virtual Method Tables and Dynamic Dispatch](https://en.wikipedia.org/wiki/Virtual_method_table): Architectural separation of object data from type behavior tables.
 1. **After Implementation (Deep Dives & Systems Context)**:

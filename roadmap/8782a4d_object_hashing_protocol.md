@@ -89,6 +89,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 20 (Hash Tables, §20.1 Open Addressing & Linear Probing), illustrating bitwise hash mixing, integer hashing, and table distribution.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 5 (Operators and Expressions, §5.1 Bitwise Operators), covering bitwise shift and XOR mixing patterns.
    - [Fowler–Noll–Vo (FNV-1a) Hash Algorithm](http://www.isthe.com/chongo/tech/comp/fnv/): Non-cryptographic bitwise mixing, prime multipliers, and 64-bit offset bases.
    - [Python Hash Contract and Equality Invariant](https://docs.python.org/3/reference/datamodel.html#object.__hash__): The formal rule that equal objects must have equal hash codes and mutable containers must reject hashing.
 1. **After Implementation (Deep Dives & Systems Context)**:

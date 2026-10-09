@@ -99,6 +99,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 2, Chapter 12 (The C Memory Model, §12.2 Unions), covering tagged union layouts, discriminant tags, and type punning safety.
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 19 (Strings & Values), modeling dynamic value polymorphism using tagged unions in C.
    - [Python Sequence Protocol Specification](https://docs.python.org/3/c-api/sequence.html): The standard abstract protocol governing sequence length queries and element access in dynamic runtimes.
    - [Polymorphic Object Models in Procedural C](<https://en.wikipedia.org/wiki/Polymorphism_(computer_science)>): Techniques for implementing uniform dispatch across distinct concrete types without C++ classes.
 1. **After Implementation (Deep Dives & Systems Context)**:

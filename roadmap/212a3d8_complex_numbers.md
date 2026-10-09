@@ -141,6 +141,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 1, Chapter 5 (Basic Values and Data), covering floating-point representations, IEEE 754 precision, and arithmetic semantics in ISO C.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 2 (Objects, Functions, and Types), explaining struct encapsulation and value modeling in C17.
    - [ISO C17 Complex Numbers and Portability](https://en.cppreference.com/w/c/numeric/complex): Standard C complex number definitions and arithmetic rules without GNU dialect dependencies.
    - [Python Complex Number Semantics (cmath)](https://docs.python.org/3/library/cmath.html): Language specification for 64-bit real and imaginary components.
 1. **After Implementation (Deep Dives & Systems Context)**:

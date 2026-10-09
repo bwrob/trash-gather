@@ -63,6 +63,7 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 1 (Getting Started) & Chapter 2 (Objects, Functions, and Types) on professional ISO C toolchains, compiler diagnostics, and UB prevention.
    - [Clang AddressSanitizer Documentation](https://clang.llvm.org/docs/AddressSanitizer.html): Core concepts of shadow memory, redzones, and compile-time instrumentation for memory bug detection.
    - [SEI CERT C Coding Standard](https://wiki.sei.cmu.edu/confluence/display/c/SEI+CERT+C+Coding+Standard): Essential memory safety, undefined behavior rules, and defensive systems programming guidelines.
 1. **After Implementation (Deep Dives & Systems Context)**:

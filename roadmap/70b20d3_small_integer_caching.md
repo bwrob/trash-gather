@@ -82,6 +82,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 8 (Arrays, §8.1 Array Mechanics), explaining contiguous lookup tables and static array initialization.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 2, Chapter 13 (Storage, §13.2 Storage Duration, Lifetime, and Visibility), explaining global static cache lifetime and object immutability.
    - [The Flyweight Pattern in Systems Programming](https://en.wikipedia.org/wiki/Flyweight_pattern): Memory optimization pattern sharing fine-grained immutable scalar instances across a runtime.
    - [CPython Small Integer Caching Specification](https://docs.python.org/3/c-api/long.html): Rationale behind pre-allocating an array of common integer objects to eliminate allocation churn.
 1. **After Implementation (Deep Dives & Systems Context)**:

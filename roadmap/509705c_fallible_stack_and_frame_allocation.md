@@ -111,6 +111,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory, §Common Dynamic Memory Errors), detailing multi-stage error rollbacks, allocation failure handling, and state restoration.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 2, Chapter 15 (Program Failure), explaining degraded runtime invariants, defensive assertions, and structured cleanup.
    - [SEI CERT C Coding Standard - MEM32-C](https://wiki.sei.corg.cmu.edu/confluence/display/c/MEM32-C.+Detect+and+handle+memory+allocation+errors): Comprehensive rules for verifying all fallible allocation and realloc returns in C systems programming.
    - [On-the-Fly Garbage Collection: An Exercise in Cooperation (Dijkstra et al.)](https://www.cs.utexas.edu/users/EWD/ewd04xx/EWD496.PDF): Foundational paper defining the tri-color marking abstraction and the essential invariant that black nodes cannot point to white nodes without gray intermediaries.
 2. **After Implementation (Deep Dives & Systems Context)**:

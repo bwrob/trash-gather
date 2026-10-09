@@ -6,6 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
+        exclude: ^resources/
 
   - repo: local
     hooks:
@@ -84,6 +85,13 @@ repos:
         language: system
         pass_filenames: false
         files: ^(roadmap/.*|README\.md)$
+
+      - id: lint-resources
+        name: lint resources parity
+        entry: just lint-resources
+        language: system
+        pass_filenames: false
+        files: ^resources/.*
 
       - id: lint-header-dag
         name: lint header dag

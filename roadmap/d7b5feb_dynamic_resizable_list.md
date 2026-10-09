@@ -93,6 +93,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 14 (Chunks of Bytecode, §14.2 Dynamic Arrays), detailing geometric capacity growth, amortized O(1) allocation pacing, and buffer reallocation safety.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory, §Standard Allocator Functions), explaining `realloc` error handling without leaking original pointers and memory lifecycle states.
    - [Dynamic Array Amortized Complexity Analysis](https://en.wikipedia.org/wiki/Dynamic_array): Mathematical proof of amortized O(1) appends under geometric capacity scaling.
    - [ISO C realloc and memmove Semantics](https://en.cppreference.com/w/c/memory/realloc): Safe memory reallocation patterns and using memmove for overlapping buffer shifts.
 1. **After Implementation (Deep Dives & Systems Context)**:

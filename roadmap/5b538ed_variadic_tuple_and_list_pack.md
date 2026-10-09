@@ -80,6 +80,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 7 (Functions, §7.6 Variable Argument Lists), pp. 190–196, covering `<stdarg.h>`, `va_list`, `va_start`, `va_arg`, and `va_end` mechanics.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 3, Chapter 17 (Function-Like Macros & Variadics, §17.4 Variable-Length Argument Lists), explaining default argument promotions and variadic boundary contracts.
    - [ISO C stdarg.h Variadic Function Rules](https://en.cppreference.com/w/c/variadic): Mechanisms of `va_list`, `va_start`, `va_arg`, and `va_end` across standard architectures.
    - [SEI CERT C MSC39-C: Correct Use of va_arg](https://wiki.sei.cmu.edu/confluence/display/c/MSC39-C.+Do+not+call+va_arg%28%29+on+an+uninitialized+va_list): Preventing undefined behavior when consuming variadic argument streams.
 1. **After Implementation (Deep Dives & Systems Context)**:
