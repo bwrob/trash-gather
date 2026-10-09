@@ -38,20 +38,22 @@ def _get_src_inc_flags(repo_root: Path) -> list[str]:
 
 
 def check_header(header_path: Path, inc_flags: list[str], c_std: str) -> bool:
-    """Compile a single header with -fsyntax-only. Returns True on success, False on error."""
+    """Compile a single header with -fsyntax-only wrapped as an include in a C TU."""
     cmd = [
         "gcc",
         "-Wall",
         "-Wextra",
         "-Werror",
-        "-Wno-pragma-once-outside-header",
         f"-std={c_std}",
         "-fsyntax-only",
         *inc_flags,
-        str(header_path),
+        "-x",
+        "c",
+        "-",
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    include_stmt = f'#include "{header_path.as_posix()}"\n'
+    result = subprocess.run(cmd, input=include_stmt, capture_output=True, text=True)
     if result.returncode != 0:
         typer.echo(f"❌ {header_path} is not self-contained:", err=True)
         if result.stderr:
