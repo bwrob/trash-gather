@@ -1,6 +1,6 @@
 #include "object.h"
 
-#include "vm/vm.h"
+#include "vm.h"
 
 #include <stdint.h>
 #include <stdlib.h>

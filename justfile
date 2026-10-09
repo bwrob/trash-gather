@@ -204,6 +204,25 @@ lint-c:
 update-dag:
     uv run python scripts/generate_roadmap_dag.py
 
+# Generate Mermaid DAG of C header dependencies and save to docs/header_dag.mmd
+header-dag:
+    uv run python scripts/generate_header_dag.py --output docs/header_dag.mmd
+
+# Synchronize header DAG in docs/header_dag.mmd and root README.md
+update-header-dag: header-dag
+    uv run python scripts/update_readme_header_dag.py
+
+# Verify that C header dependencies form a strict DAG and README.md is in sync
+lint-header-dag:
+    uv run python scripts/generate_header_dag.py --check-dag > /dev/null
+    uv run python scripts/update_readme_header_dag.py --check
+
+# Verify that all C header files compile in total isolation without external dependencies
+lint-headers-standalone:
+    uv run python scripts/lint_headers_standalone.py
+
+
+
 # Validate roadmap milestone hash IDs, DAG consistency, and markdown links
 lint-roadmap:
     uv run python scripts/lint_roadmap.py

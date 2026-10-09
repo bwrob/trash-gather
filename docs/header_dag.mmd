@@ -1,0 +1,21 @@
+flowchart TD
+  subgraph sg_src_vm ["src/vm/"]
+    h_stack_h["stack.h"]
+    h_vm_h["vm.h"]
+  end
+  subgraph sg_src_vm_objects ["src/vm_objects/"]
+    h_list_h["list.h"]
+    h_object_h["object.h"]
+    h_tuple_h["tuple.h"]
+  end
+
+  h_object_h --> h_list_h
+  h_object_h --> h_tuple_h
+  h_vm_h --> h_object_h
+  h_vm_h --> h_stack_h
+
+  click h_list_h "src/vm_objects/list.h" "Jump to list.h"
+  click h_object_h "src/vm_objects/object.h" "Jump to object.h"
+  click h_stack_h "src/vm/stack.h" "Jump to stack.h"
+  click h_tuple_h "src/vm_objects/tuple.h" "Jump to tuple.h"
+  click h_vm_h "src/vm/vm.h" "Jump to vm.h"

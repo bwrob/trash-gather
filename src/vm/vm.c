@@ -1,7 +1,7 @@
 #include "vm.h"
 
+#include "object.h"
 #include "stack.h"
-#include "vm_objects/object.h"
 
 static vm_t *CURRENT_VM = NULL;
 
