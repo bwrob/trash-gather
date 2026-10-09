@@ -27,7 +27,8 @@ ______
 
 ## 📚 Bibliography Catalog (`references.bib`)
 
-- **`jones2023garbage`**: *The Garbage Collection Handbook: The Art of Automatic Memory Management* (2nd Edition, 2023) by Richard Jones, Antony Hosking, Eliot Moss. CRC Press.
+- **`jones2023garbage`**: *The Garbage Collection Handbook: The Art of Automatic Memory Management* (2nd Edition, 2023) by Richard Jones, Antony Hosking, Eliot Moss. CRC Press. [`jones_2023_garbage_collection_handbook.pdf`](./jones_2023_garbage_collection_handbook.pdf)
+- **`nystrom2021crafting`**: *Crafting Interpreters* (2021) by Robert Nystrom. Genever Benning. [`nystrom_2021_crafting_interpreters.pdf`](./nystrom_2021_crafting_interpreters.pdf)
 - **`reek1998pointers`**: *Pointers on C* (1998) by Kenneth A. Reek. Addison-Wesley. [`reek_1998_pointers_on_c.pdf`](./reek_1998_pointers_on_c.pdf)
 - **`seacord2020effective`**: *Effective C: An Introduction to Professional C Programming* (2020) by Robert C. Seacord. No Starch Press. [`seacord_2020_effective_c.pdf`](./seacord_2020_effective_c.pdf)
 - **`gustedt2023modern`**: *Modern C* (3rd Edition, 2023) by Jens Gustedt. Manning Publications. [`gustedt_2023_modern_c.epub`](./gustedt_2023_modern_c.epub)

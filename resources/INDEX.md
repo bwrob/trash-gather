@@ -11,6 +11,8 @@ ______
 | **Kenneth A. Reek**<br>*Pointers on C* | PDF, 3.98 MB | Deep mechanics of pointers, memory organization, calling conventions, stack frames, and ADTs. | **Variadics (`<stdarg.h>`)**, Stack frame layout, pointer arithmetic, linked data structures. |
 | **Robert C. Seacord**<br>*Effective C (2020)* | PDF, 5.65 MB | Professional C17 development, SEI CERT C coding standards, memory safety, dynamic allocators. | **Flexible Array Members**, Heap memory states, alignment, integer overflow, AddressSanitizer. |
 | **Jens Gustedt**<br>*Modern C (3rd Edition)* | EPUB, 6.11 MB | Modern ISO C (C17/C23) abstract state machine, formal memory model, type-generic programming, atomics. | Formal memory model, variable-length argument lists, object lifecycles, undefined behavior prevention. |
+| **Richard Jones, Antony Hosking, Eliot Moss**<br>*The Garbage Collection Handbook (2nd Ed, 2023)* | PDF, 13.0 MB | Comprehensive theory and practice of automatic memory management, mark-sweep, copying, generational, and cycle collection. | **Mark-and-Sweep**, Tri-color reachability, cycle collection, weak references, allocation pacing. |
+| **Robert Nystrom**<br>*Crafting Interpreters (2021)* | PDF, 29.0 MB | Practical implementation of bytecode VMs, tagged unions, dynamic arrays, Pratt parsers, and mark-sweep GC in C. | **Dynamic Arrays (List Append)**, Tagged union object representation, value stacks, and mark-sweep GC. |
 
 ______
 
@@ -235,3 +237,50 @@ ______
 - **Chapter 18: Type-Generic Programming**: Inherent type-generic capabilities, `_Generic` selection expressions, and anonymous function techniques.
 - **Chapter 19: Variations in Control Flow**: Advanced control sequencing, setjmp/longjmp non-local jumps, and signal handlers.
 - **Chapter 20–21: Threads & Atomics**: Thread synchronization, critical sections, atomic memory operations, and memory consistency models.
+
+______
+
+## 4. The Garbage Collection Handbook: The Art of Automatic Memory Management (2nd Edition)
+
+- **Author(s)**: Richard Jones, Antony Hosking, Eliot Moss
+- **Publisher / Year / Edition**: CRC Press (2023, 2nd Edition)
+- **File**: `resources/jones_2023_garbage_collection_handbook.pdf` (462 pages)
+- **Pedagogical Scope**: The authoritative standard reference on garbage collection theory and engineering. Bridges abstract reachability algorithms with real-world allocator dynamics, cache hierarchies, reference counting cycles, and generational collection.
+
+### Key Chapter Highlights
+
+- **Chapter 1: Introduction**: Mutators, collectors, allocators, dynamic memory management challenges, heap abstractions.
+- **Chapter 2: Mark-Sweep Garbage Collection**:
+  - **2.1 The Classic Mark-Sweep Algorithm**: Two-phase reclamation, stop-the-world pauses.
+  - **2.2 The Mark Phase & Worklists**: Explicit stack-based gray worklists, DFS vs. BFS traversal, pointer reversal techniques.
+  - **2.4 The Sweep Phase**: Sweeping free blocks, compaction, allocator integration.
+- **Chapter 3: Mark-Compact Garbage Collection**: Two-finger compaction, Cheney's algorithm, sliding compactors, updating interior pointers.
+- **Chapter 5: Reference Counting**:
+  - **5.1 Advantages and Disadvantages**: Immediate reclamation, pause predictability, space overhead, cascade deallocation traps.
+  - **5.3 Cyclic Reference Counting**: Bacon & Rajan concurrent cycle detection, trial deletion, candidate buffers.
+- **Chapter 9: Generational Garbage Collection**:
+  - **9.1 The Weak Generational Hypothesis**: Infant mortality, lifetime distributions.
+  - **9.3 Inter-Generational References & Write Barriers**: Card marking, remembered sets, tracking mutated pointer boundaries.
+
+______
+
+## 5. Crafting Interpreters
+
+- **Author**: Robert Nystrom
+- **Publisher / Year**: Genever Benning (2021)
+- **File**: `resources/nystrom_2021_crafting_interpreters.pdf` (640 pages)
+- **Pedagogical Scope**: A masterclass in building bytecode virtual machines in pure C99/C17. Provides intuitive, pragmatic architectural implementations of dynamic arrays, tagged unions, value stacks, and mark-and-sweep garbage collectors.
+
+### Key Chapter Highlights
+
+- **Chapter 14: Chunks of Bytecode**:
+  - **14.2 Dynamic Arrays**: **Directly relevant to `list_append`.** Implementing growable capacity arrays with geometric growth factor ($2\times$), amortized $O(1)$ analysis, allocation failure guards, and cleanup invariants.
+- **Chapter 19: Strings**:
+  - **19.3 String Interning & Deduplication**: Hash tables for immortal strings, eliminating duplicate heap allocations.
+- **Chapter 20: Hash Tables**:
+  - **20.1 Open Addressing & Linear Probing**: Tombstones, load factors, collision resolution.
+- **Chapter 26: Garbage Collection**:
+  - **26.1–26.2 Tracing Garbage Collection**: Reachability from stack roots and globals.
+  - **26.3 Mark-Sweep in C**: Tri-color marking, gray worklists, blackening objects.
+  - **26.4 Sweeping Unused Objects**: Freeing unreferenced memory and unmarking survivors.
+  - **26.5 Automatic GC Pacing & Headroom**: Triggering collections based on allocated byte thresholds.
