@@ -3,29 +3,34 @@ default: test
 # ==============================================================================
 # Global Configuration Variables (Single Source of Truth)
 # ==============================================================================
-
 # Dynamically discover all include directories in src/
+
 SRC_INCS := `find src -type d | sort | sed 's|^|-I|' | tr '\n' ' '`
 
 # Language Standards
+
 export C_STD := "c17"
 export CPP_STD := "c++17"
 
 # C Compiler & Build Tooling
+
 CC := "gcc"
 CFLAGS := "-Wall -Wextra -Wswitch -std=" + C_STD + " -g -fsanitize=address,undefined -Iinclude " + SRC_INCS + "-Ivendor/munit -Ivendor/bootlib"
 COV_FLAGS := CFLAGS + " --coverage"
 BIN_DIR := "bin"
 
 # Dynamically discover all runtime source modules in src/ (excluding main.c)
+
 SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/|;s|$|\.o|' | tr '\n' ' '`
 BENCH_SRC_OBJS := `find src -name '*.c' ! -name 'main.c' -exec basename {} .c \; | sort | sed 's|^|bin/bench_|;s|$|\.o|' | tr '\n' ' '`
 TEST_OBJS := `find tests -name 'test_*.c' ! -name 'test_runner.c' -exec basename {} .c \; | sort | sed 's|^|bin/|;s|$|\.o|' | tr '\n' ' '`
 
 # Docstring Linting Scope (directories passed to scripts/lint_docstrings.py)
+
 DOC_LINT_DIRS := "include vendor/bootlib bench tests"
 
 # Benchmark Configuration (Google Benchmark / C++)
+
 BENCH_CXX := "clang++"
 BREW_BENCH_INC := `pkg-config --cflags-only-I benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/include ]; then echo "-I/opt/homebrew/opt/google-benchmark/include"; elif [ -d /usr/local/opt/google-benchmark/include ]; then echo "-I/usr/local/opt/google-benchmark/include"; fi`
 BREW_BENCH_LIB := `pkg-config --libs benchmark 2>/dev/null || if [ -d /opt/homebrew/opt/google-benchmark/lib ]; then echo "-L/opt/homebrew/opt/google-benchmark/lib -lbenchmark -pthread"; else echo "-lbenchmark -pthread"; fi`
@@ -146,7 +151,6 @@ clean:
 compiledb:
     uv run python scripts/gen_compile_commands.py
 
-# Format all C/C++ source files, Markdown documentation, and TOML configurations
 # Format all C/C++ source files, Markdown documentation, TOML configurations, and justfile
 format: format-c format-md format-toml format-just
 
