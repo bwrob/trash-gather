@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "literature-rag": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "scripts/rag_mcp_server.py"
+      ]
+    }
+  }
+}

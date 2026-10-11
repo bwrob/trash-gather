@@ -1,0 +1,4 @@
+{
+  "name": "literature-rag",
+  "description": "Local offline RAG and page extraction over systems programming and garbage collection textbooks in resources/."
+}

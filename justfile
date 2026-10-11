@@ -246,9 +246,21 @@ new-milestone slug title="" difficulty="3":
 new-skill name desc="":
     uv run python .agents/skills/skill-creator/scripts/scaffold_skill.py {{ name }} {{ if desc != "" { "--description \"" + desc + "\"" } else { "" } }}
 
-# Validate parity between resources directory, references.bib, and INDEX.md
+# Validate parity between resources directory and references.bib
 lint-resources:
     uv run python scripts/lint_resources.py
+
+# Index textbooks in resources/ into local LanceDB vector database
+rag-index book="":
+    uv run python scripts/rag.py index {{ if book != "" { "--book " + book } else { "" } }}
+
+# Perform semantic search across indexed literature
+rag-search query book="" limit="5":
+    uv run python scripts/rag.py search "{{ query }}" {{ if book != "" { "--book " + book } else { "" } }} --limit {{ limit }}
+
+# Show statistics of indexed literature in LanceDB
+rag-stats:
+    uv run python scripts/rag.py stats
 
 # Run static analysis and formatting checks (clang-tidy, docstrings, roadmap, resources, Python, Markdown, and justfile)
 lint: lint-c lint-docs lint-roadmap lint-resources lint-py lint-md format-just-check

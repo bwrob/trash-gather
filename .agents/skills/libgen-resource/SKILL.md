@@ -53,6 +53,17 @@ uv run python .agents/skills/libgen-resource/scripts/libgen_fetch.py download "<
 - Target file is saved strictly as `resources/<author_surname>_<year>_<short_title_slug>.<ext>` (e.g. `seacord_2020_effective_c.pdf`).
 - Formatted `@book{...}` entry is appended to [`resources/references.bib`](file:///Users/bwrob/dev/trash-gather/resources/references.bib) with matching key `<author_surname><year><short_title>` (e.g. `seacord2020effective`).
 
+### Step 3: Index into Local Literature RAG & Validate Parity
+
+Once downloaded and recorded in `references.bib`, index the new book into the offline LanceDB vector database and verify resource consistency:
+
+```bash
+just rag-index <author_surname>
+just lint-resources
+```
+
+The new volume is now immediately searchable by AI agents via the `search_literature` MCP tool or command line (`just rag-search`).
+
 ______
 
 ## 📝 External Templates & Reference Manuals
