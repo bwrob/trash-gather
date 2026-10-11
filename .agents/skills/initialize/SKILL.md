@@ -94,8 +94,8 @@ Provide a high-density, comprehensive structural breakdown of what is being buil
    - For multi-operation milestones, decompose into sequential micro-loops: implement operation $A$ in `src/` $\\to$ test $A$ $\\to$ achieve green $\\to$ proceed to operation $B$.
 1. **Before-Goal References & Targeted Book Readings (`resources/`)**:
    - **External & Standard Specifications**: Extract and prominently present the **"Before Implementation (Conceptual Foundations)"** references from Section 6 of the milestone file (ISO C standard rules, SEI CERT C rules, CPython references, and ABI specifications).
-   - **Source Book Indexing (`resources/INDEX.md`)**: Check if `resources/` exists. If `resources/INDEX.md` does not exist, create it following \[`.agents/skills/initialize/resources/index_template.md`\](file:///Users/bwrob/dev/trash-gather/.agents/skills/initialize/resources/index_template.md) to index all available volumes with chapter outlines and descriptions.
-   - **Targeted Reading Recommendations**: Cross-reference the active milestone's technical concepts against `resources/INDEX.md`. Present specific book titles, chapter numbers, section titles, and exact page ranges (or Level/Chapter identifiers) that the developer should read to acquire the requisite mental capital before writing C code.
+   - **Literature Catalog (`resources/references.bib`)**: Check if `resources/` exists. Canonical textbooks are indexed in `resources/references.bib` and embedded into the local RAG database (`.rag_db/`).
+   - **Targeted Reading Recommendations**: Query the local Literature RAG (`search_literature` MCP tool or `just rag-search "<concept>"`) to dynamically pinpoint specific book titles, chapter numbers, section headings, and exact page ranges across tracked textbooks (Jones, Reek, Seacord, Bryant & O'Hallaron, Stevens, Gustedt) so the developer has direct foundational references before writing C code.
 1. **MANDATORY: Unconditional Stop**:
    - The AI agent **MUST UNCONDITIONALLY STOP** at the end of this message.
    - **NEVER** call `ask_question` in this turn.
