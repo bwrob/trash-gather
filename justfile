@@ -262,6 +262,22 @@ rag-search query book="" limit="5":
 rag-stats:
     uv run python scripts/rag.py stats
 
+# Inspect exact memory layout, field offsets, and padding holes of a C struct
+struct-layout name file="src/vm_objects/object.c":
+    uv run python scripts/struct_layout.py inspect "{{ name }}" --file "{{ file }}"
+
+# Compile C code snippet on Compiler Explorer (Godbolt) and display machine assembly
+godbolt code compiler="cclang1810" options="-O3 -std=c17":
+    uv run python scripts/godbolt.py compile-code "{{ code }}" --compiler "{{ compiler }}" --options "{{ options }}"
+
+# View lines from canonical CPython runtime source code
+cpython-view file start="1" end="80":
+    uv run python scripts/cpython_explorer.py view "{{ file }}" --start {{ start }} --end {{ end }}
+
+# Search keyword or symbol in canonical CPython source code
+cpython-search query file="tuple":
+    uv run python scripts/cpython_explorer.py search "{{ query }}" --file "{{ file }}"
+
 # Run static analysis and formatting checks (clang-tidy, docstrings, roadmap, resources, Python, Markdown, and justfile)
 lint: lint-c lint-docs lint-roadmap lint-resources lint-py lint-md format-just-check
 

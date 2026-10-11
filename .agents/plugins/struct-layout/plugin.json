@@ -1,0 +1,4 @@
+{
+  "name": "struct-layout",
+  "description": "Inspect exact byte offsets, struct padding holes, and alignment boundaries using Clang AST record layout engine."
+}

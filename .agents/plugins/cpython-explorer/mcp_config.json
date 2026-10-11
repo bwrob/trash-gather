@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "cpython-explorer": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "scripts/cpython_mcp_server.py"
+      ]
+    }
+  }
+}

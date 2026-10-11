@@ -1,0 +1,4 @@
+{
+  "name": "cpython-explorer",
+  "description": "Fetch, inspect, and search canonical CPython runtime source code (Objects, Include, gcmodule.c)."
+}
