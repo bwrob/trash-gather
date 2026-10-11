@@ -131,7 +131,7 @@ ______
 
 ## 🗄️ Columnar Storage (`LanceDB`)
 
-Vector embeddings and associated metadata are stored in a local, serverless LanceDB table under [`.rag_db/`](../.rag_db) (gitignored).
+Vector embeddings and associated metadata are stored in a local, serverless LanceDB table under `.rag_db/` (gitignored).
 
 ### Why Lance Format?
 
