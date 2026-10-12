@@ -63,11 +63,16 @@ ______
 
 ### 2.6 Role 6: Milestone Initialization & Readiness (`initialize`)
 
-- **Pre-Flight Readiness Pipeline**: Orchestrates starting a milestone by assuring the feature branch, setting milestone status to in progress, presenting the point of the goal and pedagogical learning aims first alongside concise scope, byte-offset memory diagrams, physical silicon mechanics, mathematical inductive invariants ($\\mathcal{I}\_0, \\mathcal{I}_k, \\mathcal{I}_{\\text{rollback}}$), and before-goal foundation references, **unconditionally stopping** to allow developer review, and only conducting the systems pre-check inquiry **one question at a time** in a subsequent turn upon developer response.
 - **Pre-Flight Readiness Pipeline**: Orchestrates starting a milestone by assuring the feature branch, setting milestone status to in progress, presenting the point of the goal and pedagogical learning aims first alongside concise scope, byte-offset memory diagrams, physical silicon mechanics, mathematical inductive invariants ($\mathcal{I}_0, \mathcal{I}_k, \mathcal{I}_{\text{rollback}}$), and before-goal foundation references, **unconditionally stopping** to allow developer review, and only conducting the systems pre-check inquiry **one question at a time** in a subsequent turn upon developer response.
 - **Follow the Skill**: All initialization steps, DAG verification rules, and pre-check protocols are defined in the **`initialize`** skill: [.agents/skills/initialize/SKILL.md](file:///Users/bwrob/dev/trash-gather/.agents/skills/initialize/SKILL.md).
 
-### 2.7 The Interactive Development & Testing Loop
+### 2.7 Role 7: Literature RAG Grounding & Retrieval (`resources/`)
+
+- **Authoritative Theoretical Foundations**: The repository maintains an offline, local Literature RAG system indexed in `.rag_db/` (LanceDB columnar storage) over canonical textbooks (*The Garbage Collection Handbook*, *Pointers on C*, *Effective C*, *Modern C*, *Computer Systems: A Programmer's Perspective*, *APUE*).
+- **Pedagogical Anchoring via MCP**: During Socratic tutoring, milestone initialization, and code reviews, AI agents must query the local literature tools (`search_literature`, `get_book_page`, `list_literature_books` exposed via `scripts/resources_rag/mcp.py` under `.agents/plugins/literature-rag/`) to cite formal definitions, exact page numbers, tri-color invariants, and architectural diagrams directly from canonical texts.
+- **Pipeline Architecture**: Managed through greenfield submodules in `scripts/resources_rag/` (`models.py`, `chunking.py`, `embedding.py`, `rag.py`, `mcp.py`) with layout-aware block parsing, code snippet preservation, hybrid BM25 + dense vector search (`BAAI/bge-small-en-v1.5`), and reranking.
+
+### 2.8 The Interactive Development & Testing Loop
 
 When pairing on new features or milestones, the collaboration strictly follows this 6-step loop:
 
@@ -117,6 +122,10 @@ ______
 | `just lint-docs`             | Check Doxygen docstrings across configured dirs                              |
 | `just lint-roadmap`          | Validate roadmap milestone hash IDs, DAG consistency, and markdown links     |
 | `just update-dag`            | Synchronize Mermaid DAG with transitive reduction in `roadmap/README.md`     |
+| `just lint-resources`        | Validate parity between resources/ and references.bib                        |
+| `just rag-search <query>`    | Hybrid BM25 + vector search across canonical textbooks via LanceDB           |
+| `just rag-index [slug]`      | Chunk and embed literature in resources/ into local vector store             |
+| `just rag-stats`             | Display indexed passage counts and database statistics                       |
 | `just new-milestone <slug>`  | Scaffold a new roadmap milestone writeup from template                       |
 | `just new-skill <name>`      | Scaffold a new workspace agent skill with templates and subdirectories       |
 | `just check`                 | Run all pre-commit hooks across the entire repo                              |

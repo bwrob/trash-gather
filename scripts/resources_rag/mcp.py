@@ -21,21 +21,19 @@ _scripts_dir = str(Path(__file__).resolve().parent)
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
-from rag import (  # noqa: E402
+from embedding import execute_search, has_table  # noqa: E402
+from models import (  # noqa: E402
     BGE_QUERY_PREFIX,
+    BIB_PATH,
     COLLECTION_NAME,
     DB_PATH,
     EMBEDDING_MODEL_NAME,
     RESOURCES_DIR,
-    _execute_search,
-    has_table,
     load_bib_metadata,
     resolve_book_metadata,
 )
 
 mcp = FastMCP("literature-rag")
-
-BIB_PATH: Path = RESOURCES_DIR / "references.bib"
 
 # Lazy-loaded globals to avoid startup lag
 _db_client: lancedb.DBConnection | None = None
@@ -84,7 +82,7 @@ def search_literature(query: str, book: str = "", limit: int = 5) -> str:
     prefixed_query = f"{BGE_QUERY_PREFIX}{query}"
     query_vec = list(model.embed([prefixed_query]))[0].tolist()
     filter_book = book.strip().lower() if book.strip() else None
-    results: list[dict[str, Any]] = _execute_search(table, query, query_vec, filter_book, limit)
+    results: list[dict[str, Any]] = execute_search(table, query, query_vec, filter_book, limit)
     if not results:
         return f"No relevant literature found for query: '{query}'."
 

@@ -22,10 +22,7 @@ from models import (
     BIB_PATH,
     COLLECTION_NAME,
     DB_PATH,
-    EMBEDDING_MODEL_NAME,
-    RESOURCES_DIR,
     BookMetadata,
-    TextChunk,
     discover_book_files,
     load_bib_metadata,
     resolve_book_metadata,
@@ -202,32 +199,6 @@ def stats() -> None:
     total_records = len(tbl)
     typer.secho(f"Total indexed chunks: {total_records}", fg=typer.colors.GREEN, bold=True)
     typer.echo(f"Database location: {DB_PATH}")
-
-
-# Re-exports for backward compatibility
-_execute_search = execute_search
-__all__ = [
-    "BGE_QUERY_PREFIX",
-    "COLLECTION_NAME",
-    "DB_PATH",
-    "EMBEDDING_MODEL_NAME",
-    "RESOURCES_DIR",
-    "BookMetadata",
-    "TextChunk",
-    "_execute_search",
-    "app",
-    "discover_book_files",
-    "execute_search",
-    "extract_chunks_from_document",
-    "get_embedding_model",
-    "get_vector_db",
-    "has_table",
-    "index",
-    "load_bib_metadata",
-    "resolve_book_metadata",
-    "search",
-    "stats",
-]
 
 
 if __name__ == "__main__":
