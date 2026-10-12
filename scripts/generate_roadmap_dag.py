@@ -27,8 +27,11 @@ def load_milestones(roadmap_dir: Path) -> dict[str, dict[str, Any]]:
         status = status_m.group(1).strip() if status_m else "Planned"
         slug_m = re.match(r"([a-f0-9]{7})_(.+)\.md", fpath.name)
         slug = slug_m.group(2) if slug_m else fpath.stem
-        prereqs = re.findall(r"\[([^\]]+)\]\(([a-f0-9]{7})_[^)]+\.md\)", content)
-        prereq_ids = [p[1] for p in prereqs]
+        prereq_match = re.search(r"\*\*Prerequisites:\*\*\s*(.+)", content)
+        prereq_ids: list[str] = []
+        if prereq_match:
+            prereqs = re.findall(r"\[([^\]]+)\]\(([a-f0-9]{7})_[^)]+\.md\)", prereq_match.group(1))
+            prereq_ids = [p[1] for p in prereqs]
 
         milestones[m_id] = {
             "id": m_id,
@@ -93,12 +96,16 @@ def update_roadmap_readme(roadmap_readme: Path, reduced_edges: list[tuple[str, s
     """Update only the edges block in the Mermaid diagram inside roadmap/README.md."""
     content = roadmap_readme.read_text(encoding="utf-8")
 
-    # Map milestone hash to Mermaid node identifier (e.g. "d9c6780" -> "m_tooling")
+    # Map milestone hash to Mermaid node identifier (e.g. "d9c6780" -> "m_d9c6780")
     node_names: dict[str, str] = {}
     for line in content.splitlines():
-        m = re.search(r"(\w+)\[\"([a-f0-9]{7}):", line)
-        if m:
-            node_names[m.group(2)] = m.group(1)
+        m1 = re.search(r"(m_[a-f0-9]{7})\[", line)
+        if m1:
+            node_names[m1.group(1)[2:]] = m1.group(1)
+            continue
+        m2 = re.search(r"(\w+)\[\"([a-f0-9]{7}):", line)
+        if m2:
+            node_names[m2.group(2)] = m2.group(1)
 
     # Sort edges by Mermaid node names
     def edge_sort_key(edge: tuple[str, str]) -> tuple[str, str]:

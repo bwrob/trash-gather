@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 3 / 5\
 **Focus:** Serialize arbitrary objects to human-readable strings (`object_to_string()`), detecting and suppressing recursive loops for cyclic structures (`[...]`), paving the way for the interactive REPL.\
-**Prerequisites:** [The None Immortal Singleton Object](fc1cc81_none_immortal_singleton.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md), [Python-Style Sequence Negative Indexing](b0c1d8b_python_sequence_negative_indexing.md), [Cycle Iterator Object](586680e_cycle_iterator_object.md), [Polymorphic Multiplication & Sequence Repetition](687b4cb_polymorphic_multiplication.md), [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [NumPy-Style Raw Float Matrix & Strided Views](e67df2f_raw_float_matrix.md), [Dynamic String Builder & Safe Formatting](4911b8b_dynamic_string_builder.md)
+**Prerequisites:** [Dynamic String Builder & Safe Formatting](4911b8b_dynamic_string_builder.md), [Cycle Iterator Object](586680e_cycle_iterator_object.md), [Complex Numbers & Arithmetic](212a3d8_complex_numbers.md), [Contiguous 2D Float Matrix & Elementwise Arithmetic](e67df2f_raw_float_matrix.md)
 
 ______
 

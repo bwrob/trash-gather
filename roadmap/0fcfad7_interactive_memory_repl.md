@@ -2,9 +2,9 @@
 
 **ID:** `0fcfad7`\
 **Status:** Planned\
-**Difficulty:** 4 / 5\
+**Difficulty:** 5 / 5\
 **Focus:** Build an interactive command-line interface (`just run`) for allocating objects, pushing/popping frames, triggering garbage collection passes, and inspecting runtime telemetry in real time.\
-**Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md), [Function Objects & Closures (closure_t)](a0c00e1_closures_and_lexical_environments.md), [Remembered Sets, Write Barriers & Minor Generational GC](034b527_generational_write_barriers_and_minor_gc.md), [Page-Aligned PyMalloc with Bitmask Pool Recovery](a929415_page_aligned_pymalloc.md), [ASCII Heap Visualizer](81a16cb_ascii_heap_visualizer.md)
+**Prerequisites:** [Cycle-Safe String Representation & Object Printing](bf0a981_cycle_safe_string_repr.md), [Function Objects & Closures (closure_t)](a0c00e1_closures_and_lexical_environments.md), [Remembered Sets, Write Barriers & Minor Generational GC](034b527_generational_write_barriers_and_minor_gc.md), [Page-Aligned PyMalloc with Bitmask Pool Recovery](a929415_page_aligned_pymalloc.md), [ASCII Heap Visualizer](81a16cb_ascii_heap_visualizer.md), [Cross-VM Value Marshaling & Result Channels](dac4aea_cross_vm_marshaling_and_channels.md), [Binary Heap Graph Serialization](402c62c_binary_heap_serialization.md)
 
 ______
 

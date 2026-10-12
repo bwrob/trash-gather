@@ -4,7 +4,7 @@
 **Status:** Planned\
 **Difficulty:** 2 / 5\
 **Focus:** Implement the three-way comparison protocol (`object_compare`), rich boolean comparisons (`object_equal`, `object_less_than`), and in-place list sorting (`list_sort()`) using comparator callback function pointers and standard library `qsort`.\
-**Prerequisites:** [Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md)
+**Prerequisites:** [Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md), [Boolean Immortal Singletons & Truthiness](6c3a989_bool_singletons_and_truthiness.md), [Sequence Membership & Linear Search](13e2377_sequence_membership_and_search.md), [Sequence Reversal & Shallow Copy](37c67d7_sequence_reversal_and_shallow_copy.md)
 
 ______
 
