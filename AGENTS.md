@@ -12,6 +12,7 @@ This is a **solo learning project** — not a production codebase or team effort
   1. **Learn C**: Mastering ISO C17 systems programming, pointers, structs, unions, and memory safety without high-level abstractions.
   1. **Learn Memory Management**: Designing custom allocators, explicit resource lifecycles, allocation rollbacks, reference counting, and garbage collection mechanisms.
   1. **Learn Python Internals**: Frequently following CPython's architectural patterns and implementation strategies (e.g. object models, immortal singletons per PEP 683, sequence protocols) in a simplified, transparent manner.
+- **Greenfield Mandate (Zero Backward Compatibility)**: This is a purely greenfield project. **Never preserve backward compatibility**, legacy shims, deprecated aliases, or compatibility wrappers. When refactoring or introducing improvements, always rework interfaces, architecture, and code cleanly to the best possible design.
 - **Professional habits from the beginning**: Adopting CI, linters, formatters, and type checkers from day one. Learning to work *with* modern tooling is part of the education.
 - **Fast feedback loops**: Commits are checked by `pre-commit` hooks (formatting, linting, docstrings). Full test suites and CI checks run when an MR/PR is opened.
 - **Safety nets, not bureaucracy**: ASan, UBSan, `bootlib` leak tracking, and adversarial tests catch subtle memory bugs at the moment of creation.
