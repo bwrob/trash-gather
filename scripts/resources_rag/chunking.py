@@ -6,6 +6,7 @@ import bisect
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import pymupdf
 from models import BookMetadata, TextChunk
@@ -62,7 +63,10 @@ def clean_block_text(text: str) -> tuple[str, bool]:
 
     is_code = any(line.startswith(CODE_INDICATORS) for line in lines) and len(lines) > 1
     if is_code:
-        return "\n".join(line.rstrip() for line in lines if line.strip()), True
+        cleaned_code = "\n".join(line.rstrip() for line in lines if line.strip())
+        if not cleaned_code.startswith("```"):
+            cleaned_code = f"```c\n{cleaned_code}\n```"
+        return cleaned_code, True
 
     is_math = any(char in MATH_SYMBOLS for char in text)
     if is_math and len(lines) > 1:
@@ -73,14 +77,29 @@ def clean_block_text(text: str) -> tuple[str, bool]:
 
 
 def build_toc_lookup(doc: pymupdf.Document) -> tuple[list[int], list[str]]:
-    """Extract sorted table of contents page numbers and section titles."""
+    """Extract sorted table of contents page numbers and hierarchical breadcrumb titles."""
     raw_toc = doc.get_toc()
+    if not raw_toc:
+        return [], []
+
+    stack: list[str] = []
     toc_pages: list[int] = []
     toc_titles: list[str] = []
+
     for item in raw_toc:
-        if len(item) >= 3 and isinstance(item[2], int) and item[2] > 0:
-            toc_pages.append(item[2])
-            toc_titles.append(item[1].strip())
+        if len(item) < 3 or not isinstance(item[2], int) or item[2] <= 0:
+            continue
+        level = int(item[0])
+        title = str(item[1]).strip()
+        page = int(item[2])
+
+        while len(stack) >= level:
+            stack.pop()
+        stack.append(title)
+        breadcrumb = " > ".join(stack)
+
+        toc_pages.append(page)
+        toc_titles.append(breadcrumb)
 
     if not toc_pages:
         return [], []
@@ -97,10 +116,20 @@ def extract_page_blocks(page: pymupdf.Page, page_num: int, sec: str) -> list[Doc
     p_height = page.rect.height
     page_blocks: list[DocBlock] = []
 
-    for b in page.get_text("blocks"):
-        if b[6] != 0:
-            continue
-        raw_text = b[4].strip()
+    raw_blocks: list[tuple[Any, ...]] = [
+        b for b in page.get_text("blocks") if len(b) > 6 and b[6] == 0
+    ]
+    # Column-aware sorting: group by column threshold (half-width), then vertical (y0)
+    half_width = page.rect.width / 2.0
+
+    def _block_sort_key(b: tuple[Any, ...]) -> tuple[int, float]:
+        col = 1 if float(b[0]) > half_width else 0
+        return (col, float(b[1]))
+
+    sorted_blocks = sorted(raw_blocks, key=_block_sort_key)
+
+    for b in sorted_blocks:
+        raw_text = str(b[4]).strip()
         if not raw_text or is_margin_noise(raw_text, b[1], b[3], p_height):
             continue
         cleaned, is_atomic = clean_block_text(raw_text)

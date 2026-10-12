@@ -95,6 +95,8 @@ def search_literature(query: str, book: str = "", limit: int = 5) -> str:
             f"{page_start}–{page_end}" if page_end and page_end != page_start else f"{page_start}"
         )
         section_str = f" | {item['section']}" if item.get("section") else ""
+        cite_key = item.get("citation_key")
+        cite_str = f" `[{cite_key}]`" if cite_key else ""
         rel = item.get("_relevance_score")
         dist = item.get("_distance", 0.0)
         dist_f = float(str(dist)) if dist is not None else 0.0
@@ -102,7 +104,7 @@ def search_literature(query: str, book: str = "", limit: int = 5) -> str:
         text = str(item.get("text", "")).strip()
 
         output_lines.append(
-            f"**[{i}] {title} — Page {page_str}{section_str}** (Score: {score:.3f})"
+            f"**[{i}] {title}{cite_str} — Page {page_str}{section_str}** (Score: {score:.3f})"
         )
         output_lines.append(f"> {text}\n")
 
@@ -174,6 +176,46 @@ def list_literature_books() -> str:
 
     status_note = "✅ Indexed in LanceDB" if indexed else "⚠️ Not yet indexed (run 'just rag-index')"
     return f"**Literature Catalog Status**: {status_note}\n\n" + "\n".join(lines)
+
+
+@mcp.tool()
+def get_book_toc(book_slug: str) -> str:
+    """Retrieve the full hierarchical Table of Contents (TOC) for a textbook in resources/.
+
+    Args:
+        book_slug: Substring matching the book filename (e.g. 'jones', 'nystrom', 'seacord').
+
+    Returns:
+        Markdown-formatted list of chapters, sections, and page numbers.
+    """
+    target_file: Path | None = None
+    for entry in RESOURCES_DIR.iterdir():
+        if entry.is_file() and book_slug.lower() in entry.name.lower():
+            target_file = entry
+            break
+
+    if target_file is None:
+        return f"Error: No literature file found matching slug '{book_slug}' in resources/."
+
+    try:
+        doc = pymupdf.open(target_file)
+        raw_toc = doc.get_toc()
+        doc.close()
+        if not raw_toc:
+            return f"No Table of Contents (TOC) metadata found in {target_file.name}."
+
+        lines: list[str] = [f"### Table of Contents: {target_file.name}\n"]
+        for item in raw_toc:
+            if len(item) >= 3:
+                lvl = int(item[0])
+                title = str(item[1]).strip()
+                page = item[2]
+                indent = "  " * (lvl - 1)
+                lines.append(f"{indent}- **{title}** (Page {page})")
+
+        return "\n".join(lines)
+    except Exception as exc:  # noqa: BLE001
+        return f"Error reading TOC from {target_file.name}: {exc}"
 
 
 if __name__ == "__main__":

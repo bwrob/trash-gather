@@ -1,6 +1,6 @@
 """Resources RAG subpackage."""
 
-from chunking import (
+from .chunking import (
     DocBlock,
     assemble_text_chunks,
     clean_block_text,
@@ -8,7 +8,7 @@ from chunking import (
     extract_document_blocks,
     extract_page_blocks,
 )
-from embedding import (
+from .embedding import (
     build_chunk_record,
     collect_embeddings,
     ensure_fts_index,
@@ -19,7 +19,7 @@ from embedding import (
     persist_records,
     upgrade_and_merge_records,
 )
-from models import (
+from .models import (
     BGE_QUERY_PREFIX,
     BIB_PATH,
     COLLECTION_NAME,

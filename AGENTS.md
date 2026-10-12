@@ -70,8 +70,8 @@ ______
 ### 2.7 Role 7: Literature RAG Grounding & Retrieval (`resources/`)
 
 - **Authoritative Theoretical Foundations**: The repository maintains an offline, local Literature RAG system indexed in `.rag_db/` (LanceDB columnar storage) over canonical textbooks (*The Garbage Collection Handbook*, *Pointers on C*, *Effective C*, *Modern C*, *Computer Systems: A Programmer's Perspective*, *APUE*).
-- **Pedagogical Anchoring via MCP**: During Socratic tutoring, milestone initialization, and code reviews, AI agents must query the local literature tools (`search_literature`, `get_book_page`, `list_literature_books` exposed via `scripts/resources_rag/mcp.py` under `.agents/plugins/literature-rag/`) to cite formal definitions, exact page numbers, tri-color invariants, and architectural diagrams directly from canonical texts.
-- **Pipeline Architecture**: Managed through greenfield submodules in `scripts/resources_rag/` (`models.py`, `chunking.py`, `embedding.py`, `rag.py`, `mcp.py`) with layout-aware block parsing, code snippet preservation, hybrid BM25 + dense vector search (`BAAI/bge-small-en-v1.5`), and reranking.
+- **Pedagogical Anchoring via MCP**: During Socratic tutoring, milestone initialization, and code reviews, AI agents must query the local literature tools (`search_literature`, `get_book_page`, `get_book_toc`, `list_literature_books` exposed via `scripts/resources_rag/mcp_server.py` under `.agents/plugins/literature-rag/`) to cite formal definitions, exact page numbers, tri-color invariants, and architectural diagrams directly from canonical texts.
+- **Pipeline Architecture**: Managed through greenfield submodules in `scripts/resources_rag/` (`models.py`, `chunking.py`, `embedding.py`, `rag.py`, `mcp_server.py`) with layout-aware block parsing, code snippet preservation, hybrid BM25 + dense vector search (`BAAI/bge-small-en-v1.5`), and reranking.
 
 ### 2.8 The Interactive Development & Testing Loop
 
