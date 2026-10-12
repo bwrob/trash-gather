@@ -59,6 +59,25 @@ Every lesson must strictly follow the schema and sections defined in the externa
   1. `## 3. Architectural Solutions & Mental Models`
   1. `## 4. Hardware & Silicon Mechanics (What the Machine Did)`
   1. `## 5. Tooling Insights & Workflow Takeaways`
+  1. `## 6. Recommended Reading & Literature References`
+
+______
+
+## 🔍 Literature RAG Workflow
+
+When synthesizing a lesson, grounding engineering concepts in canonical systems textbooks is strictly required:
+
+1. **Query Local Literature RAG**:
+   - Use the `search_literature` MCP tool or terminal command `just rag-search "<concept>"` (optionally `--book <slug>`) to retrieve verbatim definitions, algorithms, and discussions from the local corpus (`resources/` indexed in LanceDB `.rag_db/`).
+   - Use `get_book_toc("<slug>")` and `get_book_page("<slug>", <page>)` to inspect context and exact page numbers.
+2. **Canonical Literature Mapping**:
+   - **Garbage Collection & Memory Management**: *The Garbage Collection Handbook* (Jones, Hosking & Moss) and *Crafting Interpreters* (Nystrom).
+   - **C Memory Layout & Pointers**: *Pointers on C* (Reek) and *Effective C* (Seacord).
+   - **C Standards & Language Invariants**: *Modern C* (Gustedt).
+   - **Hardware Systems, Caches & Virtual Memory**: *Computer Systems: A Programmer's Perspective* (Bryant & O'Hallaron).
+   - **UNIX Runtime & System Programming**: *Advanced Programming in the UNIX Environment* (Stevens & Rago).
+3. **Mandatory Citations in Section 6**:
+   - Every lesson must include relative markdown links pointing directly into `../resources/<filename>` with exact section titles and page numbers (e.g. `[Richard Jones et al. — *The Garbage Collection Handbook* (CRC Press, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 2, §2.2, pp. 59–60`).
 
 ______
 
@@ -71,5 +90,6 @@ Before finalizing a lesson, verify that it meets these standards:
 - [ ] **Diagnostic Fidelity**: Quotes real sanitizer errors or test failures that guided the investigation.
 - [ ] **Explains the "Why"**: Compares architectural alternatives and explains the performance/safety trade-offs.
 - [ ] **Hardware Intuition**: Documents the underlying physical machine mechanics (cache lines, CPU word alignment, branch predictor, or virtual memory paging).
-- [ ] **Literature & Bibliography Integration**: If any external book or paper is mentioned, download it using the `libgen-resource` skill (`uv run python .agents/skills/libgen-resource/scripts/libgen_fetch.py download "<Title>"`) if available, ensure it is registered in `resources/references.bib`, and index it via `just rag-index`. Use the local Literature RAG (`search_literature` MCP tool or `just rag-search "<concept>"`) to ground theoretical explanations with exact citations, algorithms, or page references from canonical textbooks (Jones et al., Reek, Seacord, Bryant & O'Hallaron, Stevens).
+- [ ] **Literature RAG Grounding**: Actively queries the local RAG store (`just rag-search` or `search_literature`) to anchor concepts to canonical literature. Section 6 contains verified links to `resources/` with exact chapters and page ranges.
+- [ ] **New External References**: If introducing a new textbook or paper not currently in `resources/`, download it using `libgen-resource` (`uv run python .agents/skills/libgen-resource/scripts/libgen_fetch.py download "<Title>"`), register it in `resources/references.bib`, and index it via `just rag-index`.
 - [ ] **Formatting**: Markdown is clean and formatted compliant with pre-commit checks (`just check`).

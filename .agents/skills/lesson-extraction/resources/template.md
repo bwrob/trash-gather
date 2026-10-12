@@ -44,4 +44,11 @@ ______
 ## 5. Tooling Insights & Workflow Takeaways
 - What role did the tooling play in accelerating discovery? (e.g., ASan shadow bytes, `bootlib` leak tracking, `just test-filter`, `lldb` watchpoints).
 - What testing heuristics or assertions caught the issue?
+
+---
+
+## 6. Recommended Reading & Literature References
+- Anchor principles to canonical textbooks using Literature RAG (`search_literature` MCP tool or `just rag-search "<query>"`).
+- Always include relative markdown links to local texts in `resources/` (e.g. `[Author — *Title*](../resources/file.pdf)`), citing exact chapters, sections, and page numbers.
+- Cite relevant historical papers, RFCs/PEPs, or C standards clauses where appropriate.
 ```

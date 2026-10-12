@@ -125,3 +125,18 @@ SRC_INCS := `find src -type d | sort | sed 's|^|-I|' | tr '\n' ' '`
 ```
 
 guarantees that all downstream tooling (`CFLAGS`, `BENCH_FLAGS`, `clang-tidy`, `compile_commands.json`) automatically inherit directory additions without manual configuration synchronization.
+
+______
+
+## 6. Recommended Reading & Literature References
+
+1. **Static Linking, Symbol Resolution & Relocation**:
+   - [Randal E. Bryant & David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 2015)](../resources/bryant_2015_computer_systems.pdf):
+     - **Chapter 7 (Linking, §7.6 Symbol Resolution, pp. 1538–1546)**: Strong vs. weak symbols, multiply defined global symbols, and static link resolution rules.
+     - **Chapter 7 (§7.7 Relocation & §7.8 Executable Object Files, pp. 1560–1575)**: Relocation entries, section headers (`.text`, `.data`, `.bss`), and loader mechanics.
+2. **Translation Units & Linkage in Modern C**:
+   - [Jens Gustedt — *Modern C* (Manning, 2023)](../resources/gustedt_2023_modern_c.epub):
+     - **Chapter 13 (Storage, §13.2 Storage duration, lifetime, and visibility, pp. 410–415)**: Language specifications for translation unit boundaries, external vs. internal linkage, and header organization best practices.
+3. **C Code Architecture & UNIX Modular Design**:
+   - [W. Richard Stevens & Stephen A. Rago — *Advanced Programming in the UNIX Environment* (Addison-Wesley, 2013)](../resources/stevens_2013_advanced_programming_unix.pdf):
+     - **Chapter 1 (UNIX System Overview) & Chapter 7 (Process Environment, pp. 200–225)**: Memory layout of C programs, heap, stack, and translation unit separation.
