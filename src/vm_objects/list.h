@@ -32,3 +32,19 @@ object_t *list_add(
     object_t *a,
     object_t *b
 );
+
+bool list_append(
+    object_t *list,
+    object_t *item
+);
+
+bool list_insert(
+    object_t *list,
+    size_t index,
+    object_t *item
+);
+
+bool list_pop(
+    object_t *list,
+    size_t *item
+);

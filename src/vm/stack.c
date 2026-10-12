@@ -34,7 +34,9 @@ void *stack_pop(
         return NULL;
     }
     stack->count--;
-    return stack->data[stack->count];
+    void *item = stack->data[stack->count];
+    stack->data[stack->count] = NULL;
+    return item;
 }
 
 void stack_free(

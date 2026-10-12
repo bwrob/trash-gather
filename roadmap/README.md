@@ -51,7 +51,7 @@ flowchart TD
       m_509705c["Fallible Stack &<br/>Frame Alloc"]:::planned
       m_6c3a989["Boolean Singletons<br/>& Truthiness"]:::planned
       m_70b20d3["Small Integer<br/>Caching"]:::planned
-      m_d7b5feb["Dynamic Resizable<br/>List Mutations"]:::planned
+      m_d7b5feb["Dynamic Resizable<br/>List Mutations"]:::inProgress
       m_e67154d["Immutable ASCII<br/>String Object"]:::planned
     end
     subgraph T1_Threads ["Concurrency & Workers"]
@@ -298,7 +298,7 @@ ______
 1. **[Dynamic Resizable List Mutations](d7b5feb_dynamic_resizable_list.md)**
 
    - **ID:** `d7b5feb`
-   - **Status:** 📋 Planned
+   - **Status:** ⏳ In Progress
    - **Difficulty:** 1 / 5
    - **Prerequisites:** [`b81f9a7`](b81f9a7_polymorphic_sequence_length.md)
    - **Focus:** Transform `list_t` into a dynamically resizable sequence supporting `list_append()`, `list_insert()`, and `list_pop()` with amortized $O(1)$ geometric growth and `memmove` overlapping memory shifts.
