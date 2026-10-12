@@ -21,19 +21,19 @@ _scripts_dir = str(Path(__file__).resolve().parent)
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
-from rag import (  # noqa: E402
+from embedding import execute_search, has_table  # noqa: E402
+from models import (  # noqa: E402
+    BGE_QUERY_PREFIX,
+    BIB_PATH,
     COLLECTION_NAME,
     DB_PATH,
     EMBEDDING_MODEL_NAME,
     RESOURCES_DIR,
-    has_table,
     load_bib_metadata,
     resolve_book_metadata,
 )
 
 mcp = FastMCP("literature-rag")
-
-BIB_PATH: Path = RESOURCES_DIR / "references.bib"
 
 # Lazy-loaded globals to avoid startup lag
 _db_client: lancedb.DBConnection | None = None
@@ -79,23 +79,33 @@ def search_literature(query: str, book: str = "", limit: int = 5) -> str:
     table = db.open_table(COLLECTION_NAME)
     model = get_model()
 
-    query_vec = list(model.embed([query]))[0].tolist()
-    search_builder = table.search(query_vec).limit(limit)
-    if book.strip():
-        search_builder = search_builder.where(f"book_slug LIKE '%{book.strip().lower()}%'")
-
-    results: list[dict[str, Any]] = search_builder.to_list()
+    prefixed_query = f"{BGE_QUERY_PREFIX}{query}"
+    query_vec = list(model.embed([prefixed_query]))[0].tolist()
+    filter_book = book.strip().lower() if book.strip() else None
+    results: list[dict[str, Any]] = execute_search(table, query, query_vec, filter_book, limit)
     if not results:
         return f"No relevant literature found for query: '{query}'."
 
     output_lines: list[str] = [f"### Literature Search Results for: *{query}*\n"]
     for i, item in enumerate(results, start=1):
         title = item.get("title", item.get("book_slug", "Unknown Book"))
-        page = item.get("page", "?")
-        distance = item.get("_distance", 0.0)
+        page_start = item.get("page", "?")
+        page_end = item.get("page_end")
+        page_str = (
+            f"{page_start}–{page_end}" if page_end and page_end != page_start else f"{page_start}"
+        )
+        section_str = f" | {item['section']}" if item.get("section") else ""
+        cite_key = item.get("citation_key")
+        cite_str = f" `[{cite_key}]`" if cite_key else ""
+        rel = item.get("_relevance_score")
+        dist = item.get("_distance", 0.0)
+        dist_f = float(str(dist)) if dist is not None else 0.0
+        score = float(str(rel)) if rel is not None else (1.0 - dist_f)
         text = str(item.get("text", "")).strip()
 
-        output_lines.append(f"**[{i}] {title} — Page {page}** (Distance: {distance:.3f})")
+        output_lines.append(
+            f"**[{i}] {title}{cite_str} — Page {page_str}{section_str}** (Score: {score:.3f})"
+        )
         output_lines.append(f"> {text}\n")
 
     return "\n".join(output_lines)
@@ -166,6 +176,46 @@ def list_literature_books() -> str:
 
     status_note = "✅ Indexed in LanceDB" if indexed else "⚠️ Not yet indexed (run 'just rag-index')"
     return f"**Literature Catalog Status**: {status_note}\n\n" + "\n".join(lines)
+
+
+@mcp.tool()
+def get_book_toc(book_slug: str) -> str:
+    """Retrieve the full hierarchical Table of Contents (TOC) for a textbook in resources/.
+
+    Args:
+        book_slug: Substring matching the book filename (e.g. 'jones', 'nystrom', 'seacord').
+
+    Returns:
+        Markdown-formatted list of chapters, sections, and page numbers.
+    """
+    target_file: Path | None = None
+    for entry in RESOURCES_DIR.iterdir():
+        if entry.is_file() and book_slug.lower() in entry.name.lower():
+            target_file = entry
+            break
+
+    if target_file is None:
+        return f"Error: No literature file found matching slug '{book_slug}' in resources/."
+
+    try:
+        doc = pymupdf.open(target_file)
+        raw_toc = doc.get_toc()
+        doc.close()
+        if not raw_toc:
+            return f"No Table of Contents (TOC) metadata found in {target_file.name}."
+
+        lines: list[str] = [f"### Table of Contents: {target_file.name}\n"]
+        for item in raw_toc:
+            if len(item) >= 3:
+                lvl = int(item[0])
+                title = str(item[1]).strip()
+                page = item[2]
+                indent = "  " * (lvl - 1)
+                lines.append(f"{indent}- **{title}** (Page {page})")
+
+        return "\n".join(lines)
+    except Exception as exc:  # noqa: BLE001
+        return f"Error reading TOC from {target_file.name}: {exc}"
 
 
 if __name__ == "__main__":

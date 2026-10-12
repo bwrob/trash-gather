@@ -13,6 +13,7 @@ dependencies = [
     "pre-commit>=4.6.2",
     "pymupdf>=1.25.0",
     "requests>=2.34.2",
+    "rich>=13.0.0",
     "typer>=0.27.3",
 ]
 
@@ -32,7 +33,7 @@ indent-style = "space"
 [tool.pyrefly]
 # Only check project scripts, not vendor/venv
 project-includes = ["scripts/**/*.py"]
-search-path = ["scripts"]
+search-path = ["scripts", "scripts/resources_rag"]
 preset = "strict"
 
 [tool.complexipy]

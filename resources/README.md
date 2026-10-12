@@ -6,8 +6,8 @@ Rather than relying on static, manually curated chapter indexes, the repository 
 
 - **Bibliography Database**: [`references.bib`](./references.bib)
 - **Local Vector Database**: `.rag_db/` (LanceDB columnar storage, gitignored)
-- **RAG Engine & Typer CLI**: [`scripts/rag.py`](../scripts/rag.py)
-- **MCP Server**: [`scripts/rag_mcp_server.py`](../scripts/rag_mcp_server.py)
+- **RAG Engine & Typer CLI**: [`scripts/resources_rag/rag.py`](../scripts/resources_rag/rag.py)
+- **MCP Server**: [`scripts/resources_rag/mcp_server.py`](../scripts/resources_rag/mcp_server.py)
 - **Agent Plugin Config**: [`.agents/plugins/literature-rag/`](../.agents/plugins/literature-rag/)
 
 ______
@@ -21,7 +21,7 @@ flowchart TD
         BIB["references.bib\n(Dynamic metadata authority)"]
     end
 
-    subgraph Ingestion ["Ingestion Pipeline (scripts/rag.py)"]
+    subgraph Ingestion ["Ingestion Pipeline (scripts/resources_rag/rag.py)"]
         PARSER["PyMuPDF Engine\nExtracts text & 1-based page indices"]
         CHUNKER["Sliding-Window Chunker\n350 words, 50-word overlap\nEnriched with dynamic BibTeX metadata"]
         EMBED["FastEmbed ONNX Engine\nBAAI/bge-small-en-v1.5\nDense 384-dimensional embeddings"]
@@ -33,8 +33,8 @@ flowchart TD
 
     subgraph Interfaces ["Access Interfaces"]
         CLI["Developer CLI\njust rag-search '<query>'\njust rag-index [slug]"]
-        MCP["MCP Server (stdio)\nscripts/rag_mcp_server.py\nRegistered in .agents/plugins/"]
-        AGENT["AI Pair Programmer\nsearch_literature()\nget_book_page()\nlist_literature_books()"]
+        MCP["MCP Server (stdio)\nscripts/resources_rag/mcp_server.py\nRegistered in .agents/plugins/"]
+        AGENT["AI Pair Programmer\nsearch_literature()\nget_book_page()\nget_book_toc()\nlist_literature_books()"]
     end
 
     DOCS & BIB --> PARSER --> CHUNKER --> EMBED --> LANCE
@@ -224,7 +224,7 @@ The RAG pipeline is exposed as a repository-local **MCP Server** configured unde
 
 ### Communication Transport
 
-The MCP server operates over standard I/O (`stdio`). When an Antigravity agent starts, the environment spawns the Python server process (`scripts/rag_mcp_server.py`) and discovers available tools dynamically.
+The MCP server operates over standard I/O (`stdio`). When an Antigravity agent starts, the environment spawns the Python server process (`scripts/resources_rag/mcp_server.py`) and discovers available tools dynamically.
 
 ### Agent Tool Interfaces
 
@@ -240,7 +240,13 @@ The MCP server operates over standard I/O (`stdio`). When an Antigravity agent s
 - **Purpose**: Retrieve the complete verbatim text of a specific physical page from any document in `resources/` on demand.
 - **Use Case**: Allows the agent to expand on a relevant search result and examine surrounding context, mathematical proofs, or algorithm pseudocode.
 
-#### 3. `list_literature_books`
+#### 3. `get_book_toc`
+
+- **Signature**: `get_book_toc(book_slug: str) -> str`
+- **Purpose**: Retrieve the full hierarchical Table of Contents (TOC) with indentation and page numbers for any tracked textbook.
+- **Use Case**: Allows the agent to quickly inspect chapter organization and locate foundational sections before searching.
+
+#### 4. `list_literature_books`
 
 - **Signature**: `list_literature_books() -> str`
 - **Purpose**: Returns a Markdown table detailing all available literature volumes, page counts, file formats, and indexing status.

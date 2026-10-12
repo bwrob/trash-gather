@@ -252,15 +252,15 @@ lint-resources:
 
 # Index textbooks in resources/ into local LanceDB vector database
 rag-index book="":
-    uv run python scripts/rag.py index {{ if book != "" { "--book " + book } else { "" } }}
+    uv run python scripts/resources_rag/rag.py index {{ if book != "" { "--book " + book } else { "" } }}
 
 # Perform semantic search across indexed literature
 rag-search query book="" limit="5":
-    uv run python scripts/rag.py search "{{ query }}" {{ if book != "" { "--book " + book } else { "" } }} --limit {{ limit }}
+    uv run python scripts/resources_rag/rag.py search "{{ query }}" {{ if book != "" { "--book " + book } else { "" } }} --limit {{ limit }}
 
 # Show statistics of indexed literature in LanceDB
 rag-stats:
-    uv run python scripts/rag.py stats
+    uv run python scripts/resources_rag/rag.py stats
 
 # Inspect exact memory layout, field offsets, and padding holes of a C struct
 struct-layout name file="src/vm_objects/object.c":

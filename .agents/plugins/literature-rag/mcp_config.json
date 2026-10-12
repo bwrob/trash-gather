@@ -5,7 +5,7 @@
       "args": [
         "run",
         "python",
-        "scripts/rag_mcp_server.py"
+        "scripts/resources_rag/mcp_server.py"
       ]
     }
   }
