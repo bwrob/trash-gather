@@ -27,6 +27,7 @@ from models import (
     load_bib_metadata,
     resolve_book_metadata,
 )
+from rich.console import Console
 from rich.progress import (
     BarColumn,
     Progress,
@@ -35,6 +36,7 @@ from rich.progress import (
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
+from rich.table import Table
 
 app = typer.Typer(
     add_completion=False,
@@ -187,18 +189,63 @@ def search(
         typer.echo(f"    {text_preview}\n")
 
 
+def _build_stats_table(arrow_tbl: object) -> tuple[Table, int]:
+    """Aggregate chunks per book and construct a formatted Rich table."""
+    slugs = arrow_tbl["book_slug"].to_pylist()  # type: ignore[index]
+    schema_names = getattr(getattr(arrow_tbl, "schema", None), "names", [])
+    titles = arrow_tbl["title"].to_pylist() if "title" in schema_names else slugs  # type: ignore[index]
+    pages = arrow_tbl["page"].to_pylist() if "page" in schema_names else [0] * len(slugs)  # type: ignore[index]
+
+    book_stats: dict[str, dict[str, object]] = {}
+    for s, t, p in zip(slugs, titles, pages, strict=True):
+        if s not in book_stats:
+            book_stats[s] = {"title": t, "count": 0, "pages": set()}
+        book_stats[s]["count"] = int(book_stats[s]["count"]) + 1  # type: ignore[operator]
+        book_stats[s]["pages"].add(p)  # type: ignore[attr-defined]
+
+    table = Table(
+        title="📚 Indexed Literature Statistics",
+        show_header=True,
+        header_style="bold magenta",
+        title_style="bold cyan",
+    )
+    table.add_column("Book / Volume", style="white")
+    table.add_column("Book Slug", style="dim")
+    table.add_column("Chunks", justify="right", style="bold green")
+    table.add_column("Indexed Pages", justify="right", style="blue")
+
+    total_chunks = 0
+    for slug, info in sorted(book_stats.items()):
+        cnt = int(str(info["count"]))
+        total_chunks += cnt
+        num_pages = len(info["pages"])  # type: ignore[arg-type]
+        title_disp = str(info["title"])
+        if len(title_disp) > 45:
+            title_disp = title_disp[:42] + "..."
+        table.add_row(title_disp, slug, f"{cnt:,}", f"{num_pages:,}")
+
+    return table, total_chunks
+
+
 @app.command()
 def stats() -> None:
-    """Display statistics about the indexed literature."""
+    """Display comprehensive statistics about the indexed literature."""
     db = get_vector_db()
     if not has_table(db, COLLECTION_NAME):
-        typer.secho("Database empty. Run index first.", fg=typer.colors.YELLOW)
+        typer.secho("Database empty. Run 'just rag-index' first.", fg=typer.colors.YELLOW)
         return
 
     tbl = db.open_table(COLLECTION_NAME)
-    total_records = len(tbl)
-    typer.secho(f"Total indexed chunks: {total_records}", fg=typer.colors.GREEN, bold=True)
-    typer.echo(f"Database location: {DB_PATH}")
+    arrow_tbl = tbl.to_arrow()
+    if len(arrow_tbl) == 0:
+        typer.secho("Database contains 0 records.", fg=typer.colors.YELLOW)
+        return
+
+    console = Console()
+    table, total_chunks = _build_stats_table(arrow_tbl)
+    console.print(table)
+    console.print(f"\n[bold green]Total indexed chunks:[/bold green] {total_chunks:,}")
+    console.print(f"[dim]Database location: {DB_PATH}[/dim]\n")
 
 
 if __name__ == "__main__":
