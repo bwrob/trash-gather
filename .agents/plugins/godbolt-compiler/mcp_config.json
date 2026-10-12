@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "godbolt-compiler": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "scripts/godbolt_mcp_server.py"
+      ]
+    }
+  }
+}

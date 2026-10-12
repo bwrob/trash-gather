@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "struct-layout": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "scripts/struct_layout_mcp_server.py"
+      ]
+    }
+  }
+}
