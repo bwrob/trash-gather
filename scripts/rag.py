@@ -17,6 +17,8 @@ import lancedb
 import pymupdf
 import typer
 from fastembed import TextEmbedding
+from lancedb.index import FTS
+from lancedb.rerankers import LinearCombinationReranker
 from rich.progress import (
     BarColumn,
     Progress,
@@ -37,6 +39,7 @@ BIB_PATH: Path = RESOURCES_DIR / "references.bib"
 DB_PATH: Path = WORKSPACE_ROOT / ".rag_db"
 COLLECTION_NAME: str = "literature"
 EMBEDDING_MODEL_NAME: str = "BAAI/bge-small-en-v1.5"
+BGE_QUERY_PREFIX: str = "Represent this sentence for searching relevant passages: "
 SUPPORTED_EXTENSIONS: set[str] = {".pdf", ".epub"}
 
 
@@ -547,19 +550,29 @@ def _upgrade_and_merge_records(
     db.create_table(COLLECTION_NAME, data=combined, mode="overwrite")
 
 
+def _ensure_fts_index(tbl: lancedb.table.Table) -> None:
+    """Ensure Full-Text Search (FTS) index is built on the text column."""
+    try:
+        tbl.create_index("text", config=FTS(), replace=True)
+    except Exception as exc:  # noqa: BLE001
+        typer.secho(f"Warning: Failed to create FTS index: {exc}", fg=typer.colors.YELLOW)
+
+
 def _persist_records(
     db: lancedb.DBConnection,
     records: list[dict[str, object]],
     book_filter: str | None,
     target_slug: str | None,
 ) -> None:
-    """Store or update records in LanceDB, ensuring schema compatibility."""
+    """Store or update records in LanceDB, ensuring schema compatibility and FTS."""
     if not has_table(db, COLLECTION_NAME):
-        db.create_table(COLLECTION_NAME, data=records, mode="overwrite")
+        tbl = db.create_table(COLLECTION_NAME, data=records, mode="overwrite")
+        _ensure_fts_index(tbl)
         return
 
     if not (book_filter and target_slug):
-        db.create_table(COLLECTION_NAME, data=records, mode="overwrite")
+        tbl = db.create_table(COLLECTION_NAME, data=records, mode="overwrite")
+        _ensure_fts_index(tbl)
         return
 
     tbl = db.open_table(COLLECTION_NAME)
@@ -569,6 +582,38 @@ def _persist_records(
         tbl.add(records)
     else:
         _upgrade_and_merge_records(db, tbl, records, target_slug)
+        tbl = db.open_table(COLLECTION_NAME)
+    _ensure_fts_index(tbl)
+
+
+def _execute_search(
+    table: lancedb.table.Table,
+    query: str,
+    query_vec: list[float],
+    book: str | None,
+    limit: int,
+) -> list[dict[str, object]]:
+    """Execute hybrid search if FTS index exists, falling back to pure vector search."""
+    has_fts = any(
+        getattr(idx, "index_type", "") == "FTS" or "text" in getattr(idx, "columns", [])
+        for idx in table.list_indices()
+    )
+
+    if has_fts:
+        builder = (
+            table.search(query_type="hybrid")
+            .vector(query_vec)
+            .text(query)
+            .rerank(reranker=LinearCombinationReranker(weight=0.7))
+            .limit(limit)
+        )
+    else:
+        builder = table.search(query_vec).limit(limit)
+
+    if book:
+        builder = builder.where(f"book_slug LIKE '%{book}%'")
+
+    return builder.to_list()
 
 
 @app.command()
@@ -630,7 +675,7 @@ def search(
     ] = None,
     limit: Annotated[int, typer.Option("--limit", "-k", help="Maximum results to return")] = 5,
 ) -> None:
-    """Perform semantic search across indexed literature."""
+    """Perform hybrid semantic & full-text search across indexed literature."""
     db = get_vector_db()
     if not has_table(db, COLLECTION_NAME):
         typer.secho(
@@ -643,26 +688,28 @@ def search(
     table = db.open_table(COLLECTION_NAME)
     model = get_embedding_model()
 
-    query_vec = list(model.embed([query]))[0].tolist()
-    search_builder = table.search(query_vec).limit(limit)
-    if book:
-        search_builder = search_builder.where(f"book_slug LIKE '%{book}%'")
+    # BGE query instruction prefix for asymmetric retrieval
+    prefixed_query = f"{BGE_QUERY_PREFIX}{query}"
+    query_vec = list(model.embed([prefixed_query]))[0].tolist()
+    results = _execute_search(table, query, query_vec, book, limit)
 
-    results = search_builder.to_list()
     if not results:
         typer.secho(f"No results found for query: '{query}'", fg=typer.colors.YELLOW)
         return
 
     typer.secho(f"\nTop {len(results)} matches for: '{query}'\n", fg=typer.colors.CYAN, bold=True)
     for i, item in enumerate(results, start=1):
-        score_val = item.get("_distance", 0.0)
+        rel = item.get("_relevance_score")
+        dist = item.get("_distance", 0.0)
+        dist_f = float(str(dist)) if dist is not None else 0.0
+        score_val = float(str(rel)) if rel is not None else (1.0 - dist_f)
         page_info = f"Page {item['page']}"
         page_end = item.get("page_end")
         if page_end and page_end != item["page"]:
             page_info = f"Pages {item['page']}–{page_end}"
         section_str = f" | {item['section']}" if item.get("section") else ""
         typer.secho(
-            f"[{i}] {item['title']} ({page_info}{section_str}) — Distance: {score_val:.4f}",
+            f"[{i}] {item['title']} ({page_info}{section_str}) — Score: {score_val:.4f}",
             fg=typer.colors.GREEN,
             bold=True,
         )

@@ -22,10 +22,12 @@ if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
 from rag import (  # noqa: E402
+    BGE_QUERY_PREFIX,
     COLLECTION_NAME,
     DB_PATH,
     EMBEDDING_MODEL_NAME,
     RESOURCES_DIR,
+    _execute_search,
     has_table,
     load_bib_metadata,
     resolve_book_metadata,
@@ -79,23 +81,31 @@ def search_literature(query: str, book: str = "", limit: int = 5) -> str:
     table = db.open_table(COLLECTION_NAME)
     model = get_model()
 
-    query_vec = list(model.embed([query]))[0].tolist()
-    search_builder = table.search(query_vec).limit(limit)
-    if book.strip():
-        search_builder = search_builder.where(f"book_slug LIKE '%{book.strip().lower()}%'")
-
-    results: list[dict[str, Any]] = search_builder.to_list()
+    prefixed_query = f"{BGE_QUERY_PREFIX}{query}"
+    query_vec = list(model.embed([prefixed_query]))[0].tolist()
+    filter_book = book.strip().lower() if book.strip() else None
+    results: list[dict[str, Any]] = _execute_search(table, query, query_vec, filter_book, limit)
     if not results:
         return f"No relevant literature found for query: '{query}'."
 
     output_lines: list[str] = [f"### Literature Search Results for: *{query}*\n"]
     for i, item in enumerate(results, start=1):
         title = item.get("title", item.get("book_slug", "Unknown Book"))
-        page = item.get("page", "?")
-        distance = item.get("_distance", 0.0)
+        page_start = item.get("page", "?")
+        page_end = item.get("page_end")
+        page_str = (
+            f"{page_start}–{page_end}" if page_end and page_end != page_start else f"{page_start}"
+        )
+        section_str = f" | {item['section']}" if item.get("section") else ""
+        rel = item.get("_relevance_score")
+        dist = item.get("_distance", 0.0)
+        dist_f = float(str(dist)) if dist is not None else 0.0
+        score = float(str(rel)) if rel is not None else (1.0 - dist_f)
         text = str(item.get("text", "")).strip()
 
-        output_lines.append(f"**[{i}] {title} — Page {page}** (Distance: {distance:.3f})")
+        output_lines.append(
+            f"**[{i}] {title} — Page {page_str}{section_str}** (Score: {score:.3f})"
+        )
         output_lines.append(f"> {text}\n")
 
     return "\n".join(output_lines)
