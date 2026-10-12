@@ -17,6 +17,7 @@ extern MunitTest none_tests[];
 extern MunitTest frame_tests[];
 extern MunitTest vm_stack_tests[];
 extern MunitTest refcount_tests[];
+extern MunitTest bootlib_tests[];
 
 static MunitSuite child_suites[] = {
     munit_suite("mark-and-sweep", vm_tests),
@@ -29,6 +30,7 @@ static MunitSuite child_suites[] = {
     munit_suite("frame", frame_tests),
     munit_suite("stack", vm_stack_tests),
     munit_suite("refcount", refcount_tests),
+    munit_suite("bootlib", bootlib_tests),
     {NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE}
 };
 
