@@ -33,7 +33,7 @@ app = typer.Typer(
     help="Dynamic, offline Literature RAG for systems and garbage collection textbooks.",
 )
 
-WORKSPACE_ROOT: Path = Path(__file__).resolve().parent.parent
+WORKSPACE_ROOT: Path = Path(__file__).resolve().parent.parent.parent
 RESOURCES_DIR: Path = WORKSPACE_ROOT / "resources"
 BIB_PATH: Path = RESOURCES_DIR / "references.bib"
 DB_PATH: Path = WORKSPACE_ROOT / ".rag_db"
@@ -679,7 +679,7 @@ def search(
     db = get_vector_db()
     if not has_table(db, COLLECTION_NAME):
         typer.secho(
-            "Vector database not found. Run 'python scripts/rag.py index' first.",
+            "Vector database not found. Run 'python scripts/resources_rag/rag.py index' first.",
             fg=typer.colors.RED,
             err=True,
         )
