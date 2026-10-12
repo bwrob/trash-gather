@@ -345,5 +345,38 @@ A single happy-path test executed every line in the function sequentially (`mall
 To prevent coverage illusions, test generation is governed by three non-negotiable heuristics derived from [`c-expert`](../.agents/skills/c-expert/SKILL.md):
 
 1. **The Container Lifecycle Probe:** Always test container destruction via `object_refcount_dec()` with `vm_cleanup_after_refcount(); assert(boot_all_freed())`. Never rely solely on `vm_free()`.
-1. **The $K$-of-$N$ Mid-Loop Probe:** Always construct inputs where element $0$ succeeds and element $1$ fails, verifying early abort and clean unwinding.
-1. **Heap Exhaustion Sweeps:** Sweep `boot_set_fail_alloc_after(i)` across all fallible allocation steps to verify rollback.
+2. **The $K$-of-$N$ Mid-Loop Probe:** Always construct inputs where element $0$ succeeds and element $1$ fails, verifying early abort and clean unwinding.
+3. **Heap Exhaustion Sweeps:** Sweep `boot_set_fail_alloc_after(i)` across all fallible allocation steps to verify rollback.
+
+______
+
+## 8. Hardware & Silicon Mechanics (What the Machine Did)
+
+### 8.1 Struct Padding, Word Alignment & Contiguous Allocation
+
+- In 64-bit architectures (x86-64, AArch64), CPU registers and data busses operate natively on 8-byte word boundaries. Accessing unaligned 8-byte pointers requires split bus cycles or hardware memory alignment faults.
+- In `tuple_t`, the leading `size_t size` (8 bytes) is immediately followed by `object_t *elements[]` (8-byte pointers). Because `size_t` matches pointer alignment, there are **0 padding bytes** inserted between the header and the payload.
+- Single-allocation flexible array buffers allocate the struct header and pointer array in a single contiguous memory block (`sizeof(tuple_t) + N * sizeof(object_t*)`). Traversing elements streams contiguous memory into L1 data cache lines without intermediate pointer hops.
+
+### 8.2 Page 0 MMU Faults (Zero-Address Guarding)
+
+- Modern operating systems map the lowest 4 KB (or 64 KB on macOS) virtual memory page as non-readable and non-writable (`PROT_NONE`).
+- When code attempts `*(NULL + i)` under `objects == NULL && size > 0`, the CPU's Memory Management Unit (MMU) catches the translation fault against the Page 0 guard, generating a hardware trap that the OS kernel surfaces as an immediate `SIGSEGV`.
+
+______
+
+## 9. Recommended Reading & Literature References
+
+1. **Dynamic Memory & Flexible Array Members**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf):
+     - **Chapter 6 (Dynamically Allocated Memory, §Flexible Array Members, pp. 140–141)**: Correct sizing calculation (`sizeof(struct) + N * sizeof(elem)`), avoiding struct padding errors, and handling incomplete types.
+     - **Chapter 6 (§The `realloc` Function, pp. 136–138)**: Detailed analysis of the realloc trap (leaking the original pointer on `NULL` return).
+2. **Pointers, Struct Storage & Alignment**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf):
+     - **Chapter 10 (Structures and Unions, §10.3 Structure Storage Allocation, pp. 245–252)**: Hardware boundary alignment, member offsets, and compiler padding rules.
+3. **Hardware Memory Hierarchy & Virtual Memory**:
+   - [Randal E. Bryant & David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 2015)](../resources/bryant_2015_computer_systems.pdf):
+     - **Chapter 9 (Virtual Memory, §9.9 Dynamic Memory Allocation, pp. 1915–1930)**: Allocator design, boundary tags, and internal vs. external fragmentation.
+4. **Allocation Rollback in Managed Runtimes**:
+   - [Richard Jones, Antony Hosking & Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf):
+     - **Chapter 7 (Allocation, §7.1 Explicit allocation, pp. 150–154)**: Allocation rollback invariants and failure path reclamation.

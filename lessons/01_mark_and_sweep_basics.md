@@ -140,22 +140,18 @@ In pure Mark-and-Sweep, memory management ownership is completely centralized:
 
 ______
 
-## 4. Performance & Systems Optimization
+## 4. Hardware & Silicon Mechanics (What the Machine Did)
 
-### 4.1 Throughput vs. Pause Latency Trade-offs
+### 4.1 CPU L1/L2 Cache Locality: Stack DFS vs. Queue BFS
 
-- **Allocation Throughput:**
-  - Mark-and-Sweep provides extremely high allocation throughput during mutator execution.
-  - Object creation requires only a single `calloc()` and an append to `CURRENT_VM->objects`.
-  - There is **zero reference counting overhead** on variable assignment, pointer swaps, or parameter passing.
-- **Stop-the-World Pauses:**
-  - The collector pauses execution to trace the heap.
-  - Pause duration is proportional to **$O(\\text{Live} + \\text{Dead})$** objects in the heap. As heap size grows, GC pauses become perceptible.
+- In an iterative gray worklist, popping from the top of an explicit stack results in **Depth-First Search (DFS)** traversal. In physical silicon, newly traversed children are pushed and immediately popped, keeping their memory lines hot in the CPU L1/L2 cache (typically 64-byte lines).
+- In contrast, a FIFO queue yields **Breadth-First Search (BFS)** traversal, traversing the entire current graph level before descending. For large object graphs, this hops across disjoint 4 KB virtual memory pages, evicting cache lines and causing costly Translation Lookaside Buffer (TLB) misses and main memory access stalls (~50–100 ns vs. ~1 ns L1 hits).
 
-### 4.2 Cache Locality During Graph Traversal
+### 4.2 C Call Stack Exhaustion (Stack Frame Memory Footprint)
 
-- In an iterative gray worklist, popping from the top of the stack results in **Depth-First Search (DFS)** traversal, keeping recently visited parent/child clusters hot in the CPU L1/L2 data cache.
-- Queuing objects into a FIFO worklist would result in **Breadth-First Search (BFS)** traversal, causing wide pointer hops across disjoint heap pages that increase CPU cache misses.
+- A naive recursive marking function allocates an activation record (return address, preserved registers, frame pointer, local variables) on the thread's native call stack for every traversed object.
+- On x86-64 / ARM64, each call frame consumes at least 32–48 bytes. A deep linked list or tree of depth 100,000 demands ~3.2–4.8 MB of contiguous stack memory. Given default OS thread stack limits (typically 512 KB–8 MB on macOS / Linux), this crosses the stack guard page into an immediate unrecoverable `SIGSEGV` crash.
+- Transitioning to a dynamic heap-allocated worklist relocates the frontier to the virtual memory heap, avoiding native stack exhaustion.
 
 ______
 
@@ -171,3 +167,19 @@ ______
 - AddressSanitizer (ASan) excels at detecting **spatial errors** (buffer overflows, out-of-bounds array access) and **temporal errors** (use-after-free, double frees).
 - `bootlib` excels at detecting **silent resource leaks** (reachable or orphaned blocks that were never freed).
 - Combining both tools guarantees that every test in the suite verifies memory correctness and resource reclamation simultaneously.
+
+______
+
+## 6. Recommended Reading & Literature References
+
+1. **Foundational Theory & Algorithmic Design**:
+   - [Richard Jones, Antony Hosking & Eliot Moss — *The Garbage Collection Handbook: The Art of Automatic Memory Management* (CRC Press, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf):
+     - **Chapter 2, §2.1 & §2.2 (Mark-sweep garbage collection & The tricolour abstraction, pp. 59–60)**: Mathematical formalism of Dijkstra's tri-color invariant and analysis of mark-stack depth vs. explicit heap worklists.
+     - **Chapter 2, §2.4 (Bitmap marking & mark stack overflow, pp. 63–64)**: Real-world strategies for bounding traversal memory when mark stacks exhaust heap memory.
+2. **Concrete C Runtime Implementation**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf):
+     - **Chapter 26 (Garbage Collection, §26.3–§26.6, pp. 481–495)**: Step-by-step walkthrough of writing an exact mark-and-sweep collector in pure C, maintaining precise root arrays on VM call frames, and implementing an explicit gray stack worklist.
+3. **Hardware Memory Systems & Cache Hierarchy**:
+   - [Randal E. Bryant & David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 2015)](../resources/bryant_2015_computer_systems.pdf):
+     - **Chapter 6 (The Memory Hierarchy, §6.4 Cache Memories, pp. 600–625)**: Cache line fills, spatial/temporal locality, and miss penalties governing graph traversal performance.
+     - **Chapter 9 (Virtual Memory, §9.9 Dynamic Memory Allocation, pp. 1900–1930)**: Allocator layout overhead, heap fragmentation, and explicit free lists.
