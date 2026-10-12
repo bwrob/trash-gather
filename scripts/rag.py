@@ -17,6 +17,14 @@ import lancedb
 import pymupdf
 import typer
 from fastembed import TextEmbedding
+from rich.progress import (
+    BarColumn,
+    Progress,
+    TaskID,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 
 app = typer.Typer(
     add_completion=False,
@@ -63,6 +71,18 @@ class TextChunk:
     page: int
     chunk_index: int
     text: str
+    section: str = ""
+    page_end: int = 0
+
+
+@dataclass
+class _DocBlock:
+    """Internal representation of an extracted document block."""
+
+    page: int
+    section: str
+    text: str
+    is_atomic: bool = False
 
 
 def _clean_bib_val(val: str | None) -> str:
@@ -127,63 +147,275 @@ def resolve_book_metadata(doc_path: Path, catalog: dict[str, BookMetadata]) -> B
     )
 
 
-def extract_page_chunks(meta: BookMetadata, page_num: int, text: str) -> list[TextChunk]:
-    """Split a page's text into overlapping word chunks."""
-    cleaned = re.sub(r"\s+", " ", text).strip()
-    words = cleaned.split(" ")
-    if len(words) < 15:
-        return []
+def _is_margin_noise(text: str, y0: float, y1: float, page_height: float) -> bool:
+    """Detect repetitive running headers, footers, or standalone page numbers."""
+    t = text.strip()
+    if not t:
+        return True
+    if y0 < 45.0 or y1 > page_height - 45.0:
+        if t.isdigit() or re.fullmatch(r"p(age)?\.?\s*\d+", t, re.IGNORECASE):
+            return True
+        if len(t) <= 60 and len(t.splitlines()) <= 2:
+            return True
+    return False
 
-    chunk_size = 350
-    overlap = 50
+
+MATH_SYMBOLS: set[str] = set("∀∃∈∉⊂⊆∪∩∧∨¬⇒⇔∑∏∫≤≥≠≈≡→←↑↓")
+CODE_INDICATORS: tuple[str, ...] = (
+    "  ",
+    "\t",
+    "#include",
+    "#define",
+    "#ifdef",
+    "struct ",
+    "typedef ",
+    "int ",
+    "void ",
+    "char *",
+    "return ",
+    "if (",
+    "for (",
+    "while (",
+    "switch (",
+)
+
+
+def _clean_block_text(text: str) -> tuple[str, bool]:
+    """Clean text while preserving code block and math layout without corruption."""
+    text = text.replace("\xad", "")
+    lines = text.strip().splitlines()
+    if not lines:
+        return "", False
+
+    is_code = any(line.startswith(CODE_INDICATORS) for line in lines) and len(lines) > 1
+    if is_code:
+        return "\n".join(line.rstrip() for line in lines if line.strip()), True
+
+    is_math = any(char in MATH_SYMBOLS for char in text)
+    if is_math and len(lines) > 1:
+        return "\n".join(line.rstrip() for line in lines if line.strip()), True
+
+    healed = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)
+    return re.sub(r"\s+", " ", healed).strip(), False
+
+
+def _build_toc_lookup(doc: pymupdf.Document) -> tuple[list[int], list[str]]:
+    """Extract sorted table of contents page numbers and section titles."""
+    raw_toc = doc.get_toc()
+    toc_pages: list[int] = []
+    toc_titles: list[str] = []
+    for item in raw_toc:
+        if len(item) >= 3 and isinstance(item[2], int) and item[2] > 0:
+            toc_pages.append(item[2])
+            toc_titles.append(item[1].strip())
+
+    if not toc_pages:
+        return [], []
+
+    def _sort_key(pair: tuple[int, str]) -> int:
+        return pair[0]
+
+    sorted_pairs = sorted(zip(toc_pages, toc_titles, strict=True), key=_sort_key)
+    return [p for p, _ in sorted_pairs], [t for _, t in sorted_pairs]
+
+
+def _extract_page_blocks(page: pymupdf.Page, page_num: int, sec: str) -> list[_DocBlock]:
+    """Extract and filter valid text/code blocks from a single page."""
+    p_height = page.rect.height
+    page_blocks: list[_DocBlock] = []
+
+    for b in page.get_text("blocks"):
+        if b[6] != 0:
+            continue
+        raw_text = b[4].strip()
+        if not raw_text or _is_margin_noise(raw_text, b[1], b[3], p_height):
+            continue
+        cleaned, is_atomic = _clean_block_text(raw_text)
+        if cleaned:
+            page_blocks.append(
+                _DocBlock(page=page_num, section=sec, text=cleaned, is_atomic=is_atomic)
+            )
+
+    return page_blocks
+
+
+def _extract_document_blocks(doc: pymupdf.Document) -> list[_DocBlock]:
+    """Extract filtered, cleaned text and code blocks from all pages in document."""
+    import bisect
+
+    toc_pages, toc_titles = _build_toc_lookup(doc)
+
+    def get_section(page_num: int) -> str:
+        if not toc_pages:
+            return ""
+        idx = bisect.bisect_right(toc_pages, page_num) - 1
+        return toc_titles[idx] if idx >= 0 else ""
+
+    blocks: list[_DocBlock] = []
+    for page_idx in range(len(doc)):
+        page_num = page_idx + 1
+        sec = get_section(page_num)
+        blocks.extend(_extract_page_blocks(doc[page_idx], page_num, sec))
+
+    return blocks
+
+
+def _split_oversized_block(
+    b: _DocBlock,
+    meta: BookMetadata,
+    book_slug: str,
+    max_words: int,
+    overlap_words: int,
+    start_chunk_idx: int,
+) -> tuple[list[TextChunk], int]:
+    """Split a single block whose word count exceeds max_words."""
+    words = b.text.split()
     chunks: list[TextChunk] = []
-    start = 0
-    idx = 0
-    book_slug = Path(meta.filename).stem
+    chunk_idx = start_chunk_idx
+    st = 0
 
-    while start < len(words):
-        end = min(start + chunk_size, len(words))
-        chunk_words = words[start:end]
-        chunk_text = " ".join(chunk_words)
-        chunk_id = f"{book_slug}_p{page_num}_{idx}"
+    while st < len(words):
+        end = min(st + max_words, len(words))
+        sub_text = " ".join(words[st:end])
+        cid = f"{book_slug}_p{b.page}_{chunk_idx}"
         chunks.append(
             TextChunk(
-                id=chunk_id,
+                id=cid,
                 book_slug=book_slug,
                 title=meta.display_name,
                 author=meta.author,
                 year=meta.year,
                 citation_key=meta.citation_key,
-                page=page_num,
-                chunk_index=idx,
-                text=chunk_text,
+                page=b.page,
+                chunk_index=chunk_idx,
+                text=sub_text,
+                section=b.section,
+                page_end=b.page,
             )
         )
+        chunk_idx += 1
         if end == len(words):
             break
-        start += chunk_size - overlap
-        idx += 1
+        st += max_words - overlap_words
+
+    return chunks, chunk_idx
+
+
+def _make_chunk_from_blocks(
+    blist: list[_DocBlock],
+    meta: BookMetadata,
+    book_slug: str,
+    chunk_idx: int,
+) -> TextChunk:
+    """Construct a TextChunk from an accumulated sequence of document blocks."""
+    p_start = blist[0].page
+    p_end = blist[-1].page
+    sec = blist[0].section or blist[-1].section
+    body = "\n\n".join(b.text for b in blist)
+    cid = f"{book_slug}_p{p_start}_{chunk_idx}"
+    return TextChunk(
+        id=cid,
+        book_slug=book_slug,
+        title=meta.display_name,
+        author=meta.author,
+        year=meta.year,
+        citation_key=meta.citation_key,
+        page=p_start,
+        chunk_index=chunk_idx,
+        text=body,
+        section=sec,
+        page_end=p_end,
+    )
+
+
+def _compute_overlap_blocks(
+    blocks: list[_DocBlock],
+    overlap_words: int,
+) -> tuple[list[_DocBlock], int]:
+    """Extract trailing blocks that satisfy the target overlap word count."""
+    overlap_blocks: list[_DocBlock] = []
+    overlap_count = 0
+    for ob in reversed(blocks):
+        ob_w = len(ob.text.split())
+        overlap_blocks.insert(0, ob)
+        overlap_count += ob_w
+        if overlap_count >= overlap_words:
+            break
+    return overlap_blocks, overlap_count
+
+
+def _should_flush_chunk(
+    curr_blocks: list[_DocBlock],
+    curr_words: int,
+    b: _DocBlock,
+    b_words: int,
+    max_words: int,
+) -> bool:
+    """Determine whether the current accumulator should be finalized as a chunk."""
+    if not curr_blocks:
+        return False
+    # Semantic heading boundary: split if section changes between blocks
+    if b.section and curr_blocks[0].section and b.section != curr_blocks[0].section:
+        return True
+    # Word budget boundary exceeded
+    return curr_words + b_words > max_words
+
+
+def _assemble_text_chunks(
+    blocks: list[_DocBlock],
+    meta: BookMetadata,
+    max_words: int = 240,
+    overlap_words: int = 40,
+) -> list[TextChunk]:
+    """Group document blocks into chunks respecting word limits, overlap, and boundaries."""
+    book_slug = Path(meta.filename).stem
+    chunks: list[TextChunk] = []
+    curr_blocks: list[_DocBlock] = []
+    curr_words = 0
+    chunk_idx = 0
+
+    for b in blocks:
+        b_w = len(b.text.split())
+        if not b_w:
+            continue
+
+        if b_w > max_words and not b.is_atomic:
+            if curr_blocks:
+                chunks.append(_make_chunk_from_blocks(curr_blocks, meta, book_slug, chunk_idx))
+                chunk_idx += 1
+                curr_blocks = []
+                curr_words = 0
+            sub_chunks, chunk_idx = _split_oversized_block(
+                b, meta, book_slug, max_words, overlap_words, chunk_idx
+            )
+            chunks.extend(sub_chunks)
+            continue
+
+        if _should_flush_chunk(curr_blocks, curr_words, b, b_w, max_words):
+            chunks.append(_make_chunk_from_blocks(curr_blocks, meta, book_slug, chunk_idx))
+            chunk_idx += 1
+            curr_blocks, curr_words = _compute_overlap_blocks(curr_blocks, overlap_words)
+
+        curr_blocks.append(b)
+        curr_words += b_w
+
+    if curr_blocks:
+        chunks.append(_make_chunk_from_blocks(curr_blocks, meta, book_slug, chunk_idx))
 
     return chunks
 
 
 def extract_chunks_from_document(doc_path: Path, meta: BookMetadata) -> list[TextChunk]:
-    """Extract all text chunks from a PDF or EPUB document."""
-    chunks: list[TextChunk] = []
+    """Extract structured, layout-aware text chunks across document pages."""
     try:
         doc = pymupdf.open(doc_path)
     except Exception as exc:  # noqa: BLE001
         typer.secho(f"Warning: Failed to open {doc_path.name}: {exc}", fg=typer.colors.YELLOW)
         return []
 
-    for page_idx in range(len(doc)):
-        page_num = page_idx + 1
-        page_text = str(doc[page_idx].get_text())
-        page_chunks = extract_page_chunks(meta, page_num, page_text)
-        chunks.extend(page_chunks)
-
+    blocks = _extract_document_blocks(doc)
     doc.close()
-    return chunks
+    return _assemble_text_chunks(blocks, meta)
 
 
 def get_embedding_model() -> TextEmbedding:
@@ -227,36 +459,92 @@ def _filter_files(files: list[Path], book_filter: str | None) -> list[Path]:
     return filtered
 
 
+def _build_chunk_record(chunk: TextChunk, emb: object) -> dict[str, object]:
+    """Build a database record dictionary from a text chunk and vector."""
+    return {
+        "id": chunk.id,
+        "vector": emb.tolist(),  # type: ignore[union-attr]
+        "book_slug": chunk.book_slug,
+        "title": chunk.title,
+        "author": chunk.author,
+        "year": chunk.year,
+        "citation_key": chunk.citation_key,
+        "page": chunk.page,
+        "page_end": chunk.page_end,
+        "section": chunk.section,
+        "chunk_index": chunk.chunk_index,
+        "text": chunk.text,
+    }
+
+
+def _collect_embeddings(
+    model: TextEmbedding,
+    texts: list[str],
+    progress: Progress | None,
+    chunk_task: TaskID | None,
+) -> list[object]:
+    """Generate vector embeddings, optionally updating progress."""
+    embeddings: list[object] = []
+    for emb in model.embed(texts, batch_size=64):
+        embeddings.append(emb)
+        if progress and chunk_task is not None:
+            progress.advance(chunk_task)
+    return embeddings
+
+
 def _process_single_book(
-    file_path: Path, meta: BookMetadata, model: TextEmbedding
+    file_path: Path,
+    meta: BookMetadata,
+    model: TextEmbedding,
+    progress: Progress | None = None,
+    chunk_task: TaskID | None = None,
 ) -> list[dict[str, object]]:
-    """Extract and embed all chunks for a single book."""
-    typer.echo(f"Extracting chunks from: {file_path.name} ({meta.title})...")
+    """Extract and embed all chunks for a single book with optional progress tracking."""
+    if progress and chunk_task is not None:
+        desc = f"[cyan]Extracting {file_path.name[:25]}..."
+        progress.update(chunk_task, description=desc, total=None, completed=0)
+
     chunks = extract_chunks_from_document(file_path, meta)
     if not chunks:
+        if progress and chunk_task is not None:
+            desc = f"[yellow]No chunks: {file_path.name[:25]}"
+            progress.update(chunk_task, description=desc, total=1, completed=1)
         return []
 
-    typer.echo(f"  Extracted {len(chunks)} chunks. Generating embeddings...")
-    texts = [c.text for c in chunks]
-    embeddings = list(model.embed(texts, batch_size=64))
+    embed_texts = [
+        f"Title: {c.title}{' | Section: ' + c.section if c.section else ''}\n\n{c.text}"
+        for c in chunks
+    ]
 
-    records: list[dict[str, object]] = []
-    for chunk, emb in zip(chunks, embeddings, strict=True):
-        records.append(
-            {
-                "id": chunk.id,
-                "vector": emb.tolist(),
-                "book_slug": chunk.book_slug,
-                "title": chunk.title,
-                "author": chunk.author,
-                "year": chunk.year,
-                "citation_key": chunk.citation_key,
-                "page": chunk.page,
-                "chunk_index": chunk.chunk_index,
-                "text": chunk.text,
-            }
-        )
-    return records
+    if progress and chunk_task is not None:
+        desc = f"[cyan]Embedding {file_path.stem[:25]} ({len(chunks)} chunks)"
+        progress.update(chunk_task, description=desc, total=len(chunks), completed=0)
+
+    embeddings = _collect_embeddings(model, embed_texts, progress, chunk_task)
+    return [_build_chunk_record(c, e) for c, e in zip(chunks, embeddings, strict=True)]
+
+
+def _upgrade_and_merge_records(
+    db: lancedb.DBConnection,
+    tbl: lancedb.table.Table,
+    records: list[dict[str, object]],
+    target_slug: str,
+) -> None:
+    """Migrate legacy LanceDB table schema and merge newly indexed records."""
+    import pyarrow as pa
+
+    existing_arrow = tbl.to_arrow()
+    if "section" not in existing_arrow.schema.names:
+        n = len(existing_arrow)
+        existing_arrow = existing_arrow.append_column("section", pa.array([""] * n, pa.string()))
+    if "page_end" not in existing_arrow.schema.names:
+        existing_arrow = existing_arrow.append_column("page_end", existing_arrow["page"])
+
+    mask = [str(slug) != target_slug for slug in existing_arrow["book_slug"]]
+    filtered_existing = existing_arrow.filter(mask)
+    new_table = pa.Table.from_pylist(records, schema=filtered_existing.schema)
+    combined = pa.concat_tables([filtered_existing, new_table])
+    db.create_table(COLLECTION_NAME, data=combined, mode="overwrite")
 
 
 def _persist_records(
@@ -265,17 +553,22 @@ def _persist_records(
     book_filter: str | None,
     target_slug: str | None,
 ) -> None:
-    """Store or update records in LanceDB."""
+    """Store or update records in LanceDB, ensuring schema compatibility."""
     if not has_table(db, COLLECTION_NAME):
         db.create_table(COLLECTION_NAME, data=records, mode="overwrite")
         return
 
-    if book_filter and target_slug:
-        tbl = db.open_table(COLLECTION_NAME)
+    if not (book_filter and target_slug):
+        db.create_table(COLLECTION_NAME, data=records, mode="overwrite")
+        return
+
+    tbl = db.open_table(COLLECTION_NAME)
+    field_names = [f.name for f in tbl.schema]
+    if "section" in field_names and "page_end" in field_names:
         tbl.delete(f"book_slug = '{target_slug}'")
         tbl.add(records)
     else:
-        db.create_table(COLLECTION_NAME, data=records, mode="overwrite")
+        _upgrade_and_merge_records(db, tbl, records, target_slug)
 
 
 @app.command()
@@ -294,10 +587,24 @@ def index(
     db = get_vector_db()
     all_records: list[dict[str, object]] = []
 
-    for file_path in files:
-        meta = resolve_book_metadata(file_path, catalog)
-        book_records = _process_single_book(file_path, meta, model)
-        all_records.extend(book_records)
+    with Progress(
+        TextColumn("[bold blue]{task.description}"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TextColumn("({task.completed}/{task.total})"),
+        TimeElapsedColumn(),
+        TimeRemainingColumn(),
+    ) as progress:
+        book_task = progress.add_task("[bold green]Books", total=len(files))
+        chunk_task = progress.add_task("[bold cyan]Chunks", total=0)
+
+        for file_path in files:
+            meta = resolve_book_metadata(file_path, catalog)
+            book_records = _process_single_book(
+                file_path, meta, model, progress=progress, chunk_task=chunk_task
+            )
+            all_records.extend(book_records)
+            progress.advance(book_task)
 
     if not all_records:
         typer.secho("No chunks extracted to index.", fg=typer.colors.YELLOW)
@@ -349,8 +656,13 @@ def search(
     typer.secho(f"\nTop {len(results)} matches for: '{query}'\n", fg=typer.colors.CYAN, bold=True)
     for i, item in enumerate(results, start=1):
         score_val = item.get("_distance", 0.0)
+        page_info = f"Page {item['page']}"
+        page_end = item.get("page_end")
+        if page_end and page_end != item["page"]:
+            page_info = f"Pages {item['page']}–{page_end}"
+        section_str = f" | {item['section']}" if item.get("section") else ""
         typer.secho(
-            f"[{i}] {item['title']} (Page {item['page']}) — Distance: {score_val:.4f}",
+            f"[{i}] {item['title']} ({page_info}{section_str}) — Distance: {score_val:.4f}",
             fg=typer.colors.GREEN,
             bold=True,
         )
