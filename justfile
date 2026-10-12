@@ -268,7 +268,7 @@ struct-layout name file="src/vm_objects/object.c":
 
 # Compile C code snippet on Compiler Explorer (Godbolt) and display machine assembly
 godbolt code compiler="cclang1810" options="-O3 -std=c17":
-    uv run python scripts/godbolt.py compile-code "{{ code }}" --compiler "{{ compiler }}" --options "{{ options }}"
+    uv run python scripts/godbolt.py "{{ code }}" --compiler "{{ compiler }}" --options "{{ options }}"
 
 # View lines from canonical CPython runtime source code
 cpython-view file start="1" end="80":
