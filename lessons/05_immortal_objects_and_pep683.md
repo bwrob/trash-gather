@@ -33,15 +33,15 @@ bool object_is_immortal(const object_t *obj) {
 }
 ```
 
-Whenever `refcount_inc()` or `refcount_dec()` is invoked:
+Whenever `object_refcount_inc()` or `object_refcount_dec()` is invoked:
 
 ```c
-void refcount_inc(object_t *obj) {
+void object_refcount_inc(object_t *obj) {
     if (obj == NULL || object_is_immortal(obj)) return;
     obj->refcount++;
 }
 
-void refcount_dec(object_t *obj) {
+void object_refcount_dec(object_t *obj) {
     if (obj == NULL || object_is_immortal(obj)) return;
     obj->refcount--;
     if (obj->refcount == 0) object_free(obj);
@@ -123,13 +123,13 @@ ______
 
 ### 3.1 Eager Bootstrapping vs. Lazy Allocation
 
-Rather than allocating `None` on its first access (which would make `new_none()` fallible and require runtime allocation failure checks), the VM adopts **eager startup bootstrapping**:
+Rather than allocating `None` on its first access (which would make `none()` fallible and require runtime allocation failure checks), the VM adopts **eager startup bootstrapping**:
 
 ```mermaid
 flowchart TD
   A["vm_new()"] --> B["stack_new(frames)"]
   B --> C["stack_new(objects)"]
-  C --> D["create_none_singleton()"]
+  C --> D["none_new()"]
   D --> E["create_empty_tuple_singleton()"]
   E --> F["CURRENT_VM = vm"]
 
@@ -140,7 +140,7 @@ flowchart TD
 
 1. `vm_new()` allocates `none` and `empty_tuple` during VM initialization.
 1. If any singleton allocation fails under memory pressure, `vm_new()` executes a clean multi-stage rollback (`_immortals_free`, `stack_free`, `free(vm)`), leaving zero memory leaks and `CURRENT_VM == NULL`.
-1. Once initialized, `new_none()` and `new_tuple_0()` are **100% infallible, zero-allocation accessors**.
+1. Once initialized, `none()` and `tuple_new_0()` are **100% infallible, zero-allocation accessors**.
 
 ### 3.2 Scoped Memory Verification with Checkpoints
 
@@ -150,9 +150,9 @@ Previously, leak verification relied solely on `boot_all_freed()`, requiring tes
 boot_checkpoint_t cp = boot_checkpoint();
 
 // Run local operations
-object_t *lst = new_list(2);
-list_set(lst, 0, new_none());
-refcount_dec(lst);
+object_t *lst = list_new(2);
+list_set(lst, 0, none());
+object_refcount_dec(lst);
 
 // Assert 100% of memory allocated since checkpoint is freed,
 // while the VM and immortals remain active!
@@ -161,18 +161,48 @@ assert_true(boot_checkpoint_all_freed(cp));
 
 ______
 
-## 4. Tooling Insights & Workflow Takeaways
+## 4. Hardware & Silicon Mechanics (What the Machine Did)
+
+### 4.1 Multi-Core Cache-Line Bouncing & Invalidation Traffic
+
+- In a multithreaded architecture, each CPU core maintains its own private L1/L2 data cache.
+- When multiple cores share a pointer to a global singleton (such as `None`), if each reference mutation writes to `obj->refcount`, the CPU executes a cache line invalidate broadcast via the inter-core interconnect bus (MESI invalidation storm).
+- Under PEP 683 immortal objects (`refcount == SIZE_MAX`), refcount updates are bypassed. The memory line containing `None` remains indefinitely in the **Shared (S)** cache state, completely eliminating inter-core bus arbitration and cache line bouncing.
+
+### 4.2 Operating System Copy-on-Write (CoW) Virtual Memory Paging
+
+- On Unix-like systems, process forking (`fork()`) creates a child process that shares identical physical RAM pages with the parent process. The kernel marks these pages as read-only.
+- If the child process mutates an object's reference count, the CPU MMU generates a write protection fault. The OS kernel traps the fault, allocates a fresh 4 KB physical frame, copies the 4 KB page content, updates the process page table, and marks it writable (Copy-on-Write).
+- Mutating refcounts on immortal singletons across thousands of worker processes forces physical memory duplication for otherwise read-only heap pages. PEP 683 guarantees that pages holding immortals remain untouched and shared across processes.
+
+______
+
+## 5. Tooling Insights & Workflow Takeaways
 
 1. **Empirical Zero-Allocation Verification**:
-   Using `boot_total_alloc_count()`, unit tests now mathematically prove that accessing `new_none()` or `new_tuple_0()` does not allocate:
+   Using `boot_total_alloc_count()`, unit tests mathematically prove that accessing `none()` or `tuple_new_0()` does not allocate:
 
    ```c
    size_t allocs_before = boot_total_alloc_count();
-   object_t *n = new_none();
+   object_t *n = none();
    assert_size(boot_total_alloc_count(), ==, allocs_before);
    ```
 
-1. **Verified Fault Injection**:
+2. **Verified Fault Injection**:
    Using `boot_fail_alloc_triggered()`, every allocation failure test verifies that `bootlib` actually intercepted and rejected an allocation, preventing silent false-positive tests.
-1. **Persistent OOM Simulation**:
+3. **Persistent OOM Simulation**:
    `boot_set_fail_alloc_repeat(0, -1)` enables simulating total heap exhaustion, proving that constructors unwind safely when *every* allocation attempt fails.
+
+______
+
+## 6. Recommended Reading & Literature References
+
+1. **Immortal Objects Specification & Runtimes**:
+   - [PEP 683 — Immortal Objects, Using a Fixed Refcount (Python Software Foundation)](https://peps.python.org/pep-0683/): Core design rationale, `0xFFFFFFFF` / `SIZE_MAX` bit patterns, and thread-safety implications.
+2. **Virtual Memory, Paging & Copy-on-Write**:
+   - [Randal E. Bryant & David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 2015)](../resources/bryant_2015_computer_systems.pdf):
+     - **Chapter 9 (Virtual Memory, §9.8.2 The `fork` Function Revisited, pp. 1876–1878)**: Detailed hardware mechanics of Copy-on-Write page faults and physical frame duplication.
+     - **Chapter 9 (§9.3 Address Translation & §9.6 Memory Protection, pp. 1845–1860)**: Page table entries, MMU permissions, and page fault exceptions.
+3. **Storage Duration & Linkage in C17**:
+   - [Jens Gustedt — *Modern C* (Manning, 2023)](../resources/gustedt_2023_modern_c.epub):
+     - **Chapter 13 (Storage, §13.2 Storage duration, lifetime, and visibility, pp. 410–415)**: Language standard rules governing `const`, `extern`, file-scope identifiers, and translation unit visibility.

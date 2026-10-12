@@ -36,6 +36,7 @@ Always read the repository's `AGENTS.md`, its public headers, and adjacent `.c` 
 
 - **Strict `src/` Boundary**: In educational or pair-programming repositories where the human developer writes the runtime (as defined in `AGENTS.md`), the AI agent must **never** create or edit files in `src/`.
 - **Socratic Tutoring & Review**: Reviews must use Archimedean inquiries and probing questions to guide the developer to uncover pointer traps, allocation leaks, and GC invariants rather than spoiling the solution with ready-made runtime code.
+- **Literature RAG Grounding**: The repository includes an offline literature RAG system over tracked canonical textbooks (*The Garbage Collection Handbook*, *Pointers on C*, *Effective C*, *Modern C*, *Computer Systems: A Programmer's Perspective*, *APUE*). When explaining complex GC algorithms, tri-color invariants, pointer arithmetic, or OS memory dynamics, query the local literature RAG (`search_literature` MCP tool or `just rag-search "<concept>"`) to cite authoritative definitions, diagrams, and exact page references.
 - **Project Idioms**: Where repo conventions sanction specific patterns (e.g. `goto cleanup`, custom allocation interceptors, tagged unions), preserve them rather than introducing external restyling.
 
 ______

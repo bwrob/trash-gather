@@ -10,7 +10,7 @@ ______
 
 ## 1. Objective & Technical Scope
 
-1. **Primary Goals**: Implement configurable allocation thresholds within `vm_t`; track cumulative heap allocations since the last cycle collection; automatically trigger cycle sweeps when thresholds are crossed during `vm_new_object()`; provide user-facing control APIs (`vm_gc_enable()`, `vm_gc_disable()`, `vm_gc_set_threshold()`).
+1. **Primary Goals**: Implement configurable allocation thresholds within `vm_t`; track cumulative heap allocations since the last cycle collection; automatically trigger cycle sweeps when thresholds are crossed during `vm_object_new()`; provide user-facing control APIs (`vm_gc_enable()`, `vm_gc_disable()`, `vm_gc_set_threshold()`).
 1. **Scope Boundaries**: Multi-generational nursery promotion thresholds and adaptive heap resizing heuristics are deferred to Milestone 16.
 
 ______
@@ -21,7 +21,7 @@ ______
    - Threshold tracking and control counters embedded in `vm_t`:
 
      ```text
-     [vm_new_object() Allocation Call]
+     [vm_object_new() Allocation Call]
                    │
                    ▼
      [Allocation Counter Check]
@@ -54,7 +54,7 @@ ______
 1. **Step-by-Step Execution Sequence**:
    1. Add threshold fields (`uint64_t alloc_threshold`, `uint64_t allocs_since_gc`, `bool gc_auto_enabled`, `bool is_collecting`) to `vm_t` in `include/vm.h`.
    1. Initialize default thresholds (e.g. 50 allocations) in `vm_new()` in `src/vm.c`.
-   1. Implement threshold checking and conditional collection dispatch in `vm_new_object()` in `src/vm.c`.
+   1. Implement threshold checking and conditional collection dispatch in `vm_object_new()` in `src/vm.c`.
    1. Expose control functions (`vm_gc_enable()`, `vm_gc_disable()`, `vm_gc_set_threshold()`) in `include/vm.h` and `src/vm.c`.
    1. Write adversarial unit tests in `tests/test_vm.c` verifying that cyclic structures are automatically collected under allocation churn without manual `vm_collect()` calls.
 1. **File Touchpoints**:
@@ -75,6 +75,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 1 (Introduction, §1.3 Allocator Dynamics) and Chapter 2 (§2.1 The Classic Mark-Sweep Algorithm), covering allocation pacing, threshold triggers, and collector invocation heuristics.
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 26 (Garbage Collection, §26.5 Automatic GC Pacing & Headroom), detailing dynamic threshold scaling based on survivor volume.
    - [Python gc.set_threshold() Pacing Mechanics](https://docs.python.org/3/library/gc.html#gc.set_threshold): Understanding allocation-to-deallocation net thresholds for triggering garbage collections.
    - [Adaptive Allocation Pacing in Managed Runtimes](<https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)>): Balancing throughput against memory footprint by pacing collection cycles.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -52,13 +52,13 @@ In a pure tracing collector, an object's `free()` function only needs to return 
 In a reference-counted runtime, deallocation has two conflicting jobs:
 
 1. **Resource Reclamation:** Freeing private heap allocations (e.g., string buffers, dynamic arrays).
-1. **Graph Ownership Relinquishment:** Cascading decrements to children (`refcount_dec(child)`).
+1. **Graph Ownership Relinquishment:** Cascading decrements to children (`object_refcount_dec(child)`).
 
 ### The Inherent Failure of Linear Traversal
 
 When a runtime iterates over a collection of objects (during full VM shutdown or cycle sweeping):
 
-- In any realistic program, object creation order is arbitrary. A child may be allocated *before* its container (`v = new_vector(x, y)`), or *after* its container (`arr = new_array(2); arr[0] = new_string(...)`).
+- In any realistic program, object creation order is arbitrary. A child may be allocated *before* its container (`v = new_vector(x, y)`), or *after* its container (`arr = new_array(2); arr[0] = string_new(...)`).
 - **Backward iteration:** Frees children created before their parents first. When the loop visits the parent, the parent cascades a decref to an already-freed child pointer $\\rightarrow$ **ASan `heap-use-after-free`**.
 - **Forward iteration:** Frees children created after their parents first. When the loop visits the parent, the parent cascades a decref to an already-freed child pointer $\\rightarrow$ **ASan `heap-use-after-free`**.
 
@@ -93,13 +93,13 @@ During total runtime shutdown, all remaining objects are unconditionally doomed.
 When the cycle collector sweeps unreachable (unmarked) objects:
 
 - **If a child is unmarked (dead):** The child is part of the dead cycle being collected in this same sweep. Cascading a decref to it is redundant and triggers use-after-free if the child was already visited.
-- **If a child is marked (live):** The child is rooted in an active call stack. Because the dead container is being destroyed, the container **must** release its reference to the surviving child (`refcount_dec(live_child)`).
+- **If a child is marked (live):** The child is rooted in an active call stack. Because the dead container is being destroyed, the container **must** release its reference to the surviving child (`object_refcount_dec(live_child)`).
 - **The Invariant:**
 
   ```c
   if (obj == NULL) return;
   if (!live_only || obj->is_marked) {
-    refcount_dec(obj);
+    object_refcount_dec(obj);
   }
   ```
 
@@ -113,43 +113,55 @@ When the cycle collector sweeps unreachable (unmarked) objects:
 
 ______
 
-## 5. Performance Engineering: Hot vs. Cold Path Optimization
+## 4. Hardware & Silicon Mechanics (What the Machine Did)
 
-### Where Inlining Belongs in Reference Counting
+### 4.1 Branch Prediction & Branch Misprediction Penalties on Refcounting
 
-- **The Hot Path (Inline aggressively):**
-  - `refcount_inc()` and the non-zero branch of `refcount_dec()`:
+- In reference-counted runtimes, `object_refcount_dec()` executes on every scope exit or variable reassignment.
+- The decrement check `if (--obj->refcount == 0)` evaluates to **false** for the vast majority of operations (shared objects, loop variables, surviving containers).
+- The CPU's branch prediction unit (pattern history table and branch target buffer) learns this strongly-biased path, speculating through the non-zero branch with zero pipeline stalls.
+- Keeping the destruction branch out-of-line (`object_free(obj)`) preserves spatial locality in the L1 instruction cache (I-cache), preventing cold deallocation routines from evicting hot mutator code loops.
 
-    ```c
-    obj->refcount--;
-    if (obj->refcount > 0) return;
-    ```
+### 4.2 Linear Pass Memory Bus Bursts (Spatial Pre-fetching in Two-Phase Teardown)
 
-  - In a production VM, this executes billions of times. Inlining it (as a macro or `static inline` header function) eliminates function call overhead and branch prediction penalties.
-- **The Cold Path (Keep out-of-line):**
-  - The zero branch (`object_free(obj)`):
-  - Object deallocation happens only once per object lifecycle. It performs system allocator calls (`free()`) and graph traversal. The function call overhead is completely unmeasurable against `free()`, while keeping it out-of-line keeps the instruction cache (I-cache) compact for hot application code.
+- In the naive single-pass teardown, pointer traversal causes erratic random pointer-chasing jumps across disjoint heap addresses, causing CPU stall cycles waiting for DRAM row activations.
+- In two-phase teardown (`CURRENT_VM->objects`), the CPU streams contiguously through array slots. The hardware stream prefetcher recognizes the sequential memory access pattern, fetching upcoming cache lines from L3 into L1 before the CPU executes the loop instructions.
 
 ______
 
-## 6. Systems Programming & Tooling Insights
+## 5. Tooling Insights & Workflow Takeaways
 
-### 1. Unsigned Integer Loop Underflow
+### 5.1 Unsigned Integer Loop Underflow
 
 - **The Trap:** Writing `for (size_t i = 0; i < count; i--)` instead of `i++`.
-- **The Result:** Because `size_t` is unsigned, `0 - 1` wraps to `SIZE_MAX` (18,446,744,073,709,551,615). The condition `SIZE_MAX < count` evaluates to `false` immediately, aborting the loop after a single iteration without emitting compiler warnings, resulting in silent memory leaks.
+- **The Result:** Because `size_t` is unsigned, `0 - 1` wraps to `SIZE_MAX` ($18{,}446{,}744{,}073{,}709{,}551{,}615$). The condition `SIZE_MAX < count` evaluates to `false` immediately, aborting the loop after a single iteration without emitting compiler warnings, resulting in silent memory leaks.
 
-### 2. AddressSanitizer (ASan) Shadow Memory
+### 5.2 AddressSanitizer (ASan) Shadow Memory Callstack Triage
 
 - ASan does not just alert on illegal memory access; its shadow memory maps track exactly:
   - Where the memory block was allocated (`calloc`/`malloc` callstack).
   - Where the memory block was freed (`free` callstack).
   - Where the illegal dereference occurred (`heap-use-after-free`).
-- When diagnosing graph deallocation issues, comparing the `freed by thread` callstack directly with the `READ of size 8` callstack immediately reveals inverted parent-child traversal dependencies.
+- Comparing the `freed by thread` callstack directly with the `READ of size 8` callstack reveals inverted parent-child traversal dependencies in graph deallocation.
 
-### 3. Adversarial Testing Across GC Boundaries
+### 5.3 Adversarial Testing Across GC Boundaries
 
 - A hybrid memory manager must be tested at the seam between reference counting and tracing:
   1. Verify that cycles trapped with `refcount >= 1` are correctly identified and collected by tracing.
-  1. Verify that self-referencing containers ($A \\rightarrow A$) traverse cleanly without infinite recursion.
+  1. Verify that self-referencing containers ($A \to A$) traverse cleanly without infinite recursion.
   1. Verify that dead cycles pointing to live rooted values accurately decrement the survivor's reference count without prematurely freeing it.
+
+______
+
+## 6. Recommended Reading & Literature References
+
+1. **Reference Counting Foundations & Cycle Collection**:
+   - [Richard Jones, Antony Hosking & Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf):
+     - **Chapter 5, §5.1–§5.3 (Reference counting & Immediate reclamation, pp. 101–108)**: Core mechanics of reference updating, cascaded deletions, and free lists.
+     - **Chapter 5, §5.5 (Cyclic reference counting, pp. 109–114)**: The trial deletion algorithm, Bacon & Rajan's cycle detection, and synchronous vs. asynchronous cycle collectors.
+2. **POSIX Types & OS Namespace Collisions**:
+   - [W. Richard Stevens & Stephen A. Rago — *Advanced Programming in the UNIX Environment* (Addison-Wesley, 2013)](../resources/stevens_2013_advanced_programming_unix.pdf):
+     - **Chapter 10 (Signals, §10.14 `sigaction` Function & `sigaltstack`, pp. 385–388)**: POSIX alternate signal stacks and the historical definition of `stack_t` in `<signal.h>`.
+3. **Hardware Locality & Branch Prediction**:
+   - [Randal E. Bryant & David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 2015)](../resources/bryant_2015_computer_systems.pdf):
+     - **Chapter 5 (Optimizing Program Performance, §5.11 Branch Prediction and Misprediction Penalties, pp. 540–548)**: Microarchitectural cost of conditional branches and instruction pipelining.

@@ -85,6 +85,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 9 (Generational Garbage Collection, §9.1 The Weak Generational Hypothesis), pp. 205–224, explaining infant mortality, multi-generational heap partitioning, and survivor promotion.
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 26 (Garbage Collection), contrasting uniform tracing with generational nursery promotion.
    - [The Weak Generational Hypothesis](https://en.wikipedia.org/wiki/Generational_garbage_collection#Weak_generational_hypothesis): Empirical observation that most allocated objects have extremely short lifespans.
    - [The Garbage Collection Handbook: Generational Systems](https://gchandbook.org/): Theoretical foundations of multi-generation partition collectors and survivor tenure.
 1. **After Implementation (Deep Dives & Systems Context)**:

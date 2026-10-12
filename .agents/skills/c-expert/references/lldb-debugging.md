@@ -140,7 +140,7 @@ When ASan traps an error under `just test`, run `just debug <filter>` to pinpoin
 ### 3.1 Heap-Use-After-Free (UAF)
 
 - **Symptom**: `ERROR: AddressSanitizer: heap-use-after-free on address 0x...`
-- **Root Cause**: Object container freed before its children or payload, or a pointer was retained after `refcount_dec` or `vm_free`.
+- **Root Cause**: Object container freed before its children or payload, or a pointer was retained after `object_refcount_dec` or `vm_free`.
 - **Debugging Protocol**:
   1. Inspect the two stack traces in the ASan report:
      - `READ of size 8 at 0x...` (where the invalid access happened).

@@ -2,7 +2,31 @@
 
 Explorations in automatic memory management and virtual machine runtime implementation in C.
 
-______
+<!-- HEADER_DAG_START -->
+```mermaid
+flowchart TD
+  subgraph sg_src_vm ["src/vm/"]
+    h_stack_h["stack.h"]
+    h_vm_h["vm.h"]
+  end
+  subgraph sg_src_vm_objects ["src/vm_objects/"]
+    h_list_h["list.h"]
+    h_object_h["object.h"]
+    h_tuple_h["tuple.h"]
+  end
+
+  h_object_h --> h_list_h
+  h_object_h --> h_tuple_h
+  h_vm_h --> h_object_h
+  h_vm_h --> h_stack_h
+
+  click h_list_h "src/vm_objects/list.h" "Jump to list.h"
+  click h_object_h "src/vm_objects/object.h" "Jump to object.h"
+  click h_stack_h "src/vm/stack.h" "Jump to stack.h"
+  click h_tuple_h "src/vm_objects/tuple.h" "Jump to tuple.h"
+  click h_vm_h "src/vm/vm.h" "Jump to vm.h"
+```
+<!-- HEADER_DAG_END -->
 
 ## 💡 Overview
 
@@ -12,8 +36,6 @@ ______
 - **Mark-and-Sweep Cycle Collector**: Periodic detection and reclamation of cyclic pointer graphs.
 - **Zero-Leak Guarantee**: Enforced across every test with AddressSanitizer (ASan), UndefinedBehaviorSanitizer (UBSan), and `bootlib` heap tracking.
 - **Modern Tooling from Day One**: Automated linting (`clang-tidy`, `ruff`, `pyrefly`), strict formatting (`clang-format`, `rumdl`), and pre-commit checks.
-
-______
 
 ## 🚀 Quickstart
 
@@ -30,15 +52,11 @@ just run
 
 For the complete developer command reference, test filters, benchmarking, and AI pair-programming directives, see **[`AGENTS.md`](AGENTS.md)**.
 
-______
-
 ## 🎯 Architecture & Roadmap
 
 The runtime feature progression and systems milestones are organized as a pedagogical **Directed Acyclic Graph (DAG)** spanning object semantics, container memory layouts, and garbage collection algorithms.
 
 👉 **[Explore the Roadmap & Dependency Graph (`roadmap/README.md`)](roadmap/README.md)**
-
-______
 
 ## 🎓 Origin
 

@@ -74,6 +74,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 8 (Arrays, §8.1 Array Mechanics), explaining array subscripting, pointer offset arithmetic, and bounds validation in C.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 3 (Arithmetic Types, §Integers), on signed integer wraparound, two's complement representation, and safe indexing conversions.
    - [Two's Complement Integer Representation in C](https://en.wikipedia.org/wiki/Two%27s_complement): Binary representation of signed negative integers and behavior of sign extension.
    - [SEI CERT C INT31-C: Signed to Unsigned Conversion](https://wiki.sei.cmu.edu/confluence/display/c/INT31-C.+Ensure+that+unsigned+integer+operations+do+not+wrap): Preventing subtle security vulnerabilities when converting negative signed offsets to unsigned size_t.
 1. **After Implementation (Deep Dives & Systems Context)**:

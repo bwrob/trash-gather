@@ -89,6 +89,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 5 (Operators and Expressions, §5.1 Bitwise Operators) and Chapter 10 (Structures and Unions, §10.3 Structure Storage Allocation), detailing bitwise masks and alignment.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 2 (Objects, Functions, and Types, §Alignment), explaining bitmask packing, word boundaries, and `_Static_assert` layout verification.
    - [Bitwise Operators in ISO C](https://en.cppreference.com/w/c/language/operator_arithmetic#Bitwise_arithmetic_operators): Bit masks, bitwise shifts, inversion, and bitwise boolean logic.
    - [Structure Alignment, Padding, and \_Static_assert](https://en.cppreference.com/w/c/language/object#Alignment): Hardware alignment requirements, compiler padding rules, and compile-time size assertions.
 1. **After Implementation (Deep Dives & Systems Context)**:

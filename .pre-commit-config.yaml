@@ -6,6 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
+        exclude: ^resources/
 
   - repo: local
     hooks:
@@ -63,6 +64,14 @@ repos:
         pass_filenames: false
         files: \.toml$
 
+      - id: just-fmt
+        name: just format
+        entry: just format-just-check
+        language: system
+        pass_filenames: false
+        files: ^justfile$
+
+
       - id: lint-docs
         name: lint docstrings
         entry: just lint-docs
@@ -76,3 +85,24 @@ repos:
         language: system
         pass_filenames: false
         files: ^(roadmap/.*|README\.md)$
+
+      - id: lint-resources
+        name: lint resources parity
+        entry: just lint-resources
+        language: system
+        pass_filenames: false
+        files: ^resources/.*
+
+      - id: lint-header-dag
+        name: lint header dag
+        entry: just lint-header-dag
+        language: system
+        pass_filenames: false
+        files: ^(src/.*\.h|include/.*\.h|docs/header_dag\.mmd|README\.md)$
+
+      - id: lint-headers-standalone
+        name: lint headers standalone
+        entry: just lint-headers-standalone
+        language: system
+        pass_filenames: false
+        files: ^(src/.*\.h|include/.*\.h)$

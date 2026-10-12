@@ -85,6 +85,9 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [W. Richard Stevens, Stephen A. Rago — *Advanced Programming in the UNIX Environment* (Addison-Wesley, 3rd Ed, 2013)](../resources/stevens_2013_advanced_programming_unix.pdf): Chapter 5 (Standard I/O Library, §5.8 Binary I/O), detailing `fread`/`fwrite`, stream buffer management, and binary record serialization.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 8 (Input/Output, §Binary I/O), pp. 185–198, detailing `fread`/`fwrite`, byte serialization, endianness safety, and structured record deserialization.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 15 (Input/Output Functions, §15.11 Binary I/O), covering block-level stream I/O and serialized memory graphs.
    - [ISO C Binary Stream I/O Operations](https://en.cppreference.com/w/c/io): Standard rules for `fopen`, `fread`, `fwrite`, `ferror`, and managing binary streams.
    - [Designing Binary File Formats (Magic Numbers and Headers)](<https://en.wikipedia.org/wiki/Magic_number_(programming)>): Structuring robust binary files with format identifiers, schemas, and versioning.
 1. **After Implementation (Deep Dives & Systems Context)**:

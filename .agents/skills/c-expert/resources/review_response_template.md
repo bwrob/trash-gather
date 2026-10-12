@@ -15,7 +15,7 @@ ______________________________________________________________________
 
 ### Phase 1: Pointer Ownership & Lifetime Contracts
 - **Ownership State**: <Analyze whether returned/passed pointers have unambiguous borrowed vs. owned semantics.>
-- **Reference Count Symmetry**: <Audit refcount_inc and refcount_dec balance across all execution branches.>
+- **Reference Count Symmetry**: <Audit object_refcount_inc and object_refcount_dec balance across all execution branches.>
 - **Inductive Step ($\mathcal{I}_k \implies \mathcal{I}_{k+1}$)**: <Confirm mutations preserve ownership balance, pointer validity, and reachability.>
 - **Socratic Observation / Inquiry**: <If an improvement exists, pose a probing first-principles question.>
 

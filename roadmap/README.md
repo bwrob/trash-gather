@@ -38,15 +38,17 @@ flowchart TD
 
   subgraph Tier1 ["Tier 1: Foundational Ergonomics & Singletons"]
     direction TB
-    subgraph T1_Ergo ["Core Ergonomics"]
+    subgraph T1_Ergo ["Core Ergonomics & Runtime"]
       direction TB
+      m_77a68dc["Separate GC<br/>Module"]:::planned
       m_b0c1d8b["Sequence Negative<br/>Indexing"]:::planned
       m_5b538ed["Variadic Object<br/>Constructors"]:::planned
       m_13e2377["Sequence Membership &<br/>Linear Search"]:::planned
       m_37c67d7["Sequence Reversal &<br/>Shallow Copy"]:::planned
     end
-    subgraph T1_Data ["Singletons, Lists & Strings"]
+    subgraph T1_Data ["Singletons, Stacks & Lists"]
       direction TB
+      m_509705c["Fallible Stack &<br/>Frame Alloc"]:::planned
       m_6c3a989["Boolean Singletons<br/>& Truthiness"]:::planned
       m_70b20d3["Small Integer<br/>Caching"]:::planned
       m_d7b5feb["Dynamic Resizable<br/>List Mutations"]:::planned
@@ -57,6 +59,7 @@ flowchart TD
       m_99d514b["Isolated Worker Thread &<br/>Thread-Local VM"]:::planned
     end
   end
+
 
   subgraph Tier2 ["Tier 2: Intermediate Arithmetic, Telemetry & Slabs"]
     direction TB
@@ -152,6 +155,7 @@ flowchart TD
   m_330a2b1 --> m_81a16cb
   m_330a2b1 --> m_eaa403e
   m_37c67d7 --> m_3f1132d
+  m_393f420 --> m_77a68dc
   m_393f420 --> m_99d514b
   m_393f420 --> m_e67154d
   m_393f420 --> m_f9c475f
@@ -206,6 +210,7 @@ flowchart TD
   m_f9c475f --> m_b81f9a7
   m_f9c475f --> m_fc1cc81
   m_fc1cc81 --> m_330a2b1
+  m_fc1cc81 --> m_509705c
   m_fc1cc81 --> m_6c3a989
   m_fc1cc81 --> m_70b20d3
 

@@ -82,6 +82,9 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 16 (Standard Library, §16.8 Sorting and Searching), explaining `qsort` polymorphic dispatch, function pointer comparators, and comparison invariants.
+   - [Robert Sedgewick — *Algorithms in C, Parts 1–4* (Addison-Wesley, 3rd Ed, 1998)](../resources/sedgewick_1998_algorithms_in_c.djvu): Part 3 (Sorting, Chapters 6–8), covering insertion sort, quicksort partitioning mechanics, and three-way comparison predicates.
+   - [Jens Gustedt — *Modern C* (Manning Publications, 3rd Ed, 2023)](../resources/gustedt_2023_modern_c.epub): Level 1, Chapter 8 (C Library Functions), detailing standard library search and sort contracts and comparator three-way ordering.
    - [ISO C Standard Library qsort Specification](https://en.cppreference.com/w/c/algorithm/qsort): Comparator function pointer signatures and casting rules for void pointer callbacks.
    - [Python Rich Comparison Protocols](https://docs.python.org/3/reference/datamodel.html#object.__lt__): Three-way comparisons, total ordering, and handling incomparable types.
 1. **After Implementation (Deep Dives & Systems Context)**:

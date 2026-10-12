@@ -10,7 +10,7 @@ ______
 
 ## 1. Objective & Technical Scope
 
-1. **Primary Goals**: Replace the fixed 3-element tuple representation with an arbitrary-capacity, heap-allocated `tuple_t` payload using a C99 flexible array member (struct hack), implement `new_tuple(size_t size)`, and integrate into GC tracing and sweeping.
+1. **Primary Goals**: Replace the fixed 3-element tuple representation with an arbitrary-capacity, heap-allocated `tuple_t` payload using a C99 flexible array member (struct hack), implement `tuple_new(size_t size)`, and integrate into GC tracing and sweeping.
 1. **Scope Boundaries**: Eliminating the tagged union and unifying `object_t` with the tuple payload into a single allocation is deferred to Milestone 04.
 
 ______
@@ -42,7 +42,7 @@ ______
 1. **Socratic Inquiries**:
    - Why can't a flexible array member appear directly inside a union?
    - How does tuple allocation differ from list allocation in terms of buffer resizing and immutability?
-   - How does the runtime handle allocation failure rollback if `new_object` succeeds but `malloc(payload)` fails?
+   - How does the runtime handle allocation failure rollback if `object_new` succeeds but `malloc(payload)` fails?
 1. **Failure Modes & Pitfalls**: Uninitialized slot dereferences during GC tracing; memory leaks on failed allocation paths; integer overflow during size multiplication.
 
 ______
@@ -52,7 +52,7 @@ ______
 1. **Step-by-Step Execution Sequence**:
    - Update `tuple_t` in `src/object.h` with `size_t size;` and `object_t *items[];`.
    - Update `object_data_t` in `src/object.h` to declare `tuple_t *v_tuple;`.
-   - Implement `new_tuple(size_t size)` in `src/new.c` and `src/new.h`.
+   - Implement `tuple_new(size_t size)` in `src/new.c` and `src/new.h`.
    - Implement `tuple_set()` and `tuple_get()` accessors in `src/object.c` and `src/object.h`.
    - Update `trace_blacken_object()` in `src/vm.c` to iterate over tuple items.
    - Update `object_decref_children()` and `object_free_payload()` in `src/object.c`.
@@ -76,6 +76,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamic Memory Allocation), covering flexible array members, trailing element sizing, and avoiding struct padding calculation errors.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 10 (Structures and Unions, §10.3 Structure Storage Allocation), detailing hardware word alignment and contiguous memory offsets.
    - [C99 Flexible Array Members (ISO/IEC 9899:1999 §6.7.2.1)](https://en.cppreference.com/w/c/language/struct): Official standard rules governing trailing zero-size array members in contiguous structures.
    - [Struct Memory Alignment and offsetof in C](https://en.cppreference.com/w/c/types/offsetof): Hardware alignment requirements and calculating exact contiguous allocation byte sizes.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -84,6 +84,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory, §Flexible Array Members), detailing contiguous byte payload layout and alignment.
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 9 (Strings, Characters, and Bytes, §9.4 Memory Byte Operations), dissecting raw buffer manipulations via `memcpy`, `memmove`, and `memset`.
    - [Fixed-Width Integer Types in ISO C (\<stdint.h>)](https://en.cppreference.com/w/c/types/integer): Exact bit-width types (`uint8_t`, `size_t`) and signedness safety.
    - [Python bytes and bytearray Specification](https://docs.python.org/3/library/stdtypes.html#bytes-and-bytearray-operations): Differences between immutable byte sequences and mutable dynamic byte buffers.
 1. **After Implementation (Deep Dives & Systems Context)**:

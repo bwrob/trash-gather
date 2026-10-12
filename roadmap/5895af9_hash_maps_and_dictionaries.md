@@ -46,7 +46,7 @@ ______
 1. **Core Systems Invariants**:
    - The Python equality invariant: Two keys are considered identical if `key1 == key2` (pointer identity) OR (`hash(key1) == hash(key2)` AND `object_equal(key1, key2)`).
    - Bidirectional GC marking: Dictionaries can participate in reference cycles (e.g., a dictionary holding a list that references the dictionary). Marking a dict must mark all occupied keys and values.
-   - Ownership transfer: Setting a key/value increments reference counts (`refcount_inc(key)` and `refcount_inc(val)`). Replacing an existing key's value decrements the old value's reference count.
+   - Ownership transfer: Setting a key/value increments reference counts (`object_refcount_inc(key)` and `object_refcount_inc(val)`). Replacing an existing key's value decrements the old value's reference count.
 1. **Architectural Trade-offs**: Open addressing with linear probing has superior CPU cache locality compared to separate chaining (linked lists per bucket), but requires keeping load factors moderate ($\\le 0.70$) to prevent clustering.
 
 ______
@@ -92,6 +92,9 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 20 (Hash Tables), pp. 380–405, providing the canonical implementation of open-addressed hash tables with linear probing and load factor tracking in C.
+   - [Robert Sedgewick — *Algorithms in C, Parts 1–4* (Addison-Wesley, 3rd Ed, 1998)](../resources/sedgewick_1998_algorithms_in_c.djvu): Part 4 (Searching, Chapter 14: Hashing), covering hash functions, modular arithmetic, linear probing collision resolution, and clustering.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on allocating bucket arrays and handling allocation failure rollbacks.
    - [Open Addressing with Linear Probing](https://en.wikipedia.org/wiki/Open_addressing): Hash table collision resolution using contiguous bucket probe sequences.
    - [Primary Clustering and Load Factors](https://en.wikipedia.org/wiki/Primary_clustering): Mathematical analysis of probe degradation as hash table occupancy increases.
 1. **After Implementation (Deep Dives & Systems Context)**:

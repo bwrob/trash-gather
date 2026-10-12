@@ -9,7 +9,6 @@ respect-gitignore = true
 exclude = [
     ".git",
     ".github",
-    ".sources",
     ".temp",
     ".vscode",
     ".failures",
@@ -22,7 +21,14 @@ exclude = [
 ]
 
 # Files and directories to check
-include = ["README.md", "AGENTS.md", "lessons/**/*.md", "roadmap/**/*.md", ".agents/**/*.md"]
+include = [
+    "README.md",
+    "AGENTS.md",
+    "lessons/**/*.md",
+    "roadmap/**/*.md",
+    ".agents/**/*.md",
+    "resources/**/*.md",
+]
 
 # Rules to disable globally
 # MD013 (line-length): Disabled to support wide ASCII memory diagrams, math formulas, and tables

@@ -75,6 +75,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 7 (Functions, §7.5 Recursion), explaining recursive stack frames, base cases, and visited-pointer guards.
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 20 (Hash Tables) and Chapter 26 (Garbage Collection), covering visited sets and cycle detection during recursive graph traversals.
    - [Cycle Detection in Directed Graphs](<https://en.wikipedia.org/wiki/Cycle_(graph_theory)>): Using DFS and visited address sets to detect circular pointer graphs.
    - [Python repr() Protocol and Recursion Suppression](https://docs.python.org/3/reference/datamodel.html#object.__repr__): Language conventions for printing nested containers and displaying `[...]` for self-references.
 1. **After Implementation (Deep Dives & Systems Context)**:

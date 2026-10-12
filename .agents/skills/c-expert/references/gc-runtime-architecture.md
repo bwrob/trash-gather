@@ -73,12 +73,12 @@ Every function accepting or returning an `object_t*` must declare ownership sema
 - **Owned Reference**: The receiver assumes responsibility for the reference count.
   - Passing an owned reference transfers ownership (the caller drops its obligation or increments the refcount if keeping a copy).
 - **Borrowed Reference**: The pointer is valid only as long as the parent container or caller frame retains its owned reference.
-  - Accessors (`tuple_get(tuple, index)`) typically return borrowed references. If the caller stores the pointer long-term, it must explicitly call `refcount_inc()`.
+  - Accessors (`tuple_get(tuple, index)`) typically return borrowed references. If the caller stores the pointer long-term, it must explicitly call `object_refcount_inc()`.
 
 ### Symmetrical Balance
 
-- Inserting a child object into a container (`tuple_set`, `list_append`) must increment the child's reference count (`refcount_inc(child)`).
-- Releasing or overwriting an entry must decrement the old child's reference count (`refcount_dec(old)`).
+- Inserting a child object into a container (`tuple_set`, `list_append`) must increment the child's reference count (`object_refcount_inc(child)`).
+- Releasing or overwriting an entry must decrement the old child's reference count (`object_refcount_dec(old)`).
 - Container deallocation must recursively decrement children (`object_decref_children()`).
 
 ### The Cycle Hazard
@@ -124,8 +124,8 @@ ______
 When an operation requires multiple sequential allocations (e.g., allocating an `object_t` envelope followed by a `tuple_t` payload):
 
 ```c
-object_t *new_tuple(size_t size) {
-  object_t *obj = new_object(TUPLE);
+object_t *tuple_new(size_t size) {
+  object_t *obj = object_new(TUPLE);
   if (obj == NULL) {
     return NULL;
   }

@@ -14,7 +14,7 @@ ______
    - Upgrade `matrix_t` to store explicit strides (`size_t stride_row`, `size_t stride_col`) and a root owner reference (`object_t *base`).
    - Update 2D access formula to strided coordinates: $\\text{offset}(r, c) = r \\times \\text{stride_row} + c \\times \\text{stride_col}$.
    - Implement `matrix_transpose(object_t *mat)` producing a zero-copy view by swapping `rows` $\\leftrightarrow$ `cols` and `stride_row` $\\leftrightarrow$ `stride_col` without duplicating the float buffer.
-   - Enforce lifecycle retention: view matrices increment `refcount_inc(base)` and trace `mark_object(base)` during GC marking to prevent premature reclamation of the shared underlying buffer.
+   - Enforce lifecycle retention: view matrices increment `object_refcount_inc(base)` and trace `mark_object(base)` during GC marking to prevent premature reclamation of the shared underlying buffer.
    - Implement standard $O(N^3)$ matrix multiplication `matrix_matmul(a, b)` supporting both contiguous matrices and strided views.
 1. **Scope Boundaries**:
    - Arbitrary $N$-dimensional tensors ($N > 2$) are deferred to future numeric milestones.
@@ -50,7 +50,7 @@ ______
      ```
 
 1. **Core Systems Invariants**:
-   - Base buffer retention invariant: If `mat->base != NULL`, `mat->data` is not freed when `mat` is collected; instead, `refcount_dec(mat->base)` is called. Only owning matrices (`base == NULL`) free their `data` buffer.
+   - Base buffer retention invariant: If `mat->base != NULL`, `mat->data` is not freed when `mat` is collected; instead, `object_refcount_dec(mat->base)` is called. Only owning matrices (`base == NULL`) free their `data` buffer.
    - GC reachability: During garbage collector mark phases, any reached view must immediately mark its `base` object, keeping the physical buffer alive even if user code dropped all direct variables referencing the original owner.
    - Zero-copy guarantee: Transpose creation is an $O(1)$ memory operation that allocates only a new `object_t` header, never copying float elements.
 1. **Architectural Trade-offs**: Strided views achieve instant zero-copy transposition, but hold the entire parent buffer alive in memory until all derived views are collected.
@@ -97,6 +97,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 8 (Arrays, §8.4 Multidimensional Arrays), covering non-contiguous stride arithmetic, row and column offset computation, and interior pointer manipulation.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on shared buffer retention and managing non-owning view references.
    - [NumPy Internal Memory Layout and Strides](https://numpy.org/doc/stable/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray): Understanding how row and column strides represent transposed matrices without copying data.
    - [Zero-Copy Networking and Data Processing](https://en.wikipedia.org/wiki/Zero-copy): Principles of sharing underlying storage buffers across multiple non-owning handles.
 1. **After Implementation (Deep Dives & Systems Context)**:

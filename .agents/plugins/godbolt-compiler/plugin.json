@@ -1,0 +1,4 @@
+{
+  "name": "godbolt-compiler",
+  "description": "Inspect machine assembly, compiler optimizations, and diagnostics via Compiler Explorer (Godbolt)."
+}

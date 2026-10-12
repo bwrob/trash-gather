@@ -4,30 +4,46 @@ Docstring Linter for C/C++ codebase headers, implementations, and benchmark file
 Validates presence, completeness, and Doxygen formatting of docstrings.
 """
 
-import argparse
 import os
 import re
 import subprocess
-import sys
+from typing import Annotated
 
+import typer
 from project_config import get_c_standard, get_cpp_standard
+
+app = typer.Typer(
+    add_completion=False,
+    help="Lint C/C++ docstrings across specified directories and files.",
+)
+
+
+def _get_src_inc_flags() -> list[str]:
+    """Return -I flags for src and all of its subdirectories."""
+    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return [f"-I{d[0]}" for d in sorted(os.walk(os.path.join(workspace_root, "src")))]
 
 
 def _run_clang_c(c_files: list[str]) -> int:
     """Run clang -Wdocumentation on C source and header files."""
     print("=== Running Clang -Wdocumentation Linting (C) ===")
-    cmd_c = [
-        "clang",
-        "-fsyntax-only",
-        "-Wdocumentation",
-        "-Wdocumentation-unknown-command",
-        "-Wdocumentation-pedantic",
-        f"-std={get_c_standard()}",
-        "-Iinclude",
-        "-Isrc",
-        "-Ivendor/munit",
-        "-Ivendor/bootlib",
-    ] + c_files
+    cmd_c = (
+        [
+            "clang",
+            "-fsyntax-only",
+            "-Wdocumentation",
+            "-Wdocumentation-unknown-command",
+            "-Wdocumentation-pedantic",
+            f"-std={get_c_standard()}",
+            "-Iinclude",
+        ]
+        + _get_src_inc_flags()
+        + [
+            "-Ivendor/munit",
+            "-Ivendor/bootlib",
+        ]
+        + c_files
+    )
 
     try:
         res = subprocess.run(cmd_c, capture_output=True, text=True, check=False)
@@ -65,7 +81,9 @@ def _run_clang_cpp(cpp_files: list[str]) -> int:
             "-Wdocumentation-pedantic",
             f"-std={get_cpp_standard()}",
             "-Iinclude",
-            "-Isrc",
+        ]
+        + _get_src_inc_flags()
+        + [
             "-Ivendor/bootlib",
         ]
         + extra_inc
@@ -282,23 +300,22 @@ def discover_files(input_paths: list[str]) -> tuple[list[str], list[str]]:
     return sorted(c_files), sorted(cpp_files)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Lint C/C++ docstrings across specified directories and files."
-    )
-    parser.add_argument(
-        "paths",
-        nargs="+",
-        help="One or more file or directory paths to lint (e.g. vendor/bootlib bench)",
-    )
-    args = parser.parse_args()
-
-    c_files, cpp_files = discover_files(args.paths)
+@app.command()
+def main(
+    paths: Annotated[
+        list[str],
+        typer.Argument(
+            help="One or more file or directory paths to lint (e.g. vendor/bootlib bench)."
+        ),
+    ],
+) -> None:
+    """Lint C/C++ docstrings across specified directories and files."""
+    c_files, cpp_files = discover_files(paths)
     all_files = c_files + cpp_files
 
     if not all_files:
-        print(f"No C/C++ header or source files found in paths: {args.paths}")
-        sys.exit(0)
+        typer.echo(f"No C/C++ header or source files found in paths: {paths}")
+        raise typer.Exit(code=0)
 
     total_errors = 0
     total_errors += run_clang_documentation_check(c_files, cpp_files)
@@ -307,12 +324,11 @@ def main() -> None:
         total_errors += lint_file_docstrings(f)
 
     if total_errors > 0:
-        print(f"\n❌ Docstring linting failed with {total_errors} error(s).")
-        sys.exit(1)
+        typer.echo(f"\n❌ Docstring linting failed with {total_errors} error(s).")
+        raise typer.Exit(code=1)
 
-    print("\n✅ Docstring linting passed! All docstrings are present and correctly formatted.")
-    sys.exit(0)
+    typer.echo("\n✅ Docstring linting passed! All docstrings are present and correctly formatted.")
 
 
 if __name__ == "__main__":
-    main()
+    app()

@@ -1,7 +1,7 @@
 # Milestone: Dynamic Resizable List Mutations
 
 **ID:** `d7b5feb`\
-**Status:** Planned\
+**Status:** In Progress\
 **Difficulty:** 1 / 5\
 **Focus:** Transform `list_t` from a fixed-size buffer into a dynamically resizable sequence supporting `list_append()`, `list_insert()`, and `list_pop()` with amortized $O(1)$ geometric growth and overlapping memory shifts via `memmove`.\
 **Prerequisites:** [Polymorphic Sequence Length Protocol](b81f9a7_polymorphic_sequence_length.md)
@@ -47,7 +47,7 @@ ______
 1. **Core Systems Invariants**:
    - Capacity invariant: $0 \\le \\text{size} \\le \\text{capacity}$ must hold after every mutation.
    - Pointer safety: Reallocation must use `boot_realloc` (or `boot_malloc` + `memcpy` + `boot_free`). If allocation fails, the original elements buffer must remain untouched and un-leaked.
-   - Ownership transfer: Appending or inserting an object into a list transfers ownership by incrementing its reference count (`refcount_inc`). Popping an object retains its ownership for the caller without decrementing until the caller drops it.
+   - Ownership transfer: Appending or inserting an object into a list transfers ownership by incrementing its reference count (`object_refcount_inc`). Popping an object retains its ownership for the caller without decrementing until the caller drops it.
    - Overlap safety: Element shifting on insertion and deletion must strictly use `memmove()`, never `memcpy()`, because source and destination ranges overlap.
 1. **Architectural Trade-offs**: Pre-allocating capacity trades a small amount of memory overhead for $O(1)$ amortized append performance, avoiding costly heap reallocation on every single insertion.
 
@@ -60,7 +60,7 @@ ______
    - Why does ISO C state that calling `memcpy(dest, src, n)` produces Undefined Behavior when the regions `[dest, dest+n)` and `[src, src+n)` overlap, whereas `memmove` is guaranteed to be safe?
    - When expanding a dynamic array, why is geometric growth (e.g. $C\_{\\text{new}} = C\_{\\text{old}} \\times 2$) amortized $O(1)$, whereas linear growth ($C\_{\\text{new}} = C\_{\\text{old}} + 1$) is $O(N^2)$ for $N$ appends?
    - If `realloc()` fails and returns `NULL`, what happens to the existing pointer if you write `list->elements = realloc(list->elements, new_cap)`?
-1. **Failure Modes & Pitfalls**: Storing `realloc` result directly into `list->elements` causing instant memory leaks on allocation failure; off-by-one errors in `memmove` byte count calculations (`count * sizeof(object_t*)`); forgetting `refcount_inc` on appended items leading to premature reclamation.
+1. **Failure Modes & Pitfalls**: Storing `realloc` result directly into `list->elements` causing instant memory leaks on allocation failure; off-by-one errors in `memmove` byte count calculations (`count * sizeof(object_t*)`); forgetting `object_refcount_inc` on appended items leading to premature reclamation.
 
 ______
 
@@ -68,7 +68,7 @@ ______
 
 1. **Step-by-Step Execution Sequence**:
    - Update `list_t` in `src/object.h` to add `size_t capacity;`.
-   - Update `new_list(size_t size)` in `src/new.c` to initialize `capacity >= size`.
+   - Update `list_new(size_t size)` in `src/new.c` to initialize `capacity >= size`.
    - Implement geometric growth helper `static bool list_ensure_capacity(list_t *list, size_t min_capacity)` in `src/object.c`.
    - Implement `bool list_append(object_t *list, object_t *item);` in `src/object.h` and `src/object.c`.
    - Implement `bool list_insert(object_t *list, int64_t index, object_t *item);` supporting negative offsets and `memmove` shifts.
@@ -93,6 +93,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 14 (Chunks of Bytecode, §14.2 Dynamic Arrays), detailing geometric capacity growth, amortized O(1) allocation pacing, and buffer reallocation safety.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory, §Standard Allocator Functions), explaining `realloc` error handling without leaking original pointers and memory lifecycle states.
    - [Dynamic Array Amortized Complexity Analysis](https://en.wikipedia.org/wiki/Dynamic_array): Mathematical proof of amortized O(1) appends under geometric capacity scaling.
    - [ISO C realloc and memmove Semantics](https://en.cppreference.com/w/c/memory/realloc): Safe memory reallocation patterns and using memmove for overlapping buffer shifts.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -123,6 +123,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 2 (Mark-Sweep Garbage Collection, §2.4 The Sweep Phase), detailing segregated-fits size classes, boundary tags, and fixed-size pool allocation.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on heap fragmentation mitigation and multi-pool allocator designs.
    - [Segregated Storage and Multi-Size-Class Memory Pools](https://en.wikipedia.org/wiki/Memory_pool): Categorizing small requests into discrete size classes to eliminate external fragmentation.
    - [Internal vs External Memory Fragmentation](<https://en.wikipedia.org/wiki/Fragmentation_(computing)>): Analyzing padding waste inside fixed blocks versus unallocatable gaps between blocks.
 1. **After Implementation (Deep Dives & Systems Context)**:

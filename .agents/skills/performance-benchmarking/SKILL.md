@@ -46,7 +46,7 @@ When benchmarking the runtime or evaluating new data structures, implement acros
 ### 1. Pure Allocation Throughput
 
 - **Goal**: Measures raw object creation and allocator speed without garbage collection pauses.
-- **Pattern**: Allocate $N$ objects in a tight loop (`new_integer`, `new_array`, `new_tuple`).
+- **Pattern**: Allocate $N$ objects in a tight loop (`integer_new`, `new_array`, `tuple_new`).
 - **Optimization Guard**: Use `benchmark::DoNotOptimize(obj)` to prevent the compiler from optimizing away unused returned pointers.
 
 ### 2. Full Sweep (0% Retention — Pure Garbage)

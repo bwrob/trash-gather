@@ -6,7 +6,6 @@
 
 #include "bootlib.h"
 #include "munit.h"
-#include "new.h"
 #include "object.h"
 #include "vm.h"
 
@@ -24,10 +23,10 @@ munit_case(
         vm_new();
         frame_t *frame = vm_new_frame();
 
-        object_t *teej_skill = new_integer(420);
-        object_t *lane_skill = new_string("issues");
+        object_t *teej_skill = integer_new(420);
+        object_t *lane_skill = string_new("issues");
 
-        mark();
+        vm_mark();
         // should not be marked because not in frame
         assert_false(teej_skill->is_marked);
         assert_false(lane_skill->is_marked);
@@ -36,7 +35,7 @@ munit_case(
         frame_reference_object(frame, lane_skill);
 
         // after adding and marking, should be marked
-        mark();
+        vm_mark();
         assert_true(teej_skill->is_marked);
         assert_true(lane_skill->is_marked);
 
@@ -56,14 +55,14 @@ munit_case(
         frame_t *frame = vm_new_frame();
         frame_t *frame2 = vm_new_frame();
 
-        object_t *teej_skill = new_integer(420);
-        object_t *lane_skill = new_string("issues");
-        object_t *prime_skill = new_string("infinite");
+        object_t *teej_skill = integer_new(420);
+        object_t *lane_skill = string_new("issues");
+        object_t *prime_skill = string_new("infinite");
 
         frame_reference_object(frame, teej_skill);
         frame_reference_object(frame, lane_skill);
         frame_reference_object(frame2, prime_skill);
-        mark();
+        vm_mark();
 
         assert_true(teej_skill->is_marked);
         assert_true(lane_skill->is_marked);

@@ -89,6 +89,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Richard Jones, Antony Hosking, Eliot Moss — *The Garbage Collection Handbook* (CRC Press, 2nd Ed, 2023)](../resources/jones_2023_garbage_collection_handbook.pdf): Chapter 9 (Generational Garbage Collection, §9.3 Inter-Generational References & Write Barriers), pp. 225–248, detailing card marking, remembered sets, and mutator write interception.
+   - [Robert C. Seacord — *Effective C: An Introduction to Professional C Programming* (No Starch Press, 2020)](../resources/seacord_2020_effective_c.pdf): Chapter 6 (Dynamically Allocated Memory), on mutator write hooks and tracking pointer mutations across heap boundaries.
    - [Dijkstra and Steele Write Barriers in Tracing Collectors](https://en.wikipedia.org/wiki/Write_barrier): Detecting mutations of pointer references to ensure garbage collector correctness.
    - [Remembered Sets and Card Tables](https://gchandbook.org/): Recording old-to-young pointers so minor collections avoid scanning mature heap generations.
 1. **After Implementation (Deep Dives & Systems Context)**:

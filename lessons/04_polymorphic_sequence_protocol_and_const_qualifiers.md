@@ -84,7 +84,7 @@ When writing tests inside test harnesses that use macro blocks (e.g., µnit's `m
 // ❌ COMPILE ERROR: C Preprocessor splits macro arguments on commas!
 munit_case(RUN, test_tuples, {
     object_t *items[] = {i, f, s, i, f, s}; // Preprocessor sees 6 extra arguments!
-    object_t *t = new_tuple(items, 6);
+    object_t *t = tuple_new(items, 6);
 });
 ```
 
@@ -131,10 +131,40 @@ In C libraries without C++ namespaces or language-level modules, prefixing publi
 
 ______
 
-## 5. Tooling Takeaways & Verification
+## 5. Hardware & Silicon Mechanics (What the Machine Did)
+
+### 5.1 Branch Prediction & Monomorphic vs. Polymorphic Dispatch
+
+- In `object_len(const object_t *obj)`, the tagged union `switch (obj->kind)` compiles to a jump table (`jmp *%rax`) or a series of conditional branches (`cmp` / `je`).
+- When a loop repeatedly passes identical types (e.g. iterating over an array of tuples), the CPU's branch predictor history table records a monomorphic pattern, correctly predicting the jump target with zero pipeline stalls.
+- When types alternate randomly (`LIST` $\to$ `STRING` $\to$ `TUPLE`), branch target buffer (BTB) misses force the CPU to flush the instruction pipeline, incurring a 15–20 cycle latency penalty per invocation.
+
+### 5.2 Read-Only Cache Line Sharing (`const object_t *`)
+
+- Qualifying pointers with `const` allows the compiler to enforce that inspection routines like `object_len` do not write to object memory.
+- In hardware, read-only cache lines remain in the **Shared (S)** state in cache coherency protocols (MESI/MOESI), allowing multiple CPU cores to inspect the same object concurrently without triggering cache-invalidation bus traffic.
+
+______
+
+## 6. Tooling Insights & Workflow Takeaways
 
 1. **`just coverage` at 100.00%**:
    - `src/object.c` achieved 100.00% coverage across 165 lines.
    - Adversarial testing actively verified all sequence branches (`STRING`, `LIST`, `TUPLE`), non-sequence branches (`INTEGER`, `FLOAT`), and the `NULL` boundary condition.
-1. **`pre-commit` Gatekeeping**:
+2. **`pre-commit` Gatekeeping**:
    - Automated `clang-format`, `clang-tidy`, Doxygen docstring checks, and roadmap DAG validation ensure clean code hygiene on every milestone commit.
+
+______
+
+## 7. Recommended Reading & Literature References
+
+1. **Pointers, Types & `const` Qualifiers**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf):
+     - **Chapter 6 (Pointers, §6.9 Pointer Constants & `const`, pp. 138–142)**: Distinction between pointer constants, pointers to constants, and type checking rules.
+     - **Chapter 3 (Data, §3.3 Type Qualifiers, pp. 45–48)**: ISO C rules governing `const` and `volatile`.
+2. **Modern C Typing & Union Tag Matching**:
+   - [Jens Gustedt — *Modern C* (Manning, 2023)](../resources/gustedt_2023_modern_c.epub):
+     - **Chapter 6 (Derived Data Types, §6.2 Unions and tags)**: Tagged union patterns, layout safety, and exhaustive enum matching in C17.
+3. **Machine-Level Control & Branch Architecture**:
+   - [Randal E. Bryant & David R. O'Hallaron — *Computer Systems: A Programmer's Perspective* (Pearson, 2015)](../resources/bryant_2015_computer_systems.pdf):
+     - **Chapter 3 (Machine-Level Representation of Programs, §3.6 Control & §3.6.7 Jump Tables, pp. 240–260)**: Assembly implementation of `switch` statements via jump tables and indirect branch prediction.

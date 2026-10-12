@@ -86,6 +86,8 @@ ______
 ## 6. Recommended Reading & External References
 
 1. **Before Implementation (Conceptual Foundations)**:
+   - [Kenneth A. Reek — *Pointers on C* (Addison-Wesley, 1998)](../resources/reek_1998_pointers_on_c.pdf): Chapter 9 (Strings, Characters, and Bytes, §9.1–9.3 String Operations), detailing bounded string manipulation, null termination, and buffer overflows.
+   - [Robert Nystrom — *Crafting Interpreters* (Genever Benning, 2021)](../resources/nystrom_2021_crafting_interpreters.pdf): Chapter 14 (Chunks of Bytecode, §14.2 Dynamic Arrays) and Chapter 19 (§19.3 Strings), illustrating dynamic buffer growth and heap-allocated string representations.
    - [Safe String Formatting in C with vsnprintf](https://en.cppreference.com/w/c/io/vfprintf): Using two-pass sizing with vsnprintf and va_copy for buffer overrun prevention.
    - [CWE-120: Buffer Copy without Checking Size of Input](https://cwe.mitre.org/data/definitions/120.html): Security analysis of classic C buffer overflows and standard mitigations.
 1. **After Implementation (Deep Dives & Systems Context)**:

@@ -63,6 +63,19 @@ munit_case(
 );
 
 /**
+ * @brief Test creating a stack with zero capacity returns NULL.
+ */
+munit_case(
+    RUN,
+    create_stack_zero_capacity,
+    {
+        vm_stack_t *s = stack_new(0);
+        assert_null(s);
+        assert(boot_all_freed());
+    }
+);
+
+/**
  * @brief Test creating a large stack instance with high initial capacity.
  */
 munit_case(
@@ -366,6 +379,7 @@ munit_case(
 );
 
 MunitTest vm_stack_tests[] = {
+    munit_test("/create_zero_capacity", create_stack_zero_capacity),
     munit_test("/create_small", create_stack_small),
     munit_test("/create_large", create_stack_large),
     munit_test("/allocation_size", create_stack_allocation_size),
